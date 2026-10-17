@@ -167,6 +167,10 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "mine") {
+      g.globalAlpha = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
+      g.lineWidth = 2;
+      g.strokeRect(f.x - 4, f.y - 4, 8, 8);
     } else if (f.k === "nade") {
       g.globalAlpha = 1;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
@@ -290,6 +294,29 @@ const render = () => {
       const a = orbW.angle + (o / orbW.lvl) * 6.283;
       if (!calm) for (let k = 3; k >= 1; k--) blade(P.x, P.y, a - k * 0.16, 0.5 / k, 0.7);
       blade(P.x, P.y, a, 1, 1);
+    }
+  }
+
+  // le champ de feu : un cercle en pointillés autour de toi
+  const flameW = weapon("flame");
+  if (flameW) {
+    g.strokeStyle = LIGHT;
+    g.globalAlpha = 0.5;
+    g.lineWidth = 2;
+    g.setLineDash([2, 6]);
+    g.beginPath();
+    g.arc(P.x, P.y, (46 + 8 * flameW.lvl) * rngMul(), 0, 6.283);
+    g.stroke();
+    g.setLineDash([]);
+    g.globalAlpha = 1;
+  }
+  // les drones : de petits carrés qui tournent autour de toi
+  const droneW = weapon("drone");
+  if (droneW) {
+    g.fillStyle = LIGHT;
+    for (let o = 0; o < droneW.lvl; o++) {
+      const a = droneW.angle + (o / droneW.lvl) * 6.283;
+      g.fillRect(P.x + Math.cos(a) * 38 - 3, P.y + Math.sin(a) * 38 - 3, 6, 6);
     }
   }
 

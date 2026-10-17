@@ -269,12 +269,18 @@ const update = (dt) => {
         }
       }
     }
+    if (e.frozen > 0) { e.frozen -= dt; sp = 0; }
     e.x = clamp(e.x + mx * sp * dt + px * 10 * dt + e.kx * dt, e.r, ARENA_W - e.r);
     e.y = clamp(e.y + my * sp * dt + py * 10 * dt + e.ky * dt, e.r, ARENA_H - e.r);
     e.kx *= Math.max(0, 1 - 9 * dt);
     e.ky *= Math.max(0, 1 - 9 * dt);
     e.hit = Math.max(0, e.hit - dt);
     e.orbCd = Math.max(0, e.orbCd - dt);
+    if (e.burn > 0) {
+      e.burn -= dt;
+      e.burnT -= dt;
+      if (e.burnT <= 0) { e.burnT = 0.5; damage(e, st.dmg * 0.4, false, 0, 0, "burn"); }
+    }
     if (d < e.r + P.r && e.age > 0.25) hurt(e.dmg);
   }
   if (mode !== "play") return;
@@ -303,6 +309,15 @@ const update = (dt) => {
   for (let b = bullets.length - 1; b >= 0; b--) {
     const bl = bullets[b];
     let gone = false;
+    if (bl.home) {
+      const n = nearest(400, bl.x, bl.y);
+      if (n) {
+        const sp = Math.hypot(bl.vx, bl.vy), a = Math.atan2(bl.vy, bl.vx), ta = Math.atan2(n.y - bl.y, n.x - bl.x);
+        const na = a + clamp(Math.atan2(Math.sin(ta - a), Math.cos(ta - a)), -6 * dt, 6 * dt);
+        bl.vx = Math.cos(na) * sp;
+        bl.vy = Math.sin(na) * sp;
+      }
+    }
     for (let sub = 0; sub < 3 && !gone; sub++) {
       const h = dt / 3;
       bl.x += bl.vx * h;
@@ -321,7 +336,8 @@ const update = (dt) => {
               const crit = Math.random() < st.crit;
               const kb = e.type === "boss" ? 15 : 90;
               damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? st.critMul : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
-              if (st.blast > 0) splash(e, st.blast, st.dmg * 0.5);
+              if (st.blast > 0 && !bl.dmg) splash(e, st.blast, st.dmg * 0.5);
+              if (bl.blast) splash(e, bl.blast, st.dmg);
               bl.hit.push(e);
               if (bl.pierce > 0) bl.pierce--; else { gone = true; break; }
             }
@@ -336,6 +352,7 @@ const update = (dt) => {
   for (let i = fx.length - 1; i >= 0; i--) {
     const f = fx[i];
     f.life -= dt;
+    if (f.tick) f.tick(f, dt);
     if (f.k === "nade") {
       const u = 1 - Math.max(0, f.life) / f.t;
       f.x = f.x0 + (f.tx - f.x0) * u;
