@@ -168,8 +168,11 @@ const showLevelUp = () => {
   mode = "levelup";
   const pool = UPGRADES.concat(weaponPool()).filter((u) => (lv[u.id] || 0) < u.max && (!u.only || weaponLvl(u.only)));
   const picks = [];
+  const usedWeapons = new Set();
   while (picks.length < 3 && pool.length) {
     const u = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    if (u.weapon && usedWeapons.has(u.weapon)) continue; // une seule carte par arme dans un tirage
+    if (u.weapon) usedWeapons.add(u.weapon);
     picks.push({ u, r: rollRarity() });
   }
   while (picks.length < 3) picks.push({ u: HEAL, r: 0 });
