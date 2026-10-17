@@ -173,6 +173,15 @@ const showLevelUp = () => {
     picks.push({ u, r: rollRarity() });
   }
   while (picks.length < 3) picks.push({ u: HEAL, r: 0 });
+  // une carte de boost en contient deux, de la même rareté
+  const used = new Set(picks.map((p) => p.u));
+  picks.forEach((p) => {
+    if (UPGRADES.indexOf(p.u) < 0 || p.u.only) return;
+    const rest = UPGRADES.filter((u) => !u.only && !used.has(u) && (lv[u.id] || 0) < u.max);
+    if (!rest.length) return;
+    p.u2 = rest[Math.floor(Math.random() * rest.length)];
+    used.add(p.u2);
+  });
   // une évolution disponible prend la dernière place
   const evo = EVOS.find((e) => !lv[e.id] && e.need.every((id) => (lv[id] || 0) >= 3));
   if (evo) picks[2] = { u: evo, r: 4, evo: true };
@@ -186,10 +195,11 @@ const showLevelUp = () => {
       const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
-      name.appendChild(document.createTextNode(p.u.name));
+      name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
       c.appendChild(tag);
       c.appendChild(name);
       c.appendChild(el("span", "", p.evo ? p.u.text : p.u.text(p.u.vals[p.r], p.r)));
+      if (p.u2) { c.appendChild(document.createElement("br")); c.appendChild(el("span", "", p.u2.text(p.u2.vals[p.r], p.r))); }
       c.addEventListener("click", () => choose(p));
       cards.appendChild(c);
     });
@@ -207,6 +217,7 @@ const choose = (p) => {
   } else {
     p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
+    if (p.u2) { p.u2.apply(p.u2.vals[p.r], p.r); lv[p.u2.id] = (lv[p.u2.id] || 0) + p.r + 1; }
       if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }
   drawChips();
