@@ -59,7 +59,7 @@ const sprite = (name, frame, flip, hit) => {
     for (let k = 0; k < rows[r].length; k++) {
       const ch = rows[r][flip ? rows[r].length - 1 - k : k];
       if (ch === ".") continue;
-      x.fillStyle = hit ? (ch === "o" ? BG : LIGHT) : (a.pal[ch] || LIGHT);
+      x.fillStyle = hit ? (ch === "o" || ch === "k" ? BG : LIGHT) : (a.pal[ch] || LIGHT);
       x.fillRect(k, r, 1, 1);
     }
   }
