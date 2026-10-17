@@ -337,7 +337,7 @@ const update = (dt) => {
               const kb = e.type === "boss" ? 15 : 90;
               damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? st.critMul : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
               if (st.blast > 0 && !bl.dmg) splash(e, st.blast, st.dmg * 0.5);
-              if (bl.blast) splash(e, bl.blast, st.dmg);
+              if (bl.blast) splash(e, bl.blast, bl.bd !== undefined ? bl.bd : st.dmg);
               bl.hit.push(e);
               if (bl.pierce > 0) bl.pierce--; else { gone = true; break; }
             }

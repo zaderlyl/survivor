@@ -168,6 +168,23 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "aim") {
+      // la ligne de visée du rail pendant sa charge
+      g.globalAlpha = 0.5;
+      g.lineWidth = 1;
+      g.setLineDash([4, 6]);
+      g.beginPath();
+      g.moveTo(P.x, P.y);
+      g.lineTo(P.x + Math.cos(f.a) * f.len, P.y + Math.sin(f.a) * f.len);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "wall") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.4 + 0.4 * Math.sin(t * 20) : 0.9;
+      g.lineWidth = 5;
+      g.beginPath();
+      g.moveTo(f.x1, f.y1);
+      g.lineTo(f.x2, f.y2);
+      g.stroke();
     } else if (f.k === "blade") {
       g.globalAlpha = 1;
       g.save();
