@@ -6,7 +6,7 @@ const start = () => {
   soundOn();
   reset();
   freeze = 0;
-  if (dbg.orbs) { st.orbs = dbg.orbs; lv.orb = dbg.orbs; } // #lames=3 : essayer les lames tout de suite
+  if (dbg.orbs) { addWeapon("orb", dbg.orbs); lv.orb = dbg.orbs; } // #lames=3 : essayer les lames tout de suite
   if (dbg.time) {
     t = dbg.time;
     bossAt = bossAt.filter((b) => b > t);
@@ -295,48 +295,8 @@ const update = (dt) => {
   }
   if (mode !== "play") return;
 
-  // l'onde : un coup qui repousse tout autour
-  if (st.wave > 0) {
-    waveCd -= dt;
-    if (waveCd <= 0) {
-      waveCd = Math.max(1.8, (5.5 - 0.3 * Math.min(st.wave, 8)) * st.waveMul);
-      const R = Math.min(280, 60 + 22 * st.wave);
-      SFX.wave();
-      waves.push({ x: P.x, y: P.y, r: 0, max: R, life: 0.35, t: 0.35 });
-      enemies.forEach((e) => {
-        const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
-        if (d < R + e.r) damage(e, 3 + Math.min(st.wave, 10) * 1.5, false, (dx / d) * (e.type === "boss" ? 120 : 420), (dy / d) * (e.type === "boss" ? 120 : 420));
-      });
-    }
-  }
-
-  // tir automatique sur l'ennemi le plus proche
-  fireCd -= dt;
-  if (fireCd <= 0 && enemies.length) {
-    let near = null, nd = st.range * st.range;
-    for (let i = 0; i < enemies.length; i++) {
-      const e = enemies[i], dx = e.x - P.x, dy = e.y - P.y, dd = dx * dx + dy * dy;
-      if (dd < nd) { nd = dd; near = e; }
-    }
-    if (near) {
-      fireCd = st.cd;
-      const base = Math.atan2(near.y - P.y, near.x - P.x);
-      P.aim = base;
-      P.muzzle = 0.06;
-      SFX.shoot();
-      P.volley++;
-      if (st.ring && P.volley % 3 === 0) {
-        for (let k = 0; k < 10; k++) {
-          const a = (k / 10) * 6.283 + base;
-          bullets.push({ x: P.x, y: P.y, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, life: st.range / 520, pierce: st.pierce, hit: [] });
-        }
-      }
-      for (let k = 0; k < st.count; k++) {
-        const a = base + (k - (st.count - 1) / 2) * 0.2;
-        bullets.push({ x: P.x, y: P.y, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, life: st.range / 520, pierce: st.pierce, hit: [] });
-      }
-    }
-  }
+  // chaque arme se met à jour seule (tir, onde...)
+  P.weapons.forEach((w) => WEAPONS[w.id].update(w, dt));
 
   // les tirs touchent : trois petits pas par image, pour qu'un tir rapide ne traverse pas un ennemi sans le toucher
   for (let b = bullets.length - 1; b >= 0; b--) {
@@ -369,25 +329,6 @@ const update = (dt) => {
       }
     }
     if (gone) { bullets[b] = bullets[bullets.length - 1]; bullets.pop(); }
-  }
-
-  // les lames en orbite
-  orbAngle += dt * 3.2;
-  for (let o = 0; o < st.orbs; o++) {
-    const a = orbAngle + (o / st.orbs) * 6.283;
-    const ox = P.x + Math.cos(a) * st.orbR, oy = P.y + Math.sin(a) * st.orbR;
-    const cx = clamp((ox / CELL) | 0, 0, COLS - 1), cy = clamp((oy / CELL) | 0, 0, ROWS - 1);
-    for (let yy = Math.max(0, cy - 1); yy <= Math.min(ROWS - 1, cy + 1); yy++) {
-      for (let xx = Math.max(0, cx - 1); xx <= Math.min(COLS - 1, cx + 1); xx++) {
-        const c = cells[yy * COLS + xx];
-        for (let k = 0; k < c.length; k++) {
-          const e = enemies[c[k]];
-          if (!e || e.orbCd > 0) continue;
-          const dx = e.x - ox, dy = e.y - oy;
-          if (dx * dx + dy * dy < (e.r + 6) * (e.r + 6)) { damage(e, Math.max(1, st.dmg * st.orbDmg), false, (dx / (Math.hypot(dx, dy) || 1)) * 120, (dy / (Math.hypot(dx, dy) || 1)) * 120); e.orbCd = 0.3; }
-        }
-      }
-    }
   }
 
   // les ennemis morts

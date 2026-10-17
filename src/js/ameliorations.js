@@ -14,10 +14,8 @@ const UPGRADES = [
   { id: "range", name: "Portée", max: 8, vals: [0.15, 0.25, 0.4, 0.6], text: (v) => "+" + pct(v) + " de portée", apply: (v) => (st.range *= 1 + v) },
   { id: "speed", name: "Vitesse", max: 8, vals: [0.08, 0.14, 0.22, 0.35], text: (v) => "+" + pct(v) + " de vitesse", apply: (v) => (st.speed *= 1 + v) },
   { id: "magnet", name: "Aimant", max: 8, vals: [45, 80, 130, 220], text: (v) => "ramasse de +" + v + " px plus loin", apply: (v) => (st.magnet += v) },
-  { id: "orb", name: "Lames", max: 8, vals: [1, 1, 2, 3], text: (v) => "+" + plural(v, "lame") + " qui tourne autour de toi", apply: (v) => (st.orbs = Math.min(12, st.orbs + v)) },
   { id: "heart", name: "Cœur", max: 8, vals: [20, 35, 55, 90], text: (v) => "+" + v + " PV max et soigne autant", apply: (v) => { st.maxHp += v; P.hp = Math.min(st.maxHp, P.hp + v); } },
   { id: "crit", name: "Critique", max: 8, vals: [0.1, 0.16, 0.24, 0.4], text: (v) => "+" + pct(v) + " de chances de tir double", apply: (v) => (st.crit = Math.min(0.9, st.crit + v)) },
-  { id: "wave", name: "Onde", max: 8, vals: [1, 1, 2, 3], text: (v) => "l'onde qui repousse grandit et revient plus vite (+" + v + ")", apply: (v) => (st.wave += v) },
   { id: "regen", name: "Régénération", max: 6, vals: [0.5, 1, 2, 3.5], text: (v) => "rend " + v + " PV par seconde", apply: (v) => (st.regen += v) },
   { id: "armor", name: "Armure", max: 6, vals: [0.08, 0.14, 0.22, 0.35], text: (v) => "dégâts reçus -" + pct(v), apply: (v) => (st.armor = Math.min(0.6, st.armor + v)) },
   { id: "blast", name: "Éclat", max: 6, vals: [30, 40, 52, 70], text: (v) => "tes tirs explosent : dégâts de zone sur " + v + " px", apply: (v) => (st.blast = Math.max(st.blast, v)) },
@@ -26,7 +24,7 @@ const UPGRADES = [
 ];
 // une évolution se propose quand deux améliorations ont 3 points chacune ; elle remplace une carte et ne vient qu'une fois
 const EVOS = [
-  { id: "evoStorm", name: "Tempête", need: ["orb", "wave"], text: "+2 lames plus rapides et plus larges, l'onde revient 40 % plus vite", apply: () => { st.orbs = Math.min(12, st.orbs + 2); st.orbR = 78; st.orbDmg = 1.4; st.waveMul *= 0.6; } },
+  { id: "evoStorm", name: "Tempête", need: ["orb", "wave"], text: "+2 lames plus rapides et plus larges, l'onde revient 40 % plus vite", apply: () => { addWeapon("orb", 2); st.orbR = 78; st.orbDmg = 1.4; st.waveMul *= 0.6; } },
   { id: "evoRing", name: "Rafale", need: ["multi", "pierce"], text: "toutes les 3 salves, un cercle de 10 tirs part autour de toi", apply: () => { st.ring = true; } },
   { id: "evoVamp", name: "Vampire", need: ["heart", "steal"], text: "+40 PV max, vol de vie doublé, rend 1 PV par seconde", apply: () => { st.maxHp += 40; P.hp = Math.min(st.maxHp, P.hp + 40); st.steal *= 2; st.regen += 1; } },
 ];

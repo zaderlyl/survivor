@@ -243,7 +243,8 @@ const render = () => {
     g.arc(b.x, b.y, 4, 0, 6.283);
     g.fill();
   }
-  if (st.orbs > 0) {
+  const orbW = weapon("orb");
+  if (orbW) {
     // l'anneau que suivent les lames, puis chaque lame avec sa traînée
     g.strokeStyle = "#2a2a2a";
     g.lineWidth = 1;
@@ -252,8 +253,8 @@ const render = () => {
     g.arc(P.x, P.y, st.orbR, 0, 6.283);
     g.stroke();
     g.setLineDash([]);
-    for (let o = 0; o < st.orbs; o++) {
-      const a = orbAngle + (o / st.orbs) * 6.283;
+    for (let o = 0; o < orbW.lvl; o++) {
+      const a = orbW.angle + (o / orbW.lvl) * 6.283;
       if (!calm) for (let k = 3; k >= 1; k--) blade(P.x, P.y, a - k * 0.16, 0.5 / k, 0.7);
       blade(P.x, P.y, a, 1, 1);
     }

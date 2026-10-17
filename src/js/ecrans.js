@@ -156,7 +156,7 @@ const rollRarity = () => {
 
 const showLevelUp = () => {
   mode = "levelup";
-  const pool = UPGRADES.filter((u) => (lv[u.id] || 0) < u.max);
+  const pool = UPGRADES.concat(WEAPON_CARDS).filter((u) => (lv[u.id] || 0) < u.max);
   const picks = [];
   while (picks.length < 3 && pool.length) {
     const u = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
@@ -215,7 +215,7 @@ const levelUpNext = () => {
 const drawChips = () => {
   const box = $("#chips");
   box.textContent = "";
-  UPGRADES.forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
+  UPGRADES.concat(WEAPON_CARDS).forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
   EVOS.forEach((e) => { if (lv[e.id]) box.appendChild(el("span", "evo", e.name)); });
 };
 
