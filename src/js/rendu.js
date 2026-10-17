@@ -168,6 +168,26 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "thunder") {
+      // l'orbe : un disque entouré d'un anneau qui pulse
+      g.globalAlpha = 1;
+      g.beginPath();
+      g.arc(f.x, f.y, 5, 0, 6.283);
+      g.fill();
+      g.globalAlpha = 0.5;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(f.x, f.y, calm ? 9 : 8 + 3 * Math.sin(t * 14), 0, 6.283);
+      g.stroke();
+    } else if (f.k === "tesla") {
+      // la bobine : un petit carré surmonté d'un trait
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 3, f.y - 2, 6, 6);
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(f.x, f.y - 2);
+      g.lineTo(f.x, f.y - 9);
+      g.stroke();
     } else if (f.k === "stick") {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
