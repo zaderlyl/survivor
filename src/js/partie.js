@@ -217,11 +217,22 @@ const update = (dt) => {
   }
 
   // les ennemis avancent, se repoussent, touchent
+  const decoys = fx.filter((f) => f.k === "decoy");
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     e.age += dt;
     const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy) || 1;
     let mx = dx / d, my = dy / d, sp = e.sp;
+    if (decoys.length) {
+      // un leurre à moins de 360 px attire l'ennemi à la place de toi
+      let dec = null, bd = 360 * 360;
+      for (let k = 0; k < decoys.length; k++) {
+        const ex = decoys[k].x - e.x, ey = decoys[k].y - e.y, dd = ex * ex + ey * ey;
+        if (dd < bd) { bd = dd; dec = decoys[k]; }
+      }
+      if (dec) { const dl = Math.sqrt(bd) || 1; mx = (dec.x - e.x) / dl; my = (dec.y - e.y) / dl; }
+    }
+    if (e.slowed > 0) { e.slowed -= dt; sp *= 0.5; }
     if (e.type === "shooter") {
       if (d < 240) { mx = -mx; my = -my; } else if (d < 300) sp = 0;
       e.fire -= dt;
@@ -339,6 +350,24 @@ const update = (dt) => {
               if (st.blast > 0 && !bl.dmg) splash(e, st.blast, st.dmg * 0.5);
               if (bl.blast) splash(e, bl.blast, bl.bd !== undefined ? bl.bd : st.dmg);
               bl.hit.push(e);
+              if (bl.bounce > 0) {
+                // le tir repart vers l'ennemi le plus proche qu'il n'a pas encore touché
+                let nx = null, nd = 240 * 240;
+                for (let q = 0; q < enemies.length; q++) {
+                  const o = enemies[q];
+                  if (o.hp <= 0 || bl.hit.indexOf(o) >= 0) continue;
+                  const ex = o.x - bl.x, ey = o.y - bl.y, dd = ex * ex + ey * ey;
+                  if (dd < nd) { nd = dd; nx = o; }
+                }
+                if (nx) {
+                  const sp = Math.hypot(bl.vx, bl.vy), a = Math.atan2(nx.y - bl.y, nx.x - bl.x);
+                  bl.vx = Math.cos(a) * sp;
+                  bl.vy = Math.sin(a) * sp;
+                  bl.life = Math.max(bl.life, 0.5);
+                  bl.bounce--;
+                  continue;
+                }
+              }
               if (bl.pierce > 0) bl.pierce--; else { gone = true; break; }
             }
           }

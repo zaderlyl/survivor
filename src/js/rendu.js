@@ -168,6 +168,18 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "decoy") {
+      blit("player", f.x, f.y, 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5);
+    } else if (f.k === "cloud") {
+      g.globalAlpha = 0.12;
+      g.beginPath();
+      g.arc(f.x, f.y, f.R, 0, 6.283);
+      g.fill();
+      g.globalAlpha = f.life < 1 && !calm ? 0.3 + 0.3 * Math.sin(t * 20) : 0.45;
+      g.lineWidth = 2;
+      g.setLineDash([3, 6]);
+      g.stroke();
+      g.setLineDash([]);
     } else if (f.k === "aim") {
       // la ligne de visée du rail pendant sa charge
       g.globalAlpha = 0.5;
@@ -322,6 +334,7 @@ const render = () => {
     g.translate(b.x, b.y);
     g.rotate(Math.atan2(b.vy, b.vx));
     const sz = b.size || 1;
+    if (b.star) { g.rotate(-Math.atan2(b.vy, b.vx) + t * 20); g.fillRect(-6, -1.5, 12, 3); g.fillRect(-1.5, -6, 3, 12); g.restore(); continue; }
     g.fillRect(-5 * sz, -1.5 * sz, 11 * sz, 3 * sz);
     g.globalAlpha = 0.4;
     g.fillRect(-15 * sz, -1 * sz, 9 * sz, 2 * sz);
