@@ -4,13 +4,13 @@
 // r : rayon, s : taille d'un pixel du dessin, hp : vie de départ, sp : vitesse, dmg : contact, xp : cristaux lâchés
 const TYPES = {
   crawler: { r: 7, s: 2, hp: 2, sp: 66, dmg: 6, xp: 1 },
-  brute: { r: 10, s: 2, hp: 10, sp: 42, dmg: 15, xp: 4 },
+  brute: { r: 10, s: 2, hp: 10, sp: 42, dmg: 15, xp: 5 },
   shooter: { r: 8, s: 2, hp: 4, sp: 56, dmg: 6, xp: 3 },
-  dasher: { r: 8, s: 2, hp: 5, sp: 60, dmg: 12, xp: 3 },
-  splitter: { r: 10, s: 2, hp: 7, sp: 48, dmg: 10, xp: 3 },
-  tank: { r: 12, s: 2, hp: 26, sp: 34, dmg: 18, xp: 6 },
+  dasher: { r: 8, s: 2, hp: 5, sp: 60, dmg: 12, xp: 4 },
+  splitter: { r: 10, s: 2, hp: 7, sp: 48, dmg: 10, xp: 4 },
+  tank: { r: 12, s: 2, hp: 26, sp: 34, dmg: 18, xp: 10 },
   mage: { r: 8, s: 2, hp: 5, sp: 48, dmg: 6, xp: 4 },
-  boss: { r: 25, s: 4, hp: 220, sp: 38, dmg: 25, xp: 30 },
+  boss: { r: 25, s: 4, hp: 220, sp: 38, dmg: 25, xp: 60 },
 };
 
 /* ---------- L'état d'une partie ---------- */
@@ -54,7 +54,7 @@ const spawn = (type, x, y, instant) => {
   const m = (1 + worldT / 260) * dm.hp * worldHp(); // la vie monte avec le temps du monde, puis avec le monde
   const hp = d.hp * (type === "boss" ? 2.2 * (1 + 0.5 * world) * dm.hp : m);
   enemies.push({
-    type, x, y, r: d.r, hp, max: hp, sp: d.sp * (type === "crawler" ? 1 + Math.min(worldT / 500, 0.6) : 1), dmg: d.dmg * dm.dmg * worldDmg(), xp: d.xp,
+    type, x, y, r: d.r, hp, max: hp, sp: d.sp * (type === "crawler" ? 1 + Math.min(worldT / 500, 0.6) : 1), dmg: d.dmg * dm.dmg * worldDmg(), xp: Math.round(d.xp * Math.pow(hp / d.hp, 0.75) * 10) / 10, // plus il est costaud, plus il rapporte
     fire: rnd(0.5, 2), hit: 0, orbCd: 0, kx: 0, ky: 0, age: instant ? 1 : 0, seed: seedN++ % 7, st: 0, stT: rnd(0.5, 1.5), dirx: 0, diry: 0,
   });
 };

@@ -285,7 +285,7 @@ const render = () => {
     const gm = gems[i];
     if (!inView(gm.x, gm.y, 10)) continue;
     const bob = calm || gm.pull ? 0 : Math.sin(t * 4 + gm.x * 0.05) * 1.5;
-    if (gm.v > 3) blit("gemBig", gm.x, gm.y + bob, 1.4, 0, false, false);
+    if (gm.v > 3) blit("gemBig", gm.x, gm.y + bob, gm.v >= 12 ? 2.2 : 1.4, 0, false, false);
     else blit("gem", gm.x, gm.y + bob, 1, calm ? 0 : Math.floor(t * 3 + gm.x * 0.1) & 1, false, false);
   }
 

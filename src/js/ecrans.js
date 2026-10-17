@@ -231,7 +231,7 @@ const choose = (p) => {
 };
 const levelUpNext = () => {
   level++;
-  need = Math.round(need * 1.25 + 3);
+  need = Math.round(need * (level < 15 ? 1.25 : 1.1) + 3); // la courbe s'adoucit après le niveau 15, sinon on ne monte plus
   P.hp = Math.min(st.maxHp, P.hp + 12); // un niveau soigne un peu
   showLevelUp();
 };
