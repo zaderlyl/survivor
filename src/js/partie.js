@@ -65,6 +65,7 @@ const kill = (i) => {
   score += 10 * comboMult();
   SFX.kill();
   if (st.steal > 0) P.hp = Math.min(st.maxHp, P.hp + st.steal);
+  if (st.deathBlast) splash(e, 45, st.dmg * 0.8);
   burst(e.x, e.y, e.type === "boss" ? 40 : 6, e.type === "boss" ? PINK : GREY, e.type === "boss" ? 300 : 140);
   if (e.type === "boss") {
     for (let k = 0; k < 8; k++) dropGem(e.x, e.y, 4);
@@ -319,7 +320,7 @@ const update = (dt) => {
             if (dx * dx + dy * dy < (e.r + (bl.rad || 3)) * (e.r + (bl.rad || 3))) {
               const crit = Math.random() < st.crit;
               const kb = e.type === "boss" ? 15 : 90;
-              damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? 2 : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
+              damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? st.critMul : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
               if (st.blast > 0) splash(e, st.blast, st.dmg * 0.5);
               bl.hit.push(e);
               if (bl.pierce > 0) bl.pierce--; else { gone = true; break; }
@@ -362,7 +363,7 @@ const update = (dt) => {
   for (let i = gems.length - 1; i >= 0; i--) {
     const gm = gems[i];
     const dx = P.x - gm.x, dy = P.y - gm.y, d = Math.hypot(dx, dy);
-    if (d < st.magnet) gm.pull = true;
+    if (d < st.magnet || st.autoPull) gm.pull = true;
     if (gm.pull) {
       gm.x += (dx / (d || 1)) * 420 * dt;
       gm.y += (dy / (d || 1)) * 420 * dt;

@@ -152,12 +152,12 @@ const showHow = (back) => {
   }, true);
 };
 
-// la rareté se tire selon le niveau : les épiques arrivent à partir du niveau 3, les légendaires du niveau 6
+// la rareté se tire selon le niveau : les légendaires arrivent à partir du niveau 6
 const rollRarity = () => {
   const L = level;
-  const w = [Math.max(20, 62 - L * 1.6), 28 + L * 0.5, L >= 3 ? 8 + L * 0.8 : 0, L >= 6 ? 1.5 + L * 0.35 : 0];
-  let r = Math.random() * (w[0] + w[1] + w[2] + w[3]);
-  for (let i = 0; i < 4; i++) {
+  const w = [Math.max(20, 62 - L * 1.6), 36 + L * 1.1, L >= 6 ? 1.5 + L * 0.4 : 0];
+  let r = Math.random() * (w[0] + w[1] + w[2]);
+  for (let i = 0; i < 3; i++) {
     if (r < w[i]) return i;
     r -= w[i];
   }
@@ -181,7 +181,7 @@ const showLevelUp = () => {
   show("niveau " + level, (b) => {
     const cards = el("div", "cards");
     picks.forEach((p, i) => {
-      const c = el("button", "card r" + p.r);
+      const c = el("button", "card r" + (p.r === 2 ? 3 : p.r)); // la classe r3 est le style légendaire, r4 celui des évolutions
       c.type = "button";
       const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : RARITY[p.r]);
       const name = el("b", "");
@@ -189,7 +189,7 @@ const showLevelUp = () => {
       name.appendChild(document.createTextNode(p.u.name));
       c.appendChild(tag);
       c.appendChild(name);
-      c.appendChild(el("span", "", p.evo ? p.u.text : p.u.text(p.u.vals[p.r])));
+      c.appendChild(el("span", "", p.evo ? p.u.text : p.u.text(p.u.vals[p.r], p.r)));
       c.addEventListener("click", () => choose(p));
       cards.appendChild(c);
     });
@@ -205,7 +205,7 @@ const choose = (p) => {
     lv[p.u.id] = 1;
     banner("évolution : " + p.u.name);
   } else {
-    p.u.apply(p.u.vals[p.r]);
+    p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
   }
   drawChips();

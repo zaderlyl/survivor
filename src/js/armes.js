@@ -29,7 +29,7 @@ const nearest = (maxR) => {
 // un coup avec chance de critique ; kx, ky : recul
 const strike = (e, d, kx, ky, src) => {
   const crit = Math.random() < st.crit;
-  damage(e, d * (crit ? 2 : 1), crit, e.type === "boss" ? kx * 0.2 : kx, e.type === "boss" ? ky * 0.2 : ky, src);
+  damage(e, d * (crit ? st.critMul : 1), crit, e.type === "boss" ? kx * 0.2 : kx, e.type === "boss" ? ky * 0.2 : ky, src);
 };
 // un tir de joueur : dmg et rad écrasent les valeurs par défaut du tir de base
 const fire = (a, spd, life, o) => bullets.push(Object.assign({ x: P.x, y: P.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, life, pierce: 0, hit: [] }, o));
@@ -71,7 +71,7 @@ const WEAPONS = {
     name: "Lames",
     max: 8,
     cap: 12,
-    vals: [1, 1, 2, 3],
+    vals: [1, 2, 3],
     text: (v) => "+" + plural(v, "lame") + " qui tourne autour de toi",
     update(w, dt) {
       w.angle += dt * 3.2;
@@ -98,7 +98,7 @@ const WEAPONS = {
   wave: {
     name: "Onde",
     max: 8,
-    vals: [1, 1, 2, 3],
+    vals: [1, 2, 3],
     text: (v) => "l'onde qui repousse grandit et revient plus vite (+" + v + ")",
     cd0: 3,
     update(w, dt) {
