@@ -102,6 +102,16 @@ const showMenu = () => {
       row0.appendChild(d);
     });
     b.appendChild(row0);
+    const rowC = el("div", "row diff");
+    rowC.setAttribute("role", "group");
+    rowC.setAttribute("aria-label", "Personnage");
+    Object.keys(CHARS).forEach((k) => {
+      const c = button(CHARS[k].name, () => { best.char = k; saveBest(); showMenu(); });
+      c.setAttribute("aria-pressed", best.char === k ? "true" : "false");
+      rowC.appendChild(c);
+    });
+    b.appendChild(rowC);
+    b.appendChild(el("p", "small", CHARS[best.char].text));
     if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["victoires", String(best.wins[best.diff] || 0)], ["meilleur score", String(best.score)]]));
     const row = el("div", "row");
     row.appendChild(button("jouer", start, true));
@@ -156,7 +166,7 @@ const rollRarity = () => {
 
 const showLevelUp = () => {
   mode = "levelup";
-  const pool = UPGRADES.concat(WEAPON_CARDS).filter((u) => (lv[u.id] || 0) < u.max);
+  const pool = UPGRADES.concat(WEAPON_CARDS).filter((u) => (lv[u.id] || 0) < u.max && (!u.only || weaponLvl(u.only)));
   const picks = [];
   while (picks.length < 3 && pool.length) {
     const u = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];

@@ -142,6 +142,38 @@ const render = () => {
     g.globalAlpha = 1;
   });
 
+  // les coups des armes : arc d'épée, laser, éclair, grenade
+  fx.forEach((f) => {
+    const al = Math.max(0, f.life / f.t);
+    g.globalAlpha = al;
+    g.strokeStyle = LIGHT;
+    g.fillStyle = LIGHT;
+    if (f.k === "arc") {
+      g.lineWidth = 6;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
+      g.stroke();
+    } else if (f.k === "beam") {
+      g.lineWidth = f.w * al + 2;
+      g.beginPath();
+      g.moveTo(f.x, f.y);
+      g.lineTo(f.x + Math.cos(f.a) * f.len, f.y + Math.sin(f.a) * f.len);
+      g.stroke();
+    } else if (f.k === "bolt") {
+      g.lineWidth = 2;
+      g.beginPath();
+      f.pts.forEach((p, i) => {
+        const jx = i && !calm ? rnd(-3, 3) : 0, jy = i && !calm ? rnd(-3, 3) : 0;
+        if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
+      });
+      g.stroke();
+    } else if (f.k === "nade") {
+      g.globalAlpha = 1;
+      g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    }
+    g.globalAlpha = 1;
+  });
+
   // les cristaux : de petits losanges qui scintillent
   for (let i = 0; i < gems.length; i++) {
     const gm = gems[i];
@@ -230,9 +262,10 @@ const render = () => {
     g.save();
     g.translate(b.x, b.y);
     g.rotate(Math.atan2(b.vy, b.vx));
-    g.fillRect(-5, -1.5, 11, 3);
+    const sz = b.size || 1;
+    g.fillRect(-5 * sz, -1.5 * sz, 11 * sz, 3 * sz);
     g.globalAlpha = 0.4;
-    g.fillRect(-15, -1, 9, 2);
+    g.fillRect(-15 * sz, -1 * sz, 9 * sz, 2 * sz);
     g.restore();
   }
   g.globalAlpha = 1;

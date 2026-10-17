@@ -14,7 +14,7 @@ const TYPES = {
 };
 
 /* ---------- L'état d'une partie ---------- */
-let P, st, lv, enemies, bullets, ebullets, gems, drops, zones, parts, texts, waves, ghosts;
+let P, st, lv, fx, enemies, bullets, ebullets, gems, drops, zones, parts, texts, waves, ghosts;
 let freeze = 0; // pause d'image à la mort du boss
 let t, kills, level, xp, need, spawnAcc, nextWave, bossAt, stormAt, cam, joy, pending, mode, combo, comboT, shake, score, dm;
 const keys = {};
@@ -29,10 +29,11 @@ const comboMult = () => 1 + Math.min(2, Math.floor(combo / 15));
 const liveScore = () => score + Math.floor(t) * 5 + level * 50;
 
 const reset = () => {
-  P = { x: ARENA_W / 2, y: ARENA_H / 2, r: 9, hp: 100, inv: 0, flash: 0, aim: 0, dash: 0, dashCd: 0, dashMax: DASH_CD, volley: 0, dx: 1, dy: 0, face: 1, walk: 0, weapons: [{ id: "shot", lvl: 1, cd: 0, angle: 0 }] };
+  P = { x: ARENA_W / 2, y: ARENA_H / 2, r: 9, hp: 100, inv: 0, flash: 0, aim: 0, dash: 0, dashCd: 0, dashMax: DASH_CD, volley: 0, dx: 1, dy: 0, face: 1, walk: 0, weapons: [] };
+  addWeapon((CHARS[best.char] || CHARS.volt).weapon, 1);
   st = { cd: 0.42, dmg: 2, count: 1, pierce: 0, range: 440, speed: 170, magnet: 60, maxHp: 100, orbs: 0, crit: 0, wave: 0, regen: 0, armor: 0, blast: 0, steal: 0, dashMul: 1, orbR: 52, orbDmg: 0.6, waveMul: 1, ring: false };
   lv = {};
-  enemies = []; bullets = []; ebullets = []; gems = []; drops = []; zones = []; parts = []; texts = []; waves = []; ghosts = [];
+  fx = []; enemies = []; bullets = []; ebullets = []; gems = []; drops = []; zones = []; parts = []; texts = []; waves = []; ghosts = [];
   t = 0; kills = 0; level = 1; xp = 0; need = 6; spawnAcc = 0; nextWave = 30;
   bossAt = [150, 255];
   stormAt = [105, 225];

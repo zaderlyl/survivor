@@ -316,10 +316,10 @@ const update = (dt) => {
             const e = enemies[c[k]];
             if (!e || e.hp <= 0 || bl.hit.indexOf(e) >= 0) continue;
             const dx = e.x - bl.x, dy = e.y - bl.y;
-            if (dx * dx + dy * dy < (e.r + 3) * (e.r + 3)) {
+            if (dx * dx + dy * dy < (e.r + (bl.rad || 3)) * (e.r + (bl.rad || 3))) {
               const crit = Math.random() < st.crit;
               const kb = e.type === "boss" ? 15 : 90;
-              damage(e, st.dmg * (crit ? 2 : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
+              damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? 2 : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
               if (st.blast > 0) splash(e, st.blast, st.dmg * 0.5);
               bl.hit.push(e);
               if (bl.pierce > 0) bl.pierce--; else { gone = true; break; }
@@ -329,6 +329,18 @@ const update = (dt) => {
       }
     }
     if (gone) { bullets[b] = bullets[bullets.length - 1]; bullets.pop(); }
+  }
+
+  // les effets : coups d'épée, lasers, éclairs, grenades en vol
+  for (let i = fx.length - 1; i >= 0; i--) {
+    const f = fx[i];
+    f.life -= dt;
+    if (f.k === "nade") {
+      const u = 1 - Math.max(0, f.life) / f.t;
+      f.x = f.x0 + (f.tx - f.x0) * u;
+      f.y = f.y0 + (f.ty - f.y0) * u;
+    }
+    if (f.life <= 0) { if (f.onEnd) f.onEnd(f); fx.splice(i, 1); }
   }
 
   // les ennemis morts
