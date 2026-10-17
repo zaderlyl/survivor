@@ -214,7 +214,7 @@ const weaponPool = () => {
   const out = [];
   Object.keys(WEAPONS).forEach((id) => {
     const d = WEAPONS[id];
-    if (!d.variants) return;
+    if (!d.variants || (d.char && d.char !== best.char)) return; // les armes uniques ne sortent qu'avec leur personnage
     if (!weapon(id)) {
       out.push({ id, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = true; } });
       return;

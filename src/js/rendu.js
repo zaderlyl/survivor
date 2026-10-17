@@ -168,6 +168,25 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "turret") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 4, f.y - 4, 8, 8);
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(f.x, f.y);
+      g.lineTo(f.x + Math.cos(f.a || 0) * 9, f.y + Math.sin(f.a || 0) * 9);
+      g.stroke();
+    } else if (f.k === "shell") {
+      // le cercle où l'obus va retomber, qui se referme
+      g.globalAlpha = 0.5;
+      g.lineWidth = 2;
+      g.setLineDash([3, 5]);
+      g.beginPath();
+      g.arc(f.tx, f.ty, f.R * (0.4 + 0.6 * (1 - al)), 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.globalAlpha = 1;
+      g.fillRect(f.tx - 2, f.ty - 2 - 140 * al, 4, 4);
     } else if (f.k === "mine") {
       g.globalAlpha = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
       g.lineWidth = 2;
