@@ -203,7 +203,7 @@ const render = () => {
         g.stroke();
       }
     } else if (f.k === "decoy") {
-      blit("player", f.x, f.y, 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5);
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5);
     } else if (f.k === "cloud") {
       g.globalAlpha = 0.12;
       g.beginPath();
@@ -455,11 +455,13 @@ const render = () => {
   g.globalAlpha = 1;
 
   // la personne : des images rémanentes pendant le dash, une pose de marche, rose un instant quand elle est touchée
-  ghosts.forEach((q) => blit("player", q.x, q.y, 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45));
+  ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45));
   if (mode !== "menu" && !(P.inv > 0 && P.dash <= 0 && !calm && Math.floor(P.inv * 20) % 2 === 0)) {
-    blit("player", P.x, P.y, 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0);
-    g.fillStyle = BG;
-    g.fillRect(Math.round(P.x - 4 + Math.cos(P.aim) * 2), Math.round(P.y - 5 + Math.sin(P.aim) * 2), 8, 3);
+    blit(heroName(), P.x, P.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0);
+    if (heroName() === "player") { // l'ancien dessin avait sa visière peinte par-dessus
+      g.fillStyle = BG;
+      g.fillRect(Math.round(P.x - 4 + Math.cos(P.aim) * 2), Math.round(P.y - 5 + Math.sin(P.aim) * 2), 8, 3);
+    }
     if (P.muzzle > 0) {
       g.fillStyle = LIGHT;
       g.fillRect(Math.round(P.x + Math.cos(P.aim) * 14 - 2), Math.round(P.y + Math.sin(P.aim) * 14 - 2), 5, 5);
