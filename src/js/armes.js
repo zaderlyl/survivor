@@ -86,7 +86,7 @@ const WEAPONS = {
       if (w.cd > 0) return;
       const R = 80 * rngMul(), tgt = nearest(R + 30);
       if (!tgt) return;
-      w.cd = 0.8 * cdMul();
+      w.cd = 0.9 * cdMul();
       const a = Math.atan2(tgt.y - P.y, tgt.x - P.x);
       P.aim = a;
       P.muzzle = 0.06;
@@ -110,12 +110,12 @@ const WEAPONS = {
       if (w.cd > 0) return;
       const tgt = nearest(st.range);
       if (!tgt) return;
-      w.cd = 1.7 * cdMul();
+      w.cd = 1.3 * cdMul();
       const a = Math.atan2(tgt.y - P.y, tgt.x - P.x);
       P.aim = a;
       P.muzzle = 0.1;
       SFX.bomb();
-      fire(a, 380, st.range / 380, { dmg: st.dmg * 5, rad: 8, size: 2.4, pierce: 2 });
+      fire(a, 380, st.range / 380, { dmg: st.dmg * 6, rad: 8, size: 2.4, pierce: 3 });
     },
   },
 
@@ -166,11 +166,11 @@ const WEAPONS = {
       if (w.cd > 0) return;
       const tgt = nearest(st.range);
       if (!tgt) return;
-      w.cd = 1.4 * cdMul();
+      w.cd = 0.85 * cdMul();
       P.aim = Math.atan2(tgt.y - P.y, tgt.x - P.x);
       P.muzzle = 0.06;
       SFX.shoot();
-      const R = 58 * rngMul(), d = st.dmg * 3;
+      const R = 66 * rngMul(), d = st.dmg * 3.5;
       fx.push({ k: "nade", x0: P.x, y0: P.y, x: P.x, y: P.y, tx: tgt.x, ty: tgt.y, life: 0.5, t: 0.5, onEnd: (f) => {
         SFX.bomb();
         waves.push({ x: f.tx, y: f.ty, r: 0, max: R, life: 0.25, t: 0.25 });
@@ -190,14 +190,14 @@ const WEAPONS = {
       if (w.cd > 0) return;
       let cur = nearest(st.range * 0.8);
       if (!cur) return;
-      w.cd = 0.95 * cdMul();
+      w.cd = 0.8 * cdMul();
       P.aim = Math.atan2(cur.y - P.y, cur.x - P.x);
       P.muzzle = 0.06;
       SFX.hit();
       const pts = [[P.x, P.y]], done = [];
       for (let j = 0; j < 3 && cur; j++) {
         pts.push([cur.x, cur.y]);
-        strike(cur, st.dmg * 1.5, 0, 0, "bolt");
+        strike(cur, st.dmg * 1.7, 0, 0, "bolt");
         done.push(cur);
         let nx = null, nd = 150 * 150;
         for (let i = 0; i < enemies.length; i++) {

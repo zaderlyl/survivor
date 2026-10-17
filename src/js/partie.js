@@ -52,8 +52,9 @@ const dropGem = (x, y, v) => {
   if (gems.length >= MAX_GEMS) { gainXp(v); return; }
   gems.push({ x: x + rnd(-6, 6), y: y + rnd(-6, 6), v, pull: false });
 };
+const XP_MUL = 1.6; // les cristaux rapportent plus : monter de niveau doit être rapide
 const gainXp = (v) => {
-  xp += v;
+  xp += v * XP_MUL;
   while (xp >= need) { xp -= need; if (mode === "levelup") pending++; else levelUpNext(); }
 };
 
