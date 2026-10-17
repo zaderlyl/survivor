@@ -168,6 +168,24 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "blade") {
+      g.globalAlpha = 1;
+      g.save();
+      g.translate(f.x, f.y);
+      g.rotate(f.spin);
+      g.fillRect(-7, -2, 14, 4);
+      g.fillRect(-2, -7, 4, 14);
+      g.restore();
+    } else if (f.k === "spin") {
+      // deux arcs qui tournent autour de toi
+      g.globalAlpha = 0.9;
+      g.lineWidth = 5;
+      const a0 = t * 18;
+      for (let k = 0; k < 2; k++) {
+        g.beginPath();
+        g.arc(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.6);
+        g.stroke();
+      }
     } else if (f.k === "turret") {
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
       g.fillRect(f.x - 4, f.y - 4, 8, 8);
