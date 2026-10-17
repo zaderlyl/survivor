@@ -45,7 +45,8 @@ const hash = (i, j) => {
 // une lame : un losange allongé, tourné dans le sens du mouvement, avec un petit fil gris au centre
 const blade = (cx, cy, a, alpha, size) => {
   g.save();
-  g.translate(cx + Math.cos(a) * st.orbR, cy + Math.sin(a) * st.orbR);
+  const oR = orbRadius(weapon("orb")); // le rayon du cercle suit les variantes
+  g.translate(cx + Math.cos(a) * oR, cy + Math.sin(a) * oR);
   g.rotate(a + Math.PI / 2);
   g.globalAlpha = alpha;
   g.fillStyle = LIGHT;
@@ -287,11 +288,12 @@ const render = () => {
     g.lineWidth = 1;
     g.setLineDash([3, 7]);
     g.beginPath();
-    g.arc(P.x, P.y, st.orbR, 0, 6.283);
+    g.arc(P.x, P.y, orbRadius(orbW), 0, 6.283);
     g.stroke();
     g.setLineDash([]);
-    for (let o = 0; o < orbW.lvl; o++) {
-      const a = orbW.angle + (o / orbW.lvl) * 6.283;
+    const orbN = orbCount(orbW);
+    for (let o = 0; o < orbN; o++) {
+      const a = orbW.angle + (o / orbN) * 6.283;
       if (!calm) for (let k = 3; k >= 1; k--) blade(P.x, P.y, a - k * 0.16, 0.5 / k, 0.7);
       blade(P.x, P.y, a, 1, 1);
     }
@@ -305,7 +307,7 @@ const render = () => {
     g.lineWidth = 2;
     g.setLineDash([2, 6]);
     g.beginPath();
-    g.arc(P.x, P.y, (46 + 8 * flameW.lvl) * rngMul(), 0, 6.283);
+    g.arc(P.x, P.y, flameRadius(flameW), 0, 6.283);
     g.stroke();
     g.setLineDash([]);
     g.globalAlpha = 1;
@@ -314,8 +316,9 @@ const render = () => {
   const droneW = weapon("drone");
   if (droneW) {
     g.fillStyle = LIGHT;
-    for (let o = 0; o < droneW.lvl; o++) {
-      const a = droneW.angle + (o / droneW.lvl) * 6.283;
+    const droneN = droneCount(droneW);
+    for (let o = 0; o < droneN; o++) {
+      const a = droneW.angle + (o / droneN) * 6.283;
       g.fillRect(P.x + Math.cos(a) * 38 - 3, P.y + Math.sin(a) * 38 - 3, 6, 6);
     }
   }

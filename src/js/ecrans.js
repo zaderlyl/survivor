@@ -166,7 +166,7 @@ const rollRarity = () => {
 
 const showLevelUp = () => {
   mode = "levelup";
-  const pool = UPGRADES.concat(WEAPON_CARDS).filter((u) => (lv[u.id] || 0) < u.max && (!u.only || weaponLvl(u.only)));
+  const pool = UPGRADES.concat(weaponPool()).filter((u) => (lv[u.id] || 0) < u.max && (!u.only || weaponLvl(u.only)));
   const picks = [];
   while (picks.length < 3 && pool.length) {
     const u = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
@@ -183,7 +183,7 @@ const showLevelUp = () => {
     picks.forEach((p, i) => {
       const c = el("button", "card r" + (p.r === 2 ? 3 : p.r)); // la classe r3 est le style légendaire, r4 celui des évolutions
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : RARITY[p.r]);
+      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name));
@@ -207,6 +207,7 @@ const choose = (p) => {
   } else {
     p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
+      if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }
   drawChips();
   if (pending > 0) { pending--; levelUpNext(); return; }
@@ -225,7 +226,8 @@ const levelUpNext = () => {
 const drawChips = () => {
   const box = $("#chips");
   box.textContent = "";
-  UPGRADES.concat(WEAPON_CARDS).forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
+  UPGRADES.forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
+  P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1))); });
   EVOS.forEach((e) => { if (lv[e.id]) box.appendChild(el("span", "evo", e.name)); });
 };
 

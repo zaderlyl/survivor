@@ -6,7 +6,7 @@ const start = () => {
   soundOn();
   reset();
   freeze = 0;
-  if (dbg.orbs) { addWeapon("orb", dbg.orbs); lv.orb = dbg.orbs; } // #lames=3 : essayer les lames tout de suite
+  if (dbg.orbs) { addWeapon("orb", 1); weapon("orb").n = dbg.orbs - 1; lv.orb = dbg.orbs; } // #lames=3 : essayer les lames tout de suite
   if (dbg.time) {
     t = dbg.time;
     bossAt = bossAt.filter((b) => b > t);

@@ -26,7 +26,7 @@ const UPGRADES = [
 ];
 // une évolution se propose quand deux améliorations ont 3 points chacune ; elle remplace une carte et ne vient qu'une fois
 const EVOS = [
-  { id: "evoStorm", name: "Tempête", need: ["orb", "wave"], text: "+2 lames plus rapides et plus larges, l'onde revient 40 % plus vite", apply: () => { addWeapon("orb", 2); st.orbR = 78; st.orbDmg = 1.4; st.waveMul *= 0.6; } },
+  { id: "evoStorm", name: "Tempête", need: ["orb", "wave"], text: "+2 lames plus rapides et plus larges, l'onde revient 40 % plus vite", apply: () => { weapon("orb").n = (weapon("orb").n || 0) + 2; st.orbR = 78; st.orbDmg = 1.4; st.waveMul *= 0.6; } },
   { id: "evoRing", name: "Rafale", need: ["multi", "pierce"], text: "toutes les 3 salves, un cercle de 10 tirs part autour de toi", apply: () => { st.ring = true; } },
   { id: "evoVamp", name: "Vampire", need: ["heart", "steal"], text: "+40 PV max, vol de vie doublé, rend 1 PV par seconde", apply: () => { st.maxHp += 40; P.hp = Math.min(st.maxHp, P.hp + 40); st.steal *= 2; st.regen += 1; } },
 ];
