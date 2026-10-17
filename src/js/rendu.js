@@ -94,8 +94,9 @@ const vignette = () => {
 };
 
 const render = () => {
+  const th = worldTheme();
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.fillStyle = BG;
+  g.fillStyle = th.bg;
   g.fillRect(0, 0, cv.width, cv.height);
   let [cx, cy, vw, vh] = camPos();
   if (mode === "menu") { cx = ARENA_W / 2; cy = ARENA_H / 2; }
@@ -109,19 +110,15 @@ const render = () => {
   const j0 = Math.max(0, Math.floor((cy - vh / 2) / 100)), j1 = Math.min(ARENA_H / 100 - 1, Math.floor((cy + vh / 2) / 100));
   for (let i = i0; i <= i1; i++) {
     for (let j = j0; j <= j1; j++) {
-      g.fillStyle = (i + j) & 1 ? "#121212" : "#101010";
+      g.fillStyle = (i + j) & 1 ? th.a : th.b;
       g.fillRect(i * 100, j * 100, 100, 100);
-      const h = hash(i, j), ox = i * 100 + 12 + (h % 70), oy = j * 100 + 12 + ((h >> 8) % 70);
-      g.fillStyle = "#1c1c1c";
-      if (h % 9 === 0) { g.fillRect(ox - 4, oy - 1, 9, 2); g.fillRect(ox - 1, oy - 4, 2, 9); }
-      else if (h % 9 === 1) { g.fillRect(ox, oy, 3, 3); g.fillRect(ox + 10, oy + 4, 3, 3); g.fillRect(ox + 4, oy + 12, 3, 3); }
-      else if (h % 9 === 2) { g.fillRect(ox - 5, oy, 11, 2); }
+      tileDetail(th, hash(i, j), i * 100, j * 100);
     }
   }
-  g.strokeStyle = "#333333";
+  g.strokeStyle = th.edge;
   g.lineWidth = 4;
   g.strokeRect(0, 0, ARENA_W, ARENA_H);
-  g.strokeStyle = DARK;
+  g.strokeStyle = th.glow;
   g.lineWidth = 6;
   [[0, 0, 1, 1], [ARENA_W, 0, -1, 1], [0, ARENA_H, 1, -1], [ARENA_W, ARENA_H, -1, -1]].forEach((c) => {
     g.beginPath();
@@ -130,6 +127,8 @@ const render = () => {
     g.lineTo(c[0], c[1] + c[3] * 40);
     g.stroke();
   });
+
+  ambient(th, cx, cy, vw, vh);
 
   const inView = (x, y, m) => x > cx - vw / 2 - m && x < cx + vw / 2 + m && y > cy - vh / 2 - m && y < cy + vh / 2 + m;
 

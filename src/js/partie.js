@@ -230,7 +230,7 @@ const update = (dt) => {
     // toute l'xp de la carte file vers toi
     phaseT += dt;
     gems.forEach((q) => { q.pull = true; });
-    if (!gems.length || phaseT > 7) { phase = "transition"; phaseT = 0; banner("monde " + (world + 2)); }
+    if (!gems.length || phaseT > 7) { phase = "transition"; phaseT = 0; banner("monde " + (world + 2) + " : " + THEMES[(world + 1) % 5].name); }
   } else if (phase === "transition") {
     phaseT += dt;
     if (phaseT > 2.5) nextWorld();
