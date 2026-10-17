@@ -203,7 +203,7 @@ const render = () => {
         g.stroke();
       }
     } else if (f.k === "decoy") {
-      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5);
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5, heroLook());
     } else if (f.k === "cloud") {
       g.globalAlpha = 0.12;
       g.beginPath();
@@ -455,9 +455,26 @@ const render = () => {
   g.globalAlpha = 1;
 
   // la personne : des images rémanentes pendant le dash, une pose de marche, rose un instant quand elle est touchée
-  ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45));
+  ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45, heroLook()));
   if (mode !== "menu" && !(P.inv > 0 && P.dash <= 0 && !calm && Math.floor(P.inv * 20) % 2 === 0)) {
-    blit(heroName(), P.x, P.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0);
+    blit(heroName(), P.x, P.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0, undefined, heroLook());
+    if (st.legends > 0) {
+      // l'aura : un anneau en pointillés par carte légendaire prise
+      const gc = ART[heroName()].pal ? ART[heroName()].pal.t : LIGHT;
+      g.strokeStyle = gc;
+      g.lineWidth = 1.5;
+      g.setLineDash([4, 6]);
+      for (let i = 0; i < Math.min(st.legends, 6); i++) {
+        g.globalAlpha = calm ? 0.35 : 0.25 + 0.15 * Math.sin(t * 3 + i);
+        g.lineDashOffset = calm ? 0 : -t * 20 * (i % 2 ? 1 : -1);
+        g.beginPath();
+        g.arc(P.x, P.y, 15 + 4 * i, 0, 6.283);
+        g.stroke();
+      }
+      g.setLineDash([]);
+      g.lineDashOffset = 0;
+      g.globalAlpha = 1;
+    }
     if (heroName() === "player") { // l'ancien dessin avait sa visière peinte par-dessus
       g.fillStyle = BG;
       g.fillRect(Math.round(P.x - 4 + Math.cos(P.aim) * 2), Math.round(P.y - 5 + Math.sin(P.aim) * 2), 8, 3);

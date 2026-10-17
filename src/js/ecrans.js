@@ -220,6 +220,7 @@ const choose = (p) => {
   } else {
     p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
+    if (p.r === 2 && p.u !== HEAL) st.legends++; // chaque carte légendaire ajoute un anneau d'aura
     if (p.u2) { p.u2.apply(p.u2.vals[p.r], p.r); lv[p.u2.id] = (lv[p.u2.id] || 0) + p.r + 1; }
       if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }

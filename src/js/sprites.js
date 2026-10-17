@@ -46,11 +46,12 @@ const ART = {
   bomb: { pal: { "#": GREY, p: PINK, o: BG }, frames: [["....p..", "...p...", ".#####.", "#######", "#######", "#######", ".#####."]] },
 };
 const spriteCache = {};
-const sprite = (name, frame, flip, hit) => {
-  const key = name + "|" + frame + "|" + (flip ? 1 : 0) + "|" + (hit ? 1 : 0);
+const sprite = (name, frame, flip, hit, look) => {
+  const key = name + "|" + frame + "|" + (flip ? 1 : 0) + "|" + (hit ? 1 : 0) + "|" + (look || "");
   let c = spriteCache[key];
   if (c) return c;
-  const a = ART[name], rows = a.frames[frame % a.frames.length];
+  const a = ART[name], v = look && a.look ? a.look(frame % a.frames.length, look) : null; // un look : lignes et couleurs propres à l'équipement
+  const rows = v ? v.rows : a.frames[frame % a.frames.length], pal = v ? v.pal : a.pal;
   c = document.createElement("canvas");
   c.width = rows[0].length;
   c.height = rows.length;
@@ -59,7 +60,7 @@ const sprite = (name, frame, flip, hit) => {
     for (let k = 0; k < rows[r].length; k++) {
       const ch = rows[r][flip ? rows[r].length - 1 - k : k];
       if (ch === ".") continue;
-      x.fillStyle = hit ? (ch === "o" || ch === "k" ? BG : LIGHT) : (a.pal[ch] || LIGHT);
+      x.fillStyle = hit ? (ch === "o" || ch === "k" ? BG : LIGHT) : (pal[ch] || LIGHT);
       x.fillRect(k, r, 1, 1);
     }
   }
@@ -67,8 +68,8 @@ const sprite = (name, frame, flip, hit) => {
   return c;
 };
 // pose une image centrée en (x, y), chaque pixel du dessin valant `s` pixels du monde
-const blit = (name, x, y, s, frame, flip, hit, alpha) => {
-  const c = sprite(name, frame, flip, hit);
+const blit = (name, x, y, s, frame, flip, hit, alpha, look) => {
+  const c = sprite(name, frame, flip, hit, look);
   if (alpha !== undefined && alpha < 1) g.globalAlpha = alpha;
   g.drawImage(c, Math.round(x - (c.width * s) / 2), Math.round(y - (c.height * s) / 2), c.width * s, c.height * s);
   if (alpha !== undefined && alpha < 1) g.globalAlpha = 1;
