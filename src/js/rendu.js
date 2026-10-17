@@ -168,6 +168,16 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "rotbeam") {
+      g.globalAlpha = 0.9;
+      g.lineWidth = 5;
+      for (let b = 0; b < f.n; b++) {
+        const a = f.ang + b * Math.PI;
+        g.beginPath();
+        g.moveTo(P.x, P.y);
+        g.lineTo(P.x + Math.cos(a) * f.L, P.y + Math.sin(a) * f.L);
+        g.stroke();
+      }
     } else if (f.k === "decoy") {
       blit("player", f.x, f.y, 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5);
     } else if (f.k === "cloud") {
