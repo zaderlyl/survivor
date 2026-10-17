@@ -6,12 +6,13 @@ const start = () => {
   soundOn();
   reset();
   freeze = 0;
+  world = dbg.world; // #monde=3 : démarrer directement dans un monde plus avancé
   if (dbg.orbs) { addWeapon("orb", 1); weapon("orb").n = dbg.orbs - 1; lv.orb = dbg.orbs; } // #lames=3 : essayer les lames tout de suite
   if (dbg.time) {
     t = dbg.time;
-    bossAt = bossAt.filter((b) => b > t);
-    stormAt = stormAt.filter((b) => b > t);
-    nextWave = (Math.floor(t / 30) + 1) * 30;
+    worldT = dbg.time;
+    stormAt = stormAt.filter((b) => b > worldT);
+    nextWave = (Math.floor(worldT / 30) + 1) * 30;
   }
   hud.hp = hud.xp = hud.dash = hud.boss = -1; // les jauges se redessinent
   $("#play").classList.remove("low");
@@ -130,13 +131,24 @@ const pickup = (d) => {
   }
 };
 
+// le monde suivant : on garde tout, mais tout est plus dur
+const nextWorld = () => {
+  world++;
+  worldT = 0;
+  phase = "waves";
+  phaseT = 0;
+  stormAt = [100, 200];
+  nextWave = 30;
+  spawnAcc = 0;
+  ebullets.length = 0;
+  zones.length = 0;
+  P.hp = Math.min(st.maxHp, P.hp + st.maxHp * 0.4); // le passage soigne un peu
+  hud.hp = -1;
+};
+
 const update = (dt) => {
   t += dt;
-  if (t >= DURATION) {
-    enemies.forEach((e) => burst(e.x, e.y, 2, GREY));
-    end(true);
-    return;
-  }
+  worldT += dt;
 
   // la personne bouge, ou glisse
   const [ix, iy] = input();
@@ -160,53 +172,68 @@ const update = (dt) => {
   if (comboT <= 0) combo = 0;
   shake = Math.max(0, shake - 40 * dt);
 
-  // les ennemis arrivent : plus vite à mesure que le temps passe, et de nouvelles sortes au fil des minutes
-  spawnAcc += (1.1 + t * 0.04) * dm.spawn * dt;
-  while (spawnAcc >= 1) {
-    spawnAcc -= 1;
-    if (enemies.length >= MAX_ENEMIES) continue;
-    const r = Math.random();
-    const pBrute = t > 35 ? Math.min(0.12 + (t - 35) / 900, 0.26) : 0;
-    const pShoot = t > 70 ? Math.min(0.08 + (t - 70) / 1500, 0.16) : 0;
-    const pDash = t > 100 ? Math.min(0.06 + (t - 100) / 1600, 0.14) : 0;
-    const pSplit = t > 150 ? Math.min(0.05 + (t - 150) / 1800, 0.12) : 0;
-    const pMage = t > 90 ? Math.min(0.04 + (t - 90) / 2000, 0.09) : 0;
-    const pTank = t > 120 ? Math.min(0.04 + (t - 120) / 2000, 0.1) : 0;
-    let type = "crawler", c = pBrute;
-    if (r < c) type = "brute";
-    else if (r < (c += pShoot)) type = "shooter";
-    else if (r < (c += pDash)) type = "dasher";
-    else if (r < (c += pSplit)) type = "splitter";
-    else if (r < (c += pMage)) type = "mage";
-    else if (r < (c += pTank)) type = "tank";
-    const [x, y] = edgePoint(40);
-    spawn(type, x, y);
-  }
-  if (t >= nextWave) {
-    nextWave += 30;
-    const n = Math.min(14 + Math.floor(t / 10), 40);
-    for (let i = 0; i < n && enemies.length < MAX_ENEMIES; i++) {
-      const [x, y] = edgePoint(30 + (i % 3) * 14);
-      spawn("crawler", x, y);
+  if (phase === "waves") {
+    // les ennemis arrivent : plus vite à mesure que le temps passe, et de nouvelles sortes au fil des minutes
+    spawnAcc += (1.1 + worldT * 0.04) * dm.spawn * worldSpawn() * dt;
+    while (spawnAcc >= 1) {
+      spawnAcc -= 1;
+      if (enemies.length >= MAX_ENEMIES) continue;
+      const r = Math.random();
+      const pBrute = worldT > 35 ? Math.min(0.12 + (worldT - 35) / 900, 0.26) : 0;
+      const pShoot = worldT > 70 ? Math.min(0.08 + (worldT - 70) / 1500, 0.16) : 0;
+      const pDash = worldT > 100 ? Math.min(0.06 + (worldT - 100) / 1600, 0.14) : 0;
+      const pSplit = worldT > 150 ? Math.min(0.05 + (worldT - 150) / 1800, 0.12) : 0;
+      const pMage = worldT > 90 ? Math.min(0.04 + (worldT - 90) / 2000, 0.09) : 0;
+      const pTank = worldT > 120 ? Math.min(0.04 + (worldT - 120) / 2000, 0.1) : 0;
+      let type = "crawler", c = pBrute;
+      if (r < c) type = "brute";
+      else if (r < (c += pShoot)) type = "shooter";
+      else if (r < (c += pDash)) type = "dasher";
+      else if (r < (c += pSplit)) type = "splitter";
+      else if (r < (c += pMage)) type = "mage";
+      else if (r < (c += pTank)) type = "tank";
+      const [x, y] = edgePoint(40);
+      spawn(type, x, y);
     }
-    banner("vague");
-  }
-  // l'orage : des zones roses tombent autour de toi, l'une après l'autre
-  if (stormAt.length && t >= stormAt[0]) {
-    stormAt.shift();
-    banner("orage");
-    for (let i = 0; i < 8; i++) {
-      const a = Math.random() * 6.283, d = rnd(40, 260);
-      zones.push({ x: clamp(P.x + Math.cos(a) * d, 40, ARENA_W - 40), y: clamp(P.y + Math.sin(a) * d, 40, ARENA_H - 40), r: 50, t: 1.1 + i * 0.4, max: 1.1 + i * 0.4, dmg: 14 * dm.dmg, fired: false, boom: 0 });
+    if (worldT >= nextWave) {
+      nextWave += 30;
+      const n = Math.min(14 + Math.floor(worldT / 10), 40);
+      for (let i = 0; i < n && enemies.length < MAX_ENEMIES; i++) {
+        const [x, y] = edgePoint(30 + (i % 3) * 14);
+        spawn("crawler", x, y);
+      }
+      banner("vague");
     }
-  }
-  if (bossAt.length && t >= bossAt[0]) {
-    bossAt.shift();
-    const [x, y] = edgePoint(80);
-    spawn("boss", x, y);
-    banner("boss");
-    SFX.boss();
-    shake = Math.max(shake, 8);
+    // l'orage : des zones roses tombent autour de toi, l'une après l'autre
+    if (stormAt.length && worldT >= stormAt[0]) {
+      stormAt.shift();
+      banner("orage");
+      for (let i = 0; i < 8; i++) {
+        const a = Math.random() * 6.283, d = rnd(40, 260);
+        zones.push({ x: clamp(P.x + Math.cos(a) * d, 40, ARENA_W - 40), y: clamp(P.y + Math.sin(a) * d, 40, ARENA_H - 40), r: 50, t: 1.1 + i * 0.4, max: 1.1 + i * 0.4, dmg: 14 * dm.dmg, fired: false, boom: 0 });
+      }
+    }
+    if (worldT >= WORLD_WAVES) {
+      // les vagues s'arrêtent : le boss arrive
+      phase = "boss";
+      const [x, y] = edgePoint(80);
+      spawn("boss", x, y);
+      banner("boss");
+      SFX.boss();
+      shake = Math.max(shake, 8);
+    }
+  } else if (phase === "boss") {
+    if (!enemies.some((e) => e.type === "boss")) { phase = "clear"; banner("tue tout ce qui reste"); }
+  } else if (phase === "clear") {
+    if (enemies.length === 0) { phase = "absorb"; phaseT = 0; banner("l'xp est à toi"); }
+  } else if (phase === "absorb") {
+    // toute l'xp de la carte file vers toi
+    phaseT += dt;
+    gems.forEach((q) => { q.pull = true; });
+    if (!gems.length || phaseT > 7) { phase = "transition"; phaseT = 0; banner("monde " + (world + 2)); }
+  } else if (phase === "transition") {
+    phaseT += dt;
+    if (phaseT > 2.5) nextWorld();
   }
 
   // la grille : retrouver les voisins sans comparer tout le monde
@@ -412,8 +439,9 @@ const update = (dt) => {
     const dx = P.x - gm.x, dy = P.y - gm.y, d = Math.hypot(dx, dy);
     if (d < st.magnet || st.autoPull) gm.pull = true;
     if (gm.pull) {
-      gm.x += (dx / (d || 1)) * 420 * dt;
-      gm.y += (dy / (d || 1)) * 420 * dt;
+      const pullSp = phase === "absorb" ? 1100 : 420;
+      gm.x += (dx / (d || 1)) * pullSp * dt;
+      gm.y += (dy / (d || 1)) * pullSp * dt;
     }
     if (d < P.r + 6) { gems[i] = gems[gems.length - 1]; gems.pop(); SFX.gem(combo); gainXp(gm.v); if (mode === "levelup") return; }
   }

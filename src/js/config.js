@@ -9,11 +9,11 @@ const KEY = "devtober-swarm-7";
 
 // pour essayer sans attendre, dans l'adresse : #temps=140 (départ à 2:20), #invincible, #perf (temps de calcul à l'écran)
 const q = new URLSearchParams(location.hash.slice(1));
-const dbg = { time: Number(q.get("temps")) || 0, god: q.has("invincible"), perf: q.has("perf"), test: q.has("perf") || q.has("test"), orbs: Number(q.get("lames")) || 0 };
+const dbg = { time: Number(q.get("temps")) || 0, god: q.has("invincible"), perf: q.has("perf"), test: q.has("perf") || q.has("test"), orbs: Number(q.get("lames")) || 0, world: (Number(q.get("monde")) || 1) - 1 };
 const PINK = "#ff0055", LIGHT = "#e0e0e0", GREY = "#8c8c8c", DARK = "#5a5a5a", BG = "#0d0d0d";
 
 const ARENA_W = 2200, ARENA_H = 1500; // en pixels du monde
-const DURATION = 300; // une partie : 5 minutes
+const WORLD_WAVES = 240; // un monde : 4 minutes de vagues, puis le boss (environ 5 minutes en tout)
 const MAX_ENEMIES = 320, MAX_GEMS = 500;
 const DASH_TIME = 0.16, DASH_CD = 2.4;
 

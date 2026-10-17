@@ -1,9 +1,10 @@
 "use strict";
 
 /* ---------- Rendu ---------- */
-const hud = { time: "", level: "", kills: "", hp: -1, xp: -1, dash: -1, boss: -1 };
+const hud = { time: "", world: "", level: "", kills: "", hp: -1, xp: -1, dash: -1, boss: -1 };
 const drawHud = () => {
-  const tm = fmt(t), lvl = "niv " + level, ks = kills + " tués";
+  const tm = fmt(t), lvl = "niv " + level, ks = kills + " tués", wl = "monde " + (world + 1);
+  if (wl !== hud.world) { hud.world = wl; $("#sWorld").textContent = wl; }
   if (tm !== hud.time) { hud.time = tm; $("#sTime").textContent = tm; }
   if (lvl !== hud.level) { hud.level = lvl; $("#sLevel").textContent = lvl; }
   if (ks !== hud.kills) { hud.kills = ks; $("#sKills").textContent = ks; }

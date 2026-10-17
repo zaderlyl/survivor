@@ -91,7 +91,7 @@ const showMenu = () => {
   $("#chips").textContent = "";
   show("jour 07", (b) => {
     b.appendChild(logo());
-    b.appendChild(el("p", "big", "Tiens 5 minutes."));
+    b.appendChild(el("p", "big", "Tiens le plus longtemps possible."));
     b.appendChild(el("p", "", "Tu te déplaces, ça tire tout seul. Chaque ennemi tué lâche un cristal : à chaque niveau, tu choisis une amélioration."));
     const row0 = el("div", "row diff");
     row0.setAttribute("role", "group");
@@ -137,7 +137,7 @@ const HOW = [
   ["Dash", "Espace, ou le bouton rond sur téléphone. Il te protège un instant, il revient en 2,4 s."],
   ["Grandir", "Les cristaux blancs remplissent la barre rose : à chaque niveau, trois améliorations de rareté variable (commun, rare, épique, légendaire). Deux améliorations montées ensemble débloquent une évolution."],
   ["Danger", "Tout ce qui est rose te blesse : tirs ennemis, ligne de charge, zones au sol qui se remplissent. Tes tirs sont blancs. Le blindé encaisse mal les tirs : utilise lames, onde et explosions."],
-  ["Tenir", "5 minutes. Deux boss arrivent à 2:30 et 4:15. P : pause."],
+  ["Tenir", "Le plus longtemps possible. Chaque monde dure environ 5 minutes : des vagues, puis un boss. Tue-le, ainsi que tout ce qui reste, pour passer au monde suivant, de plus en plus dur. P : pause."],
 ];
 // back : où revenir après « compris » (le menu, ou la pause quand on était en partie)
 const showHow = (back) => {
@@ -249,7 +249,7 @@ const showPause = () => {
   if (mode !== "play") return;
   mode = "pause";
   show("pause", (b) => {
-    b.appendChild(statsList([["temps", fmt(t)], ["niveau", String(level)], ["ennemis tués", String(kills)]]));
+    b.appendChild(statsList([["temps", fmt(t)], ["monde", String(world + 1)], ["niveau", String(level)], ["ennemis tués", String(kills)]]));
     const row = el("div", "row");
     row.appendChild(button("reprendre", resume, true));
     row.appendChild(button("abandonner", () => end(false, true)));
@@ -286,6 +286,7 @@ const end = (won, giveUp) => {
     b.appendChild(statsList([
       ["score", score + (recScore ? " (record)" : "")],
       ["ennemis tués", String(kills)],
+      ["monde atteint", String(world + 1)],
       ["niveau atteint", String(level)],
       ["meilleur temps (" + dm.name + ")", fmt(best.t[best.diff]) + (record && !won ? " (nouveau)" : "")],
     ]));

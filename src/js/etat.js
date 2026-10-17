@@ -16,7 +16,7 @@ const TYPES = {
 /* ---------- L'état d'une partie ---------- */
 let P, st, lv, fx, enemies, bullets, ebullets, gems, drops, zones, parts, texts, waves, ghosts;
 let freeze = 0; // pause d'image à la mort du boss
-let t, kills, level, xp, need, spawnAcc, nextWave, bossAt, stormAt, cam, joy, pending, mode, combo, comboT, shake, score, dm;
+let t, kills, level, xp, need, spawnAcc, nextWave, stormAt, world, worldT, phase, phaseT, cam, joy, pending, mode, combo, comboT, shake, score, dm;
 const keys = {};
 mode = "menu"; // menu, play, levelup, pause, over, win
 const cells = [];
@@ -35,21 +35,26 @@ const reset = () => {
   lv = {};
   fx = []; enemies = []; bullets = []; ebullets = []; gems = []; drops = []; zones = []; parts = []; texts = []; waves = []; ghosts = [];
   t = 0; kills = 0; level = 1; xp = 0; need = 6; spawnAcc = 0; nextWave = 30;
-  bossAt = [150, 255];
-  stormAt = [105, 225];
+  stormAt = [100, 200];
+  world = 0; worldT = 0; phase = "waves"; phaseT = 0;
   cam = { x: P.x, y: P.y };
   joy = null; pending = 0; combo = 0; comboT = 0; shake = 0; score = 0;
   dm = DIFFS[best.diff] || DIFFS.normal;
 };
 reset();
 
+// chaque monde est plus dur que le précédent : plus de vie, plus de dégâts, plus d'arrivées
+const worldHp = () => 1 + 0.4 * world;
+const worldDmg = () => 1 + 0.15 * world;
+const worldSpawn = () => 1 + 0.2 * world;
+
 let seedN = 0;
 const spawn = (type, x, y, instant) => {
   const d = TYPES[type];
-  const m = (1 + t / 260) * dm.hp; // la vie des ennemis monte avec le temps
-  const hp = d.hp * (type === "boss" ? (1 + t / 150) * dm.hp : m);
+  const m = (1 + worldT / 260) * dm.hp * worldHp(); // la vie monte avec le temps du monde, puis avec le monde
+  const hp = d.hp * (type === "boss" ? 2.2 * (1 + 0.5 * world) * dm.hp : m);
   enemies.push({
-    type, x, y, r: d.r, hp, max: hp, sp: d.sp * (type === "crawler" ? 1 + Math.min(t / 500, 0.6) : 1), dmg: d.dmg * dm.dmg, xp: d.xp,
+    type, x, y, r: d.r, hp, max: hp, sp: d.sp * (type === "crawler" ? 1 + Math.min(worldT / 500, 0.6) : 1), dmg: d.dmg * dm.dmg * worldDmg(), xp: d.xp,
     fire: rnd(0.5, 2), hit: 0, orbCd: 0, kx: 0, ky: 0, age: instant ? 1 : 0, seed: seedN++ % 7, st: 0, stT: rnd(0.5, 1.5), dirx: 0, diry: 0,
   });
 };
