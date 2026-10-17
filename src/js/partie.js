@@ -218,7 +218,7 @@ const update = (dt) => {
       phase = "boss";
       const [x, y] = edgePoint(80);
       spawn("boss", x, y);
-      banner("boss");
+      banner("boss : " + BOSS_NAMES[world % 5]);
       SFX.boss();
       shake = Math.max(shake, 8);
     }
@@ -262,7 +262,7 @@ const update = (dt) => {
     }
     if (e.slowed > 0) { e.slowed -= dt; sp *= 0.5; }
     if (e.type === "shooter") {
-      if (d < 240) { mx = -mx; my = -my; } else if (d < 300) sp = 0;
+      if (phase === "clear") { /* une fois le boss tombé, les tireurs foncent sur toi : le nettoyage doit finir */ } else if (d < 240) { mx = -mx; my = -my; } else if (d < 300) sp = 0;
       e.fire -= dt;
       if (e.fire <= 0 && d < 520 && e.age > 0.3) {
         e.fire = 2.2;
@@ -270,7 +270,7 @@ const update = (dt) => {
       }
     } else if (e.type === "mage") {
       // il garde ses distances et marque le sol où tu te trouves : il faut bouger avant que la zone claque
-      if (d < 280) { mx = -mx; my = -my; } else if (d < 340) sp = 0;
+      if (phase === "clear") { /* même chose : il s'approche */ } else if (d < 280) { mx = -mx; my = -my; } else if (d < 340) sp = 0;
       e.fire -= dt;
       if (e.fire <= 0 && d < 560 && e.age > 0.3) {
         e.fire = 3.6;
@@ -285,14 +285,8 @@ const update = (dt) => {
       else if (e.st === 2) { mx = e.dirx; my = e.diry; sp = 400; if (e.stT <= 0) { e.st = 3; e.stT = 1.2; } }
       else { sp = 0; if (e.stT <= 0) { e.st = 0; e.stT = rnd(0.5, 1.5); } }
     } else if (e.type === "boss") {
-      e.fire -= dt;
-      if (e.fire <= 0) {
-        e.fire = 3;
-        for (let k = 0; k < 12; k++) {
-          const a = (k / 12) * 6.283 + t;
-          ebullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 170, vy: Math.sin(a) * 170, life: 4, dmg: 10 * dm.dmg });
-        }
-      }
+      const r = bossAI(e, dt, dx, dy, d);
+      mx = r.mx; my = r.my; sp = r.sp;
     }
     if (mode === "menu") { mx = 0; my = 0; sp = 0; }
     let px = 0, py = 0;

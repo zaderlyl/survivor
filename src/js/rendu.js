@@ -354,6 +354,26 @@ const render = () => {
     blit(e.type, e.x, e.y, d.s, mode === "menu" ? Math.floor(performance.now() / 250 + e.seed) & 1 : frame, flip, e.hit > 0);
     g.globalAlpha = 1;
     if (e.type === "boss") {
+      if (e.tele === 1) {
+        // la charge : une ligne rose annonce la direction
+        g.strokeStyle = PINK;
+        g.globalAlpha = 0.6;
+        g.lineWidth = 3;
+        g.setLineDash([6, 6]);
+        g.beginPath();
+        g.moveTo(e.x, e.y);
+        g.lineTo(e.x + e.dirx * 420, e.y + e.diry * 420);
+        g.stroke();
+        g.setLineDash([]);
+        g.globalAlpha = 1;
+      } else if (e.tele === 2) {
+        // la téléportation : un cercle qui se resserre
+        g.strokeStyle = PINK;
+        g.lineWidth = 2;
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 10 + 20 * Math.max(0, e.mt), 0, 6.283);
+        g.stroke();
+      }
       g.fillStyle = "#333333";
       g.fillRect(e.x - 30, e.y - e.r - 16, 60, 5);
       g.fillStyle = PINK;
