@@ -13,9 +13,9 @@ const BOSS_ATKS = [
 ];
 const BOSS_MINIONS = ["crawler", "crawler", "brute", "splitter", "brute"];
 
-const bossBullet = (x, y, a, sp) => ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4, dmg: 10 * dm.dmg * worldDmg() });
+const bossBullet = (x, y, a, sp) => ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4, dmg: 10 * dm.dmg });
 // une zone rose au sol : elle se remplit puis claque
-const bossZone = (x, y, delay) => zones.push({ x: clamp(x, 40, ARENA_W - 40), y: clamp(y, 40, ARENA_H - 40), r: 50, t: delay, max: delay, dmg: 14 * dm.dmg * worldDmg(), fired: false, boom: 0 });
+const bossZone = (x, y, delay) => zones.push({ x: clamp(x, 40, ARENA_W - 40), y: clamp(y, 40, ARENA_H - 40), r: 50, t: delay, max: delay, dmg: 14 * dm.dmg, fired: false, boom: 0 });
 
 // renvoie le mouvement du boss : { mx, my, sp }
 const bossAI = (e, dt, dx, dy, d) => {

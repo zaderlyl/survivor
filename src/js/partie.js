@@ -90,7 +90,7 @@ const kill = (i) => {
 
 const hurt = (dmg) => {
   if (P.inv > 0 || dbg.god) return;
-  dmg *= 1 - st.armor;
+  dmg *= incoming() * (1 - st.armor);
   P.hp -= dmg;
   P.inv = 0.8;
   P.flash = 0.2;
