@@ -50,33 +50,73 @@ const attractMode = () => {
   }
 };
 
-// le titre en gros pixels : cinq lettres de 5 x 5, tracées ici
+// le titre en gros pixels : toutes les lettres, en 5 x 5, tracées ici
 const LOGO = {
-  S: [".####", "#....", ".###.", "....#", "####."],
-  W: ["#...#", "#...#", "#.#.#", "##.##", "#...#"],
   A: [".###.", "#...#", "#####", "#...#", "#...#"],
-  R: ["####.", "#...#", "####.", "#.#..", "#..##"],
+  B: ["####.", "#...#", "####.", "#...#", "####."],
+  C: [".####", "#....", "#....", "#....", ".####"],
+  D: ["####.", "#...#", "#...#", "#...#", "####."],
+  E: ["#####", "#....", "####.", "#....", "#####"],
+  F: ["#####", "#....", "####.", "#....", "#...."],
+  G: [".####", "#....", "#..##", "#...#", ".####"],
+  H: ["#...#", "#...#", "#####", "#...#", "#...#"],
+  I: ["#####", "..#..", "..#..", "..#..", "#####"],
+  J: ["..###", "...#.", "...#.", "#..#.", ".##.."],
+  K: ["#...#", "#..#.", "###..", "#..#.", "#...#"],
+  L: ["#....", "#....", "#....", "#....", "#####"],
   M: ["#...#", "##.##", "#.#.#", "#...#", "#...#"],
+  N: ["#...#", "##..#", "#.#.#", "#..##", "#...#"],
+  O: [".###.", "#...#", "#...#", "#...#", ".###."],
+  P: ["####.", "#...#", "####.", "#....", "#...."],
+  Q: [".###.", "#...#", "#.#.#", "#..#.", ".##.#"],
+  R: ["####.", "#...#", "####.", "#.#..", "#..##"],
+  S: [".####", "#....", ".###.", "....#", "####."],
+  T: ["#####", "..#..", "..#..", "..#..", "..#.."],
+  U: ["#...#", "#...#", "#...#", "#...#", ".###."],
+  V: ["#...#", "#...#", "#...#", ".#.#.", "..#.."],
+  W: ["#...#", "#...#", "#.#.#", "##.##", "#...#"],
+  X: ["#...#", ".#.#.", "..#..", ".#.#.", "#...#"],
+  Y: ["#...#", ".#.#.", "..#..", "..#..", "..#.."],
+  Z: ["#####", "...#.", "..#..", ".#...", "#####"],
 };
 const logo = () => {
-  const sc = 6, word = "SWARM";
+  const word = GAME_NAME.toUpperCase().split("").filter((ch) => ch === " " || LOGO[ch]);
+  const sc = word.length > 8 ? 4 : 6, adv = (ch) => (ch === " " ? 3 : 6);
+  const total = word.reduce((n, ch) => n + adv(ch), -1);
   const c = document.createElement("canvas");
-  c.width = (word.length * 6 - 1) * sc;
+  c.width = total * sc;
   c.height = 5 * sc;
   c.className = "logo-px";
   c.setAttribute("role", "img");
-  c.setAttribute("aria-label", "swarm");
+  c.setAttribute("aria-label", GAME_NAME.toLowerCase());
   const x = c.getContext("2d");
-  word.split("").forEach((ch, i) => {
-    LOGO[ch].forEach((row, r) => {
-      row.split("").forEach((cell, k) => {
-        if (cell !== "#") return;
-        // la barre du A est rose : c'est le seul point actif du titre
-        x.fillStyle = ch === "A" && r === 2 ? PINK : LIGHT;
-        x.fillRect((i * 6 + k) * sc, r * sc, sc, sc);
+  // la barre de la première lettre A, E ou O est rose : c'est le seul point actif du titre
+  const accent = word.findIndex((ch) => "AEO".indexOf(ch) >= 0);
+  let px = 0;
+  word.forEach((ch, i) => {
+    if (ch !== " ") {
+      LOGO[ch].forEach((row, r) => {
+        row.split("").forEach((cell, k) => {
+          if (cell !== "#") return;
+          x.fillStyle = i === accent && r === 2 ? PINK : LIGHT;
+          x.fillRect((px + k) * sc, r * sc, sc, sc);
+        });
       });
-    });
+    }
+    px += adv(ch);
   });
+  return c;
+};
+
+// le personnage choisi, en grand, tel qu'il est au départ
+const heroPreview = () => {
+  const name = heroName(), c = document.createElement("canvas"), src = sprite(name, 0, false, false, "000");
+  c.width = src.width;
+  c.height = src.height;
+  c.className = "hero-prev";
+  c.setAttribute("role", "img");
+  c.setAttribute("aria-label", CHARS[best.char].name);
+  c.getContext("2d").drawImage(src, 0, 0);
   return c;
 };
 
@@ -89,10 +129,10 @@ const showMenu = () => {
   $("#bars").hidden = true;
   $("#bossBar").hidden = true;
   $("#chips").textContent = "";
-  show("jour 07", (b) => {
+  show("survivor-like cyberpunk", (b) => {
     b.appendChild(logo());
     b.appendChild(el("p", "big", "Tiens le plus longtemps possible."));
-    b.appendChild(el("p", "", "Tu te déplaces, ça tire tout seul. Chaque ennemi tué lâche un cristal : à chaque niveau, tu choisis une amélioration."));
+    b.appendChild(el("p", "", "Tu te déplaces, ça tire tout seul. Chaque monstre tué lâche de l'XP : à chaque niveau, tu choisis tes améliorations. Tue le boss et tout ce qui reste pour passer au monde suivant."));
     const row0 = el("div", "row diff");
     row0.setAttribute("role", "group");
     row0.setAttribute("aria-label", "Difficulté");
@@ -111,21 +151,19 @@ const showMenu = () => {
       rowC.appendChild(c);
     });
     b.appendChild(rowC);
+    b.appendChild(heroPreview());
     b.appendChild(el("p", "small", CHARS[best.char].text));
-    if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["victoires", String(best.wins[best.diff] || 0)], ["meilleur score", String(best.score)]]));
+    if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["meilleur monde", String(best.world || 1)], ["meilleur score", String(best.score)]]));
     const row = el("div", "row");
     row.appendChild(button("jouer", start, true));
     row.appendChild(button("comment jouer", () => showHow()));
     b.appendChild(row);
     b.appendChild(el("p", "small", "ZQSD ou flèches · Espace : dash · P : pause · au doigt : glisse n'importe où"));
     // le pied de page est caché sur téléphone : les crédits sont ici
-    const cr = el("p", "small", "Conçu par ");
-    [["Lino Volle", "https://github.com/Bebbou"], ["doc", "../docs/07-swarm.html"], ["code", "https://github.com/Bebbou/devtober-2026/tree/main/07-Swarm"]].forEach((l, i) => {
-      const a = el("a", "", l[0]);
-      a.href = l[1];
-      if (i) cr.appendChild(document.createTextNode(" · "));
-      cr.appendChild(a);
-    });
+    const cr = el("p", "small", "Basé sur ");
+    const a0 = el("a", "", "Swarm de Lino Volle");
+    a0.href = "https://github.com/Bebbou/devtober-2026/tree/main/07-Swarm";
+    cr.appendChild(a0);
     b.appendChild(cr);
   }, true);
 };
@@ -135,7 +173,7 @@ const HOW = [
   ["Bouger", "ZQSD, WASD ou les flèches. Au doigt ou à la souris : glisse n'importe où, un joystick apparaît."],
   ["Tirer", "Automatique, sur l'ennemi le plus proche."],
   ["Dash", "Espace, ou le bouton rond sur téléphone. Il te protège un instant, il revient en 2,4 s."],
-  ["Grandir", "Les cristaux blancs remplissent la barre rose : à chaque niveau, trois améliorations de rareté variable (commun, rare, épique, légendaire). Deux améliorations montées ensemble débloquent une évolution."],
+  ["Grandir", "Les cristaux blancs remplissent la barre rose : à chaque niveau, trois cartes de rareté variable (commun, rare, légendaire), chacune une arme, une variante ou deux boosts. Deux améliorations montées ensemble débloquent une évolution."],
   ["Danger", "Tout ce qui est rose te blesse : tirs ennemis, ligne de charge, zones au sol qui se remplissent. Tes tirs sont blancs. Le blindé encaisse mal les tirs : utilise lames, onde et explosions."],
   ["Tenir", "Le plus longtemps possible. Chaque monde dure environ 5 minutes : des vagues, puis un boss. Tue-le, ainsi que tout ce qui reste, pour passer au monde suivant, de plus en plus dur. P : pause."],
 ];
@@ -275,6 +313,7 @@ const end = (won, giveUp) => {
   if (recScore) best.score = score;
   best.kills = Math.max(best.kills, kills);
   best.level = Math.max(best.level, level);
+  best.world = Math.max(best.world || 0, world + 1);
   saveBest();
   $("#pause").hidden = true;
   $("#dashBtn").hidden = true;

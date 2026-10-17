@@ -365,7 +365,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center; /* « safe » : si le contenu dépasse, on peut remonter tout en haut */
   gap: 14px;
   padding: 20px 16px;
   background: rgba(13, 13, 13, 0.92);
@@ -624,4 +624,18 @@ main {
 .how dd {
   margin: 0;
   color: var(--muted);
+}
+
+/* le personnage choisi, dans le menu */
+.hero-prev {
+  display: block;
+  width: 80px;
+  height: auto;
+  margin: 4px auto;
+  image-rendering: pixelated;
+}
+
+/* les choix de difficulté et de personnage tiennent sur moins de lignes */
+.row.diff {
+  gap: 6px;
 }

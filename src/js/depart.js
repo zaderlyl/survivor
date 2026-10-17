@@ -15,6 +15,8 @@ $("#help").addEventListener("click", () => {
   else if (mode === "pause") showHow(() => { mode = "play"; showPause(); });
   else if (mode === "menu" || mode === "over" || mode === "win") showHow();
 });
+document.title = GAME_NAME;
+$(".logo").lastChild.textContent = GAME_NAME.toLowerCase();
 window.addEventListener("resize", () => { fit(); render(); });
 fit();
 syncSoundBtn();

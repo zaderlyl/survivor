@@ -13,6 +13,7 @@ const dbg = { time: Number(q.get("temps")) || 0, god: q.has("invincible"), perf:
 const PINK = "#ff0055", LIGHT = "#e0e0e0", GREY = "#8c8c8c", DARK = "#5a5a5a", BG = "#0d0d0d";
 
 const ARENA_W = 2200, ARENA_H = 1500; // en pixels du monde
+const GAME_NAME = "Neon Horde"; // le nom du jeu (provisoire) : à changer ici seulement
 const WORLD_WAVES = 240; // un monde : 4 minutes de vagues, puis le boss (environ 5 minutes en tout)
 const MAX_ENEMIES = 320, MAX_GEMS = 500;
 const DASH_TIME = 0.16, DASH_CD = 2.4;
@@ -37,7 +38,7 @@ const fit = () => {
 };
 
 /* ---------- Ce que la personne a enregistré ---------- */
-const best = { t: { easy: 0, normal: 0, hard: 0 }, wins: { easy: 0, normal: 0, hard: 0 }, kills: 0, level: 1, score: 0, games: 0, diff: "normal", sound: true };
+const best = { t: { easy: 0, normal: 0, hard: 0 }, wins: { easy: 0, normal: 0, hard: 0 }, kills: 0, level: 1, score: 0, games: 0, world: 0, diff: "normal", sound: true };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY)) || {};
   if (typeof saved.time === "number") saved.t = { normal: saved.time }; // ancien format
