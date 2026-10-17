@@ -168,6 +168,10 @@ const render = () => {
         if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
       });
       g.stroke();
+    } else if (f.k === "stick") {
+      // la grenade collée : elle clignote de plus en plus vite avant d'exploser
+      g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
+      g.fillRect(f.x - 3, f.y - 3, 6, 6);
     } else if (f.k === "rotbeam") {
       g.globalAlpha = 0.9;
       g.lineWidth = 5;
