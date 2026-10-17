@@ -134,40 +134,61 @@ const render = () => {
 
   // les ondes
   waves.forEach((w) => {
-    g.strokeStyle = LIGHT;
-    g.lineWidth = 3;
+    g.strokeStyle = w.color || LIGHT;
+    g.lineWidth = w.color ? 4 : 3;
+    if (w.color) g.globalCompositeOperation = "lighter"; // un anneau coloré brille
     g.globalAlpha = Math.max(0, w.life / w.t);
     g.beginPath();
     g.arc(w.x, w.y, w.r, 0, 6.283);
     g.stroke();
+    g.globalCompositeOperation = "source-over";
     g.globalAlpha = 1;
   });
 
   // les coups des armes : arc d'épée, laser, éclair, grenade
   fx.forEach((f) => {
-    const al = Math.max(0, f.life / f.t);
+    const al = Math.max(0, f.life / f.t), col = heroColor();
     g.globalAlpha = al;
-    g.strokeStyle = LIGHT;
-    g.fillStyle = LIGHT;
+    g.strokeStyle = col;
+    g.fillStyle = col;
     if (f.k === "arc") {
-      g.lineWidth = 6;
+      // un arc de couleur qui brille, avec un cœur blanc
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 9;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 3;
       g.beginPath();
       g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
       g.stroke();
     } else if (f.k === "beam") {
-      g.lineWidth = f.w * al + 2;
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = (f.w * al + 2) * 1.8;
+      g.beginPath();
+      g.moveTo(f.x, f.y);
+      g.lineTo(f.x + Math.cos(f.a) * f.len, f.y + Math.sin(f.a) * f.len);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = Math.max(1, (f.w * al + 2) * 0.4);
       g.beginPath();
       g.moveTo(f.x, f.y);
       g.lineTo(f.x + Math.cos(f.a) * f.len, f.y + Math.sin(f.a) * f.len);
       g.stroke();
     } else if (f.k === "bolt") {
-      g.lineWidth = 2;
-      g.beginPath();
-      f.pts.forEach((p, i) => {
-        const jx = i && !calm ? rnd(-3, 3) : 0, jy = i && !calm ? rnd(-3, 3) : 0;
-        if (i) g.lineTo(p[0] + jx, p[1] + jy); else g.moveTo(p[0], p[1]);
+      const pts = f.pts.map((p, i) => [p[0] + (i && !calm ? rnd(-3, 3) : 0), p[1] + (i && !calm ? rnd(-3, 3) : 0)]);
+      [["lighter", col, 5], ["source-over", "#ffffff", 1.5]].forEach((m) => {
+        g.globalCompositeOperation = m[0];
+        g.strokeStyle = m[1];
+        g.lineWidth = m[2];
+        g.beginPath();
+        pts.forEach((p, i) => { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
+        g.stroke();
       });
-      g.stroke();
+      g.globalCompositeOperation = "source-over";
     } else if (f.k === "thunder") {
       // l'orbe : un disque entouré d'un anneau qui pulse
       g.globalAlpha = 1;
@@ -382,15 +403,19 @@ const render = () => {
   }
 
   // tes tirs sont blancs, ceux des ennemis roses : tout ce qui est rose te blesse
-  g.fillStyle = LIGHT;
+  const hc = heroColor();
   for (let i = 0; i < bullets.length; i++) {
     const b = bullets[i];
+    g.fillStyle = b.color || hc;
     g.save();
     g.translate(b.x, b.y);
     g.rotate(Math.atan2(b.vy, b.vx));
     const sz = b.size || 1;
-    if (b.star) { g.rotate(-Math.atan2(b.vy, b.vx) + t * 20); g.fillRect(-6, -1.5, 12, 3); g.fillRect(-1.5, -6, 3, 12); g.restore(); continue; }
+    if (b.star) { g.rotate(-Math.atan2(b.vy, b.vx) + t * 20); g.fillRect(-6, -1.5, 12, 3); g.fillRect(-1.5, -6, 3, 12); g.fillStyle = "#ffffff"; g.fillRect(-2, -0.7, 4, 1.4); g.restore(); continue; }
     g.fillRect(-5 * sz, -1.5 * sz, 11 * sz, 3 * sz);
+    g.fillStyle = "#ffffff"; // le cœur du tir est blanc
+    g.fillRect(-3 * sz, -0.6 * sz, 7 * sz, 1.2 * sz);
+    g.fillStyle = b.color || hc;
     g.globalAlpha = 0.4;
     g.fillRect(-15 * sz, -1 * sz, 9 * sz, 2 * sz);
     g.restore();
@@ -446,12 +471,19 @@ const render = () => {
   }
 
   // les éclats
-  for (let i = 0; i < parts.length; i++) {
-    const p = parts[i];
-    g.globalAlpha = Math.max(0, p.life / p.max);
-    g.fillStyle = p.color;
-    g.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  // deux passes : les éclats ordinaires, puis ceux qui brillent, en addition de lumière
+  for (let pass = 0; pass < 2; pass++) {
+    g.globalCompositeOperation = pass ? "lighter" : "source-over";
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (!!p.glow !== !!pass) continue;
+      g.globalAlpha = Math.max(0, p.life / p.max) * (p.round ? 0.55 : 1);
+      g.fillStyle = p.color;
+      if (p.round) { g.beginPath(); g.arc(p.x, p.y, p.size * (1.2 - p.life / p.max * 0.4), 0, 6.283); g.fill(); }
+      else g.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
   }
+  g.globalCompositeOperation = "source-over";
   g.globalAlpha = 1;
 
   // la personne : des images rémanentes pendant le dash, une pose de marche, rose un instant quand elle est touchée
@@ -480,8 +512,17 @@ const render = () => {
       g.fillRect(Math.round(P.x - 4 + Math.cos(P.aim) * 2), Math.round(P.y - 5 + Math.sin(P.aim) * 2), 8, 3);
     }
     if (P.muzzle > 0) {
-      g.fillStyle = LIGHT;
-      g.fillRect(Math.round(P.x + Math.cos(P.aim) * 14 - 2), Math.round(P.y + Math.sin(P.aim) * 14 - 2), 5, 5);
+      const mx = P.x + Math.cos(P.aim) * 14, my = P.y + Math.sin(P.aim) * 14;
+      g.fillStyle = heroColor();
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(mx, my, 9, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+      g.fillStyle = "#ffffff";
+      g.fillRect(Math.round(mx - 2), Math.round(my - 2), 5, 5);
     }
   }
 

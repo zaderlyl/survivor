@@ -39,7 +39,7 @@ const banner = (txt) => {
 
 const burst = (x, y, n, color, speed) => {
   if (calm) return;
-  for (let i = 0; i < n && parts.length < 200; i++) {
+  for (let i = 0; i < n && parts.length < MAX_PARTS; i++) {
     const a = Math.random() * 6.28, s = rnd(40, speed || 140);
     parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(0.25, 0.45), max: 0.45, color, size: Math.random() < 0.3 ? 5 : 3 });
   }
@@ -69,6 +69,8 @@ const kill = (i) => {
   if (st.steal > 0) P.hp = Math.min(st.maxHp, P.hp + st.steal);
   if (st.deathBlast) splash(e, 45, st.dmg * 0.8);
   burst(e.x, e.y, e.type === "boss" ? 40 : 6, e.type === "boss" ? PINK : GREY, e.type === "boss" ? 300 : 140);
+  spark(e.x, e.y, worldTheme().glow, e.type === "boss" ? 30 : 9, e.type === "boss" ? 320 : 200); // et des étincelles aux couleurs du monde
+  flashFx(e.x, e.y, worldTheme().glow, e.type === "boss" ? 40 : 14);
   if (e.type === "boss") {
     for (let k = 0; k < 8; k++) dropGem(e.x, e.y, 4);
     drops.push({ type: "heart", x: e.x, y: e.y, life: 20 });
@@ -107,6 +109,10 @@ const damage = (e, d, crit, kx, ky, src) => {
   e.kx += kx;
   e.ky += ky;
   floatText(e.x + rnd(-4, 4), e.y - e.r - 4, String(Math.round(d)), crit ? PINK : LIGHT, crit ? 14 : 11);
+  const hc = hitColor(src);
+  spark(e.x, e.y, hc, crit ? 12 : 6, crit ? 260 : 180); // une gerbe à la couleur du coup
+  flashFx(e.x, e.y, hc, crit ? 16 : 10);
+  if (crit) ringFx(e.x, e.y, "#ffffff", 22, 0.2);
   SFX.hit();
 };
 
@@ -116,7 +122,7 @@ const splash = (src, r, d) => {
     const o = enemies[i];
     if (o !== src && o.hp > 0 && Math.hypot(o.x - src.x, o.y - src.y) < r + o.r) damage(o, d, false, 0, 0, "blast");
   }
-  if (waves.length < 14) waves.push({ x: src.x, y: src.y, r: 0, max: r, life: 0.18, t: 0.18 });
+  if (waves.length < 14) { waves.push({ x: src.x, y: src.y, r: 0, max: r, life: 0.18, t: 0.18, color: heroColor() }); spark(src.x, src.y, heroColor(), 6, 150); }
 };
 
 const pickup = (d) => {
@@ -356,6 +362,7 @@ const update = (dt) => {
       bl.x += bl.vx * h;
       bl.y += bl.vy * h;
       bl.life -= h;
+      if (sub === 0 && Math.random() < 0.7) trail(bl.x, bl.y, bl.color || heroColor(), bl.size ? 3 : 2); // la traînée du tir
       if (bl.life <= 0 || bl.x < 0 || bl.y < 0 || bl.x > ARENA_W || bl.y > ARENA_H) { gone = true; break; }
       const cx = clamp((bl.x / CELL) | 0, 0, COLS - 1), cy = clamp((bl.y / CELL) | 0, 0, ROWS - 1);
       for (let yy = Math.max(0, cy - 1); yy <= Math.min(ROWS - 1, cy + 1) && !gone; yy++) {
@@ -453,6 +460,7 @@ const update = (dt) => {
     const p = parts[i];
     p.x += p.vx * dt;
     p.y += p.vy * dt;
+    if (p.drag) { const f = Math.max(0, 1 - p.drag * dt); p.vx *= f; p.vy *= f; }
     p.life -= dt;
     if (p.life <= 0) { parts[i] = parts[parts.length - 1]; parts.pop(); }
   }

@@ -29,7 +29,7 @@ const nearest = (maxR, ox = P.x, oy = P.y) => {
 // une explosion : onde visible et dégâts de zone
 const boom = (x, y, r, d) => {
   SFX.bomb();
-  if (waves.length < 14) waves.push({ x, y, r: 0, max: r, life: 0.25, t: 0.25 });
+  explodeFx(x, y, heroColor(), r);
   enemies.forEach((e) => {
     const dx = e.x - x, dy = e.y - y, dd = Math.hypot(dx, dy) || 1;
     if (e.hp > 0 && dd < r + e.r) strike(e, d, (dx / dd) * 160, (dy / dd) * 160, "blast");
