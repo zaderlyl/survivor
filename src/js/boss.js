@@ -11,6 +11,10 @@ const BOSS_ATKS = [
   ["spiral", "teleport", "summon"],
   ["ring", "spiral", "charge", "pound"],
 ];
+// les phases : une barre de vie unique, mais à chaque seuil le boss change de briques. Phase 0 à 100 %, puis chaque « at » est la part de vie qui l'y fait entrer.
+// sans entrée ici, un boss a deux phases : ses briques, puis les mêmes plus vite et plus fort sous la moitié de sa vie
+const BOSS_PHASES = {};
+const bossPhases = (bk) => BOSS_PHASES[bk] || [{ at: 1, atks: BOSS_ATKS[bk], cd: 2.6 }, { at: 0.5, atks: BOSS_ATKS[bk], cd: 1.7 }];
 const BOSS_MINIONS = ["crawler", "crawler", "brute", "splitter", "brute"];
 
 const bossBullet = (x, y, a, sp) => ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4, dmg: 10 * dm.dmg });
@@ -52,11 +56,30 @@ BOSS_BRICKS.pound = BOSS_BRICKS.pools;
 
 // renvoie le mouvement du boss : { mx, my, sp }
 const bossAI = (e, dt, dx, dy, d) => {
-  if (e.bk === undefined) { e.bk = world % 5; e.ai = 0; e.cd = 2; e.mode = "walk"; e.mt = 0; e.spiral = 0; e.sc = 0; e.sa = 0; e.tele = 0; }
-  const list = BOSS_ATKS[e.bk], enr = e.hp < e.max * 0.5;
+  if (e.bk === undefined) { e.bk = world % 5; e.ai = 0; e.cd = 2; e.mode = "walk"; e.mt = 0; e.spiral = 0; e.sc = 0; e.sa = 0; e.tele = 0; e.ph = 0; e.invT = 0; }
+  const phases = bossPhases(e.bk);
   let mx = dx / d, my = dy / d, sp = e.sp;
   e.mt -= dt;
   e.tele = 0;
+  // le passage d'une phase à l'autre : le boss est invulnérable un instant, une onde repousse tout, les tirs disparaissent
+  if (e.invT > 0) {
+    e.invT -= dt;
+    return { mx: 0, my: 0, sp: 0 };
+  }
+  const next = phases[e.ph + 1];
+  if (next && e.hp <= e.max * next.at) {
+    e.ph++;
+    e.invT = 1.3; e.mode = "walk"; e.spiral = 0; e.ai = 0; e.cd = 1.5;
+    ebullets.length = 0;
+    shake = Math.max(shake, 14);
+    SFX.boss();
+    ringFx(e.x, e.y, PINK, 260, 0.6);
+    ringFx(e.x, e.y, "#ffffff", 140, 0.4);
+    burst(e.x, e.y, 30, PINK, 320);
+    banner("phase " + (e.ph + 1));
+    return { mx: 0, my: 0, sp: 0 };
+  }
+  const ph = phases[e.ph], list = ph.atks, enr = e.ph > 0;
   if (e.spiral > 0) {
     e.spiral -= dt;
     e.sc -= dt;
@@ -82,8 +105,8 @@ const bossAI = (e, dt, dx, dy, d) => {
   } else {
     e.cd -= dt;
     if (e.cd <= 0) {
-      e.cd = enr ? 1.7 : 2.6;
-      BOSS_BRICKS[list[e.ai++ % list.length]](e, { dx, dy, d, enr });
+      e.cd = ph.cd;
+      BOSS_BRICKS[list[e.ai++ % list.length]](e, { dx, dy, d, enr, lvl: e.ph });
     }
   }
   return { mx, my, sp };

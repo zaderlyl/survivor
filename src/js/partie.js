@@ -112,10 +112,12 @@ const hurt = (dmg) => {
 };
 
 const damage = (e, d, crit, kx, ky, src) => {
+  if (e.invT > 0) { floatText(e.x, e.y - e.r - 4, "invulnérable", LIGHT, 10); return; } // un boss qui change de phase ne subit rien
   if (e.vuln > 0) d *= e.vuln2 || 1.5; // un ennemi vulnérable subit plus
   if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
   e.hp -= d;
+  if (e.type === "boss" && e.ph !== undefined) { const nx = bossPhases(e.bk)[e.ph + 1]; if (nx && e.hp < e.max * nx.at - 1) e.hp = e.max * nx.at - 1; } // une seule phase à la fois : un gros coup ne les saute pas
   e.hit = 0.06;
   e.kx += kx;
   e.ky += ky;
