@@ -44,9 +44,12 @@ const reset = () => {
 reset();
 
 // chaque monde est plus dur que le précédent : plus de vie, plus de dégâts, plus d'arrivées
-const worldHp = () => 1 + 0.4 * world;
+// jusqu'au monde 6 la montée est linéaire ; ensuite elle devient exponentielle pour suivre les builds sans limite
+const LATE = 5;
+const lateMul = (k) => Math.pow(k, Math.max(0, world - LATE));
+const worldHp = () => (1 + 0.4 * Math.min(world, LATE)) * lateMul(1.15);
 // les coups reçus montent avec le monde et avec la vie maximale du joueur : 320 PV ne doivent pas encaisser des coups à 6
-const incoming = () => (1 + 0.5 * world) * Math.sqrt(st.maxHp / 100);
+const incoming = () => (1 + 0.5 * Math.min(world, LATE)) * lateMul(1.12) * Math.sqrt(st.maxHp / 100);
 const worldSpawn = () => 1 + 0.2 * world;
 
 let seedN = 0;
@@ -55,7 +58,7 @@ const spawn = (type, x, y, instant) => {
   // la vie des ennemis suit aussi ta puissance de feu (dégâts et cadence), pour que 50 de dégâts par coup ne vident pas tout en un coup
   const power = Math.pow(Math.max(1, (st.dmg / 2) / (st.cd / 0.42)), 0.8);
   const m = (1 + worldT / 260) * dm.hp * worldHp() * power; // la vie monte avec le temps du monde, puis avec le monde
-  const hp = d.hp * (type === "boss" ? 2.2 * (1 + 0.5 * world) * dm.hp * power : m);
+  const hp = d.hp * (type === "boss" ? 2.2 * (1 + 0.5 * Math.min(world, LATE)) * lateMul(1.15) * dm.hp * power : m);
   enemies.push({
     type, x, y, r: d.r, hp, max: hp, skin: world % 5, sp: d.sp * (type === "crawler" ? 1 + Math.min(worldT / 500, 0.6) : 1), dmg: d.dmg * dm.dmg, xp: Math.round(d.xp * Math.pow(hp / d.hp, 0.75) * 10) / 10, // plus il est costaud, plus il rapporte
     fire: rnd(0.5, 2), hit: 0, orbCd: 0, kx: 0, ky: 0, age: instant ? 1 : 0, seed: seedN++ % 7, st: 0, stT: rnd(0.5, 1.5), dirx: 0, diry: 0,
