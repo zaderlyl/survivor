@@ -43,7 +43,7 @@ const GRAND_TICK = {
   // la singularité attire le joueur vers elle, de plus en plus fort selon la phase
   g3(e, dt) {
     if (e.invT > 0) return;
-    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, pull = 30 + 18 * e.ph;
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, pull = 24 + 14 * e.ph;
     if (d > 70) { P.x = clamp(P.x + (dx / d) * pull * dt, 12, ARENA_W - 12); P.y = clamp(P.y + (dy / d) * pull * dt, 12, ARENA_H - 12); }
   },
 };
@@ -51,14 +51,17 @@ const GRAND_TICK = {
 Object.assign(BOSS_BRICKS, {
   // le PDG : le sol se découpe en parts, certaines sont « licenciées » (mortelles) après un signal ; il reste toujours une part voisine saine
   sectors(e, c) {
-    const n = 8, cx = e.x, cy = e.y, base = rnd(0, 6.283), W = 6.283 / n, L = Math.min(6, 3 + c.lvl), tel = 1.9 - 0.1 * c.lvl;
+    const n = 8, cx = e.x, cy = e.y, base = rnd(0, 6.283), W = 6.283 / n, L = Math.min(6, 3 + c.lvl), tel = 2.3 - 0.1 * c.lvl;
     const wedgeOf = (x, y) => Math.floor((((Math.atan2(y - cy, x - cx) - base) % 6.283) + 6.283) % 6.283 / W);
     const idx = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5), bad = new Set(idx.slice(0, L)), pw = wedgeOf(P.x, P.y);
-    bad.delete((pw + (Math.random() < 0.5 ? 1 : n - 1)) % n);
+    const reach = (i) => { const am = base + (i + 0.5) * W, rr = Math.max(60, Math.min(420, Math.hypot(P.x - cx, P.y - cy))), x = cx + Math.cos(am) * rr, y = cy + Math.sin(am) * rr; return x > 50 && y > 50 && x < ARENA_W - 50 && y < ARENA_H - 50; };
+    const nb = [(pw + 1) % n, (pw + n - 1) % n].sort(() => Math.random() - 0.5).find(reach);
+    if (nb !== undefined) bad.delete(nb); else bad.delete(pw); // sinon c'est la part où tu te trouves qui reste saine
     e.mode = "busy";
     e.mt = tel + 0.3;
     hazard(tel + 0.5, {
       done: false,
+      danger(f, x, y) { return !f.done && bad.has(wedgeOf(x, y)) ? 1 : 0; },
       tick(f) {
         if (f.done || f.t - f.life < tel) return;
         f.done = true;
@@ -79,6 +82,8 @@ Object.assign(BOSS_BRICKS, {
   // le réacteur : des pylônes relient le boss, qui reste invulnérable tant qu'il en reste un
   pylons(e, c) {
     if (enemies.some((q) => q.pylon && q.hp > 0)) return;
+    if (e.pylPh === e.ph) return BOSS_BRICKS.fan(e, c); // une seule fois par phase : sinon le boss reste intouchable presque tout le combat
+    e.pylPh = e.ph;
     const n = Math.min(5, 2 + c.lvl), a0 = rnd(0, 6.283);
     for (let k = 0; k < n; k++) {
       const a = a0 + (k / n) * 6.283;
@@ -109,15 +114,17 @@ Object.assign(BOSS_BRICKS, {
 
   // la singularité : un puits qui t'attire vers un cœur qui fait mal (il n'attire qu'après un instant)
   well(e, c) {
+    const a0 = rnd(0, 6.283);
     for (let k = 0, n = c.lvl >= 2 ? 2 : 1; k < n; k++) {
-      const a = rnd(0, 6.283), r = rnd(180, 320), wx = clamp(P.x + Math.cos(a) * r, 80, ARENA_W - 80), wy = clamp(P.y + Math.sin(a) * r, 80, ARENA_H - 80), R = 280;
+      const a = a0 + k * (Math.PI + rnd(-0.5, 0.5)), r = rnd(200, 320), wx = clamp(P.x + Math.cos(a) * r, 80, ARENA_W - 80), wy = clamp(P.y + Math.sin(a) * r, 80, ARENA_H - 80), R = 260;
       hazard(7, {
         hc: 0,
+        danger(f, x, y) { return Math.hypot(wx - x, wy - y) < 34 + P.r + 24 ? 1 : 0; },
         tick(f, h) {
           if (f.t - f.life < 0.9) return;
           f.hc -= h;
           const d = Math.hypot(wx - P.x, wy - P.y);
-          if (d < R && d > 4) { const pull = 130 * (1 - d / R); P.x = clamp(P.x + ((wx - P.x) / d) * pull * h, 12, ARENA_W - 12); P.y = clamp(P.y + ((wy - P.y) / d) * pull * h, 12, ARENA_H - 12); }
+          if (d < R && d > 4) { const pull = 100 * (1 - d / R); P.x = clamp(P.x + ((wx - P.x) / d) * pull * h, 12, ARENA_W - 12); P.y = clamp(P.y + ((wy - P.y) / d) * pull * h, 12, ARENA_H - 12); }
           if (d < 34 + P.r && f.hc <= 0) { hurt(12 * dm.dmg); f.hc = 0.4; }
         },
         draw(f, g) {
@@ -160,6 +167,10 @@ Object.assign(BOSS_BRICKS, {
     e.mode = "busy";
     e.mt = step;
     hazard(flips * step + 0.1, {
+      danger(f, x, y, a) {
+        const k = Math.floor((f.t - f.life + a) / step);
+        return k < flips && (((Math.floor(x / S) + Math.floor(y / S)) % 2) + 2) % 2 === (p0 + k) % 2 ? 1 : 0;
+      },
       tick(f) {
         const el = f.t - f.life, k = Math.floor(el / step);
         if (k >= flips || el - k * step < warn || done[k]) return;

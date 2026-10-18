@@ -13,7 +13,14 @@ Object.assign(BOSS_BRICKS, {
     e.mode = "busy";
     e.mt = tel + sweep;
     hazard(tel + sweep, {
-      ox: e.x, oy: e.y, ang: a0 - (dir * span) / 2, hc: 0,
+      ox: e.x, oy: e.y, ang: a0 - (dir * span) / 2, ang0: a0 - (dir * span) / 2, hc: 0,
+      // le danger prévu en (x, y) dans a secondes : utilisé par le bot de test, jamais par le jeu
+      danger(f, x, y, a) {
+        const el = f.t - f.life + a;
+        if (el < tel - 0.3 || el > tel + sweep) return 0;
+        const ang = f.ang0 + dir * (span / sweep) * Math.max(0, el - tel);
+        return offs.some((o) => { const ca = Math.cos(ang + o), sa = Math.sin(ang + o), dx = x - f.ox, dy = y - f.oy; return dx * ca + dy * sa > 0 && Math.abs(-dx * sa + dy * ca) < 9 + P.r + 14; }) ? 1 : 0;
+      },
       tick(f, h) {
         const el = f.t - f.life;
         f.hc -= h;
@@ -48,12 +55,18 @@ Object.assign(BOSS_BRICKS, {
   // un mur de tirs avance vers toi, avec une brèche : on se place dans le trou (marqué avant le départ)
   wall(e, c) {
     const rounds = c.lvl >= 2 ? 2 : 1;
-    const once = (n) => {
+    const once = (n, prev) => {
       if (e.hp <= 0) return;
       const a = Math.atan2(P.y - e.y, P.x - e.x), nx = Math.cos(a), ny = Math.sin(a), px = -ny, py = nx;
-      const lp = (P.x - e.x) * px + (P.y - e.y) * py, half = c.lvl >= 1 ? 52 : 64, gc = clamp(lp + rnd(-140, 140), -300, 300);
+      const lp = (P.x - e.x) * px + (P.y - e.y) * py, half = c.lvl >= 1 ? 52 : 64;
+      let gc = clamp(lp + rnd(-140, 140), -300, 300);
+      if (prev !== undefined) gc = clamp(lp + (Math.random() < 0.5 ? -1 : 1) * (half + 50), -300, 300); // le second mur ouvre sa brèche tout près de toi, d'un côté ou de l'autre
       const ox = e.x, oy = e.y, tel = 0.9, sp = 150 + c.lvl * 15;
       hazard(tel, {
+        danger(f, x, y) { // devant le mur et hors de la brèche
+          const fw = (x - ox) * nx + (y - oy) * ny, lat = (x - ox) * px + (y - oy) * py;
+          return fw > -20 && fw < 520 && Math.abs(lat) < 470 && Math.abs(lat - gc) > half - 12 ? 1 : 0;
+        },
         draw(f, g) {
           const k = 1 - f.life / f.t;
           g.lineWidth = 3;
@@ -66,7 +79,10 @@ Object.assign(BOSS_BRICKS, {
         },
         onEnd() {
           for (let s = -460; s <= 460; s += 30) if (s < gc - half || s > gc + half) bossBullet(ox + px * s, oy + py * s, a, sp);
-          if (n + 1 < rounds) hazard(0.7, { draw() {}, onEnd: () => once(n + 1) });
+          if (n + 1 < rounds) { // le second mur ne s'annonce qu'une fois le premier passé devant toi
+            const fwd = clamp((P.x - ox) * nx + (P.y - oy) * ny, 0, 600);
+            hazard(Math.max(0.8, fwd / sp + 0.3), { draw() {}, onEnd: () => once(n + 1, gc) });
+          }
         },
       });
     };
@@ -102,6 +118,7 @@ Object.assign(BOSS_BRICKS, {
       list.push({ x: clamp(P.x + Math.cos(a) * r, 40, ARENA_W - 40), y: clamp(P.y + Math.sin(a) * r, 40, ARENA_H - 40), live: true });
     }
     hazard(8, {
+      danger(f, x, y) { return list.some((m) => m.live && Math.hypot(m.x - x, m.y - y) < 26 + P.r + 14) ? 1 : 0; },
       tick(f) {
         if (f.t - f.life < 0.9) return; // le temps de les voir poser
         list.forEach((m) => {
@@ -127,34 +144,38 @@ Object.assign(BOSS_BRICKS, {
     });
   },
 
-  // des clones apparaissent autour de toi, se montrent, puis tirent en éventail : il faut sortir de leurs axes
+  // des clones apparaissent autour de toi, se montrent, puis tirent en éventail l'un après l'autre : il faut sortir de leurs axes
   clones(e, c) {
-    const n = 2 + (c.lvl >= 2 ? 1 : 0), list = [], a0 = rnd(0, 6.283);
-    for (let k = 0; k < n; k++) { const a = a0 + (k / n) * 6.283; list.push({ x: clamp(P.x + Math.cos(a) * 230, 40, ARENA_W - 40), y: clamp(P.y + Math.sin(a) * 230, 40, ARENA_H - 40) }); }
-    hazard(1.1, {
+    const n = 2 + (c.lvl >= 2 ? 1 : 0), list = [], a0 = rnd(0, 6.283), tel = 1.1, gap = 0.5;
+    for (let k = 0; k < n; k++) { const a = a0 + (k / n) * 6.283; list.push({ x: clamp(P.x + Math.cos(a) * 230, 40, ARENA_W - 40), y: clamp(P.y + Math.sin(a) * 230, 40, ARENA_H - 40), shot: false }); }
+    hazard(tel + gap * (n - 1) + 0.05, {
+      tick(f) {
+        const el = f.t - f.life;
+        list.forEach((m, k) => {
+          if (m.shot || el < tel + k * gap) return;
+          m.shot = true;
+          const shots = c.enr ? 7 : 5, a = Math.atan2(P.y - m.y, P.x - m.x);
+          for (let s = 0; s < shots; s++) bossBullet(m.x, m.y, a + (s - (shots - 1) / 2) * 0.26, 190);
+          burst(m.x, m.y, 8, PINK, 200);
+        });
+      },
       draw(f, g) {
-        const k = 1 - f.life / f.t;
-        list.forEach((m) => {
+        const el = f.t - f.life;
+        list.forEach((m, k) => {
+          if (m.shot) return;
+          const kk = Math.min(1, el / (tel + k * gap));
           g.strokeStyle = PINK;
-          g.globalAlpha = 0.25 + 0.5 * k;
+          g.globalAlpha = 0.25 + 0.5 * kk;
           g.lineWidth = 2;
           g.setLineDash([6, 6]);
           g.beginPath(); g.moveTo(m.x, m.y); g.lineTo(P.x, P.y); g.stroke();
           g.setLineDash([]);
           g.beginPath(); g.arc(m.x, m.y, e.r + 4 + 6 * Math.sin(t * 12), 0, 6.283); g.stroke();
           g.fillStyle = PINK;
-          g.globalAlpha = 0.15 + 0.25 * k;
+          g.globalAlpha = 0.15 + 0.25 * kk;
           g.beginPath(); g.arc(m.x, m.y, e.r, 0, 6.283); g.fill();
         });
         g.globalAlpha = 1;
-      },
-      onEnd() {
-        const shots = c.enr ? 7 : 5;
-        list.forEach((m) => {
-          const a = Math.atan2(P.y - m.y, P.x - m.x);
-          for (let s = 0; s < shots; s++) bossBullet(m.x, m.y, a + (s - (shots - 1) / 2) * 0.2, 230);
-          burst(m.x, m.y, 8, PINK, 200);
-        });
       },
     });
   },

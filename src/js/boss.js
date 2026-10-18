@@ -115,7 +115,8 @@ const bossAI = (e, dt, dx, dy, d) => {
     e.cd -= dt;
     if (e.cd <= 0) {
       e.cd = ph.cd;
-      BOSS_BRICKS[list[e.ai++ % list.length]](e, { dx, dy, d, enr, lvl: Math.min(3, e.ph) });
+      e.lastBrick = list[e.ai++ % list.length];
+      BOSS_BRICKS[e.lastBrick](e, { dx, dy, d, enr, lvl: Math.min(3, e.ph) });
     }
   }
   return { mx, my, sp };
