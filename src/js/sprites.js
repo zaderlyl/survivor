@@ -45,32 +45,44 @@ const ART = {
   magnet: { pal: { "#": LIGHT, p: PINK, o: BG }, frames: [["#.....#", "#.....#", "#.....#", "#.....#", "##...##", ".#####.", "..ppp.."]] },
   bomb: { pal: { "#": GREY, p: PINK, o: BG }, frames: [["....p..", "...p...", ".#####.", "#######", "#######", "#######", ".#####."]] },
 };
-const spriteCache = {};
+/* ---------- Transformer le texte en image ---------- */
+const spriteCache = {}; // les images déjà fabriquées (on ne les refait pas à chaque image)
+
+// Fabrique (ou retrouve) l'image d'un dessin.
+//   name = nom dans ART · frame = quelle pose · flip = retournée gauche-droite · hit = en éclair blanc (quand il est touché)
+//   look = équipement du héros (ses lignes et ses couleurs viennent alors de ART[name].look)
 const sprite = (name, frame, flip, hit, look) => {
   const key = name + "|" + frame + "|" + (flip ? 1 : 0) + "|" + (hit ? 1 : 0) + "|" + (look || "");
-  let c = spriteCache[key];
-  if (c) return c;
-  const a = ART[name], v = look && a.look ? a.look(frame % a.frames.length, look) : null; // un look : lignes et couleurs propres à l'équipement
-  const rows = v ? v.rows : a.frames[frame % a.frames.length], pal = v ? v.pal : a.pal;
-  c = document.createElement("canvas");
-  c.width = rows[0].length;
-  c.height = rows.length;
-  const x = c.getContext("2d");
-  for (let r = 0; r < rows.length; r++) {
-    for (let k = 0; k < rows[r].length; k++) {
-      const ch = rows[r][flip ? rows[r].length - 1 - k : k];
-      if (ch === ".") continue;
-      x.fillStyle = hit ? (ch === "o" || ch === "k" ? BG : LIGHT) : (pal[ch] || LIGHT);
-      x.fillRect(k, r, 1, 1);
+  let image = spriteCache[key];
+  if (image) return image;
+
+  const dessin = ART[name];
+  const variante = look && dessin.look ? dessin.look(frame % dessin.frames.length, look) : null;
+  const lignes = variante ? variante.rows : dessin.frames[frame % dessin.frames.length];
+  const palette = variante ? variante.pal : dessin.pal;
+
+  // une petite image d'un pixel par lettre du dessin
+  image = document.createElement("canvas");
+  image.width = lignes[0].length;
+  image.height = lignes.length;
+  const pinceau = image.getContext("2d");
+  for (let ligne = 0; ligne < lignes.length; ligne++) {
+    for (let colonne = 0; colonne < lignes[ligne].length; colonne++) {
+      const lettre = lignes[ligne][flip ? lignes[ligne].length - 1 - colonne : colonne];
+      if (lettre === ".") continue; // un point = transparent
+      // en éclair blanc, tout devient clair (sauf les contours, qui prennent la couleur du fond)
+      pinceau.fillStyle = hit ? (lettre === "o" || lettre === "k" ? BG : LIGHT) : (palette[lettre] || LIGHT);
+      pinceau.fillRect(colonne, ligne, 1, 1);
     }
   }
-  spriteCache[key] = c;
-  return c;
+  spriteCache[key] = image;
+  return image;
 };
-// pose une image centrée en (x, y), chaque pixel du dessin valant `s` pixels du monde
+
+// pose une image centrée en (x, y), chaque pixel du dessin valant `s` pixels du monde ; alpha < 1 = semi-transparente
 const blit = (name, x, y, s, frame, flip, hit, alpha, look) => {
-  const c = sprite(name, frame, flip, hit, look);
+  const image = sprite(name, frame, flip, hit, look);
   if (alpha !== undefined && alpha < 1) g.globalAlpha = alpha;
-  g.drawImage(c, Math.round(x - (c.width * s) / 2), Math.round(y - (c.height * s) / 2), c.width * s, c.height * s);
+  g.drawImage(image, Math.round(x - (image.width * s) / 2), Math.round(y - (image.height * s) / 2), image.width * s, image.height * s);
   if (alpha !== undefined && alpha < 1) g.globalAlpha = 1;
 };
