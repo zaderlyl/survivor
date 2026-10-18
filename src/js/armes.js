@@ -27,9 +27,9 @@ const nearest = (maxR, ox = P.x, oy = P.y) => {
   return near;
 };
 // une explosion : onde visible et dégâts de zone
-const boom = (x, y, r, d) => {
+const boom = (x, y, r, d, color) => {
   SFX.bomb();
-  explodeFx(x, y, heroColor(), r);
+  explodeFx(x, y, color || heroColor(), r);
   enemies.forEach((e) => {
     const dx = e.x - x, dy = e.y - y, dd = Math.hypot(dx, dy) || 1;
     if (e.hp > 0 && dd < r + e.r) strike(e, d, (dx / dd) * 160, (dy / dd) * 160, "blast");

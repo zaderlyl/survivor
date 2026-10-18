@@ -50,7 +50,17 @@ const blade = (cx, cy, a, alpha, size) => {
   g.translate(cx + Math.cos(a) * oR, cy + Math.sin(a) * oR);
   g.rotate(a + Math.PI / 2);
   g.globalAlpha = alpha;
-  g.fillStyle = LIGHT;
+  if (alpha === 1) { // un halo cyan autour de la lame
+    g.globalCompositeOperation = "lighter";
+    g.globalAlpha = 0.35;
+    g.fillStyle = WEAPON_COLOR.orb;
+    g.beginPath();
+    g.arc(0, 0, 11, 0, 6.283);
+    g.fill();
+    g.globalCompositeOperation = "source-over";
+    g.globalAlpha = 1;
+  }
+  g.fillStyle = alpha === 1 ? "#e6fbff" : WEAPON_COLOR.orb;
   g.beginPath();
   g.moveTo(0, -11 * size);
   g.lineTo(4.5 * size, 0);
@@ -147,7 +157,7 @@ const render = () => {
 
   // les coups des armes : arc d'épée, laser, éclair, grenade
   fx.forEach((f) => {
-    const al = Math.max(0, f.life / f.t), col = heroColor();
+    const al = Math.max(0, f.life / f.t), col = f.color || heroColor();
     g.globalAlpha = al;
     g.strokeStyle = col;
     g.fillStyle = col;
@@ -290,9 +300,22 @@ const render = () => {
       g.globalAlpha = 1;
       g.fillRect(f.tx - 2, f.ty - 2 - 140 * al, 4, 4);
     } else if (f.k === "mine") {
-      g.globalAlpha = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
+      // une mine : un carré jaune, qui clignote une fois armée, avec un halo
+      g.strokeStyle = WEAPON_COLOR.mine;
+      const on = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
+      g.globalAlpha = on;
       g.lineWidth = 2;
       g.strokeRect(f.x - 4, f.y - 4, 8, 8);
+      if (f.arm <= 0) {
+        g.fillStyle = WEAPON_COLOR.mine;
+        g.fillRect(f.x - 1.5, f.y - 1.5, 3, 3);
+        g.globalCompositeOperation = "lighter";
+        g.globalAlpha = on * 0.3;
+        g.beginPath();
+        g.arc(f.x, f.y, 9, 0, 6.283);
+        g.fill();
+        g.globalCompositeOperation = "source-over";
+      }
     } else if (f.k === "nade") {
       g.globalAlpha = 1;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
@@ -449,12 +472,21 @@ const render = () => {
   // le champ de feu : un cercle en pointillés autour de toi
   const flameW = weapon("flame");
   if (flameW) {
-    g.strokeStyle = LIGHT;
-    g.globalAlpha = 0.5;
+    // la zone de feu : un disque rougeoyant et un anneau de braises
+    const fr = flameRadius(flameW);
+    g.globalCompositeOperation = "lighter";
+    g.fillStyle = WEAPON_COLOR.flame;
+    g.globalAlpha = calm ? 0.07 : 0.05 + 0.025 * Math.sin(t * 6);
+    g.beginPath();
+    g.arc(P.x, P.y, fr, 0, 6.283);
+    g.fill();
+    g.globalCompositeOperation = "source-over";
+    g.strokeStyle = WEAPON_COLOR.flame;
+    g.globalAlpha = 0.6;
     g.lineWidth = 2;
     g.setLineDash([2, 6]);
     g.beginPath();
-    g.arc(P.x, P.y, flameRadius(flameW), 0, 6.283);
+    g.arc(P.x, P.y, fr, 0, 6.283);
     g.stroke();
     g.setLineDash([]);
     g.globalAlpha = 1;
@@ -462,11 +494,21 @@ const render = () => {
   // les drones : de petits carrés qui tournent autour de toi
   const droneW = weapon("drone");
   if (droneW) {
-    g.fillStyle = LIGHT;
     const droneN = droneCount(droneW);
     for (let o = 0; o < droneN; o++) {
-      const a = droneW.angle + (o / droneN) * 6.283;
-      g.fillRect(P.x + Math.cos(a) * 38 - 3, P.y + Math.sin(a) * 38 - 3, 6, 6);
+      const a = droneW.angle + (o / droneN) * 6.283, dx = P.x + Math.cos(a) * 38, dy = P.y + Math.sin(a) * 38;
+      g.globalCompositeOperation = "lighter"; // un halo bleu
+      g.globalAlpha = 0.4;
+      g.fillStyle = WEAPON_COLOR.drone;
+      g.beginPath();
+      g.arc(dx, dy, 8, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+      g.fillStyle = "#cfe3ff";
+      g.fillRect(dx - 3, dy - 3, 6, 6);
+      g.fillStyle = WEAPON_COLOR.drone;
+      g.fillRect(dx - 1, dy - 1, 2, 2);
     }
   }
 

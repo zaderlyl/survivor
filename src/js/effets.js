@@ -9,7 +9,9 @@ const heroColor = () => {
   return a && a.pal ? a.pal.t : LIGHT;
 };
 // la couleur d'un impact selon l'origine du coup
-const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f" })[src] || heroColor();
+// chaque arme universelle a sa propre couleur
+const WEAPON_COLOR = { orb: "#9fe9ff", wave: "#b58cff", mine: "#ffc83a", drone: "#4a8cff", flame: "#ff6a1f", storm: "#fff27a" };
+const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
 const spark = (x, y, color, n, speed) => {
@@ -38,4 +40,17 @@ const explodeFx = (x, y, color, r) => {
   ringFx(x, y, color, r);
   flashFx(x, y, color, r * 0.7);
   spark(x, y, color, Math.min(14, 6 + (r / 12) | 0), 90 + r * 2);
+  if (r >= 45) smokeFx(x, y, 3);
+};
+// de la fumée grise qui monte et s'étale, après une explosion
+const smokeFx = (x, y, n) => {
+  if (calm) return;
+  for (let i = 0; i < n && parts.length < MAX_PARTS; i++) {
+    parts.push({ x: x + rnd(-8, 8), y: y + rnd(-8, 8), vx: rnd(-18, 18), vy: rnd(-40, -12), life: rnd(0.45, 0.8), max: 0.8, color: "#4a4d5a", size: rnd(4, 7), drag: 1.5 });
+  }
+};
+// une braise qui monte
+const emberFx = (x, y, color) => {
+  if (calm || parts.length >= MAX_PARTS) return;
+  parts.push({ x, y, vx: rnd(-10, 10), vy: rnd(-55, -25), life: rnd(0.4, 0.8), max: 0.8, color, size: Math.random() < 0.5 ? 3 : 2, glow: true });
 };

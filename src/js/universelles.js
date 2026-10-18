@@ -30,7 +30,8 @@ Object.assign(WEAPONS, {
       for (let o = 0; o < n; o++) {
         const a = w.angle + (o / n) * 6.283;
         const ox = P.x + Math.cos(a) * R, oy = P.y + Math.sin(a) * R;
-        if (shard) fire(a, 340, 0.6, { x: ox, y: oy, dmg: st.dmg * 0.8 });
+        if (shard) fire(a, 340, 0.6, { x: ox, y: oy, dmg: st.dmg * 0.8, color: WEAPON_COLOR.orb });
+        if (Math.random() < 0.5) trail(ox, oy, WEAPON_COLOR.orb, 2); // une traînée de lumière derrière chaque lame
         const cx = clamp((ox / CELL) | 0, 0, COLS - 1), cy = clamp((oy / CELL) | 0, 0, ROWS - 1);
         for (let yy = Math.max(0, cy - 1); yy <= Math.min(ROWS - 1, cy + 1); yy++) {
           for (let xx = Math.max(0, cx - 1); xx <= Math.min(COLS - 1, cx + 1); xx++) {
@@ -39,7 +40,7 @@ Object.assign(WEAPONS, {
               const e = enemies[c[k]];
               if (!e || e.orbCd > 0) continue;
               const dx = e.x - ox, dy = e.y - oy;
-              if (dx * dx + dy * dy < (e.r + 6) * (e.r + 6)) { damage(e, Math.max(1, st.dmg * st.orbDmg * (1 + (w.dm || 0))), false, (dx / (Math.hypot(dx, dy) || 1)) * 120, (dy / (Math.hypot(dx, dy) || 1)) * 120); e.orbCd = 0.3; }
+              if (dx * dx + dy * dy < (e.r + 6) * (e.r + 6)) { damage(e, Math.max(1, st.dmg * st.orbDmg * (1 + (w.dm || 0))), false, (dx / (Math.hypot(dx, dy) || 1)) * 120, (dy / (Math.hypot(dx, dy) || 1)) * 120, "orb"); e.orbCd = 0.3; }
             }
           }
         }
@@ -65,13 +66,16 @@ Object.assign(WEAPONS, {
       w.cd = Math.max(1.2, slow(w, 5.2) * st.waveMul);
       const R = Math.min(330, 82 * (1 + (w.size || 0))), kn = 1 + (w.knock || 0);
       SFX.wave();
-      waves.push({ x: P.x, y: P.y, r: 0, max: R, life: 0.35, t: 0.35 });
+      ringFx(P.x, P.y, WEAPON_COLOR.wave, R, 0.35);
+      ringFx(P.x, P.y, "#e6d6ff", R * 0.7, 0.3);
+      flashFx(P.x, P.y, WEAPON_COLOR.wave, R * 0.55);
+      spark(P.x, P.y, WEAPON_COLOR.wave, 16, R * 2.4);
       enemies.forEach((e) => {
         const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
         if (d < R + e.r) {
           const k = (e.type === "boss" ? 120 : 420) * kn;
-          damage(e, 4.5 * (1 + (w.dm || 0)), false, (dx / d) * k, (dy / d) * k);
-          if (w.legend) e.frozen = 1;
+          damage(e, 4.5 * (1 + (w.dm || 0)), false, (dx / d) * k, (dy / d) * k, "wave");
+          if (w.legend) { e.frozen = 1; spark(e.x, e.y, "#8fe0ff", 6, 130); }
         }
       });
     },
@@ -96,6 +100,7 @@ Object.assign(WEAPONS, {
       const R = 50 * (1 + (w.rad || 0)) * rngMul(), d = st.dmg * 3.5 * (1 + (w.dm || 0)), n = 1 + (w.n || 0);
       for (let k = 0; k < n; k++) {
         const a = Math.atan2(-P.dy, -P.dx) + (k - (n - 1) / 2) * 0.8;
+        spark(P.x + Math.cos(a) * 20, P.y + Math.sin(a) * 20, WEAPON_COLOR.mine, 3, 60); // un éclat quand elle est posée
         fx.push({ k: "mine", x: P.x + Math.cos(a) * 20, y: P.y + Math.sin(a) * 20, life: 10, t: 10, arm: 0.4,
           tick(f, h) {
             f.arm -= h;
@@ -107,8 +112,8 @@ Object.assign(WEAPONS, {
           },
           onEnd(f) {
             if (!f.hit) return;
-            boom(f.x, f.y, R, d);
-            if (w.legend) [-1, 1].forEach((s) => fx.push({ k: "flash", x: f.x + s * 38, y: f.y, life: 0.25, t: 0.25, onEnd: (q) => boom(q.x, q.y, R * 0.7, d * 0.6) }));
+            boom(f.x, f.y, R, d, WEAPON_COLOR.mine);
+            if (w.legend) [-1, 1].forEach((s) => fx.push({ k: "flash", x: f.x + s * 38, y: f.y, life: 0.25, t: 0.25, onEnd: (q) => boom(q.x, q.y, R * 0.7, d * 0.6, WEAPON_COLOR.mine) }));
           } });
       }
     },
@@ -138,8 +143,9 @@ Object.assign(WEAPONS, {
         if (!tgt) continue;
         w.cds[o] = slow(w, 0.9) * cdMul();
         const ta = Math.atan2(tgt.y - y, tgt.x - x);
-        fire(ta, 520, 0.6 * (1 + (w.rng || 0)), { x, y, dmg: st.dmg * 0.6 * (1 + (w.dm || 0)) });
-        if (w.legend && w.mis <= 0) { w.mis = 2.5; fire(ta, 260, 2.5, { x, y, dmg: st.dmg * 2, home: true, blast: 45, size: 1.6 }); }
+        fire(ta, 520, 0.6 * (1 + (w.rng || 0)), { x, y, dmg: st.dmg * 0.6 * (1 + (w.dm || 0)), color: WEAPON_COLOR.drone });
+        spark(x, y, WEAPON_COLOR.drone, 2, 80);
+        if (w.legend && w.mis <= 0) { w.mis = 2.5; fire(ta, 260, 2.5, { x, y, dmg: st.dmg * 2, home: true, blast: 45, size: 1.6, color: "#ff8a1f" }); }
       }
     },
   },
@@ -155,6 +161,12 @@ Object.assign(WEAPONS, {
       { id: "rate", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "la brûlure frappe " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
+      w.em = (w.em || 0) - dt;
+      if (w.em <= 0) { // des braises montent dans la zone
+        w.em = 0.05;
+        const a = rnd(0, 6.283), rr = Math.sqrt(Math.random()) * flameRadius(w);
+        emberFx(P.x + Math.cos(a) * rr, P.y + Math.sin(a) * rr, Math.random() < 0.5 ? "#ff6a1f" : "#ffb02e");
+      }
       w.cd -= dt;
       if (w.cd > 0) return;
       w.cd = slow(w, 0.5);
@@ -191,7 +203,8 @@ Object.assign(WEAPONS, {
         const pts = [[cur.x + rnd(-8, 8), cur.y - 220]], done = [];
         for (let j = 0; j < (w.legend ? 3 : 1) && cur; j++) {
           pts.push([cur.x, cur.y]);
-          strike(cur, st.dmg * 4 * (1 + (w.dm || 0)), 0, 0, "bolt");
+          strike(cur, st.dmg * 4 * (1 + (w.dm || 0)), 0, 0, "storm");
+          flashFx(cur.x, cur.y, WEAPON_COLOR.storm, 22);
           if (w.blast) splash(cur, w.blast, st.dmg * 1.5);
           done.push(cur);
           let nx = null, nd = 150 * 150;
@@ -203,7 +216,7 @@ Object.assign(WEAPONS, {
           }
           cur = nx;
         }
-        fx.push({ k: "bolt", pts, life: 0.18, t: 0.18 });
+        fx.push({ k: "bolt", pts, life: 0.18, t: 0.18, color: WEAPON_COLOR.storm });
       }
     },
   },
