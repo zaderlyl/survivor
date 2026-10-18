@@ -247,8 +247,8 @@ const update = (dt) => {
       phase = "boss";
       const [x, y] = edgePoint(80);
       spawn("boss", x, y);
-      const grandName = (world + 1) % 5 === 0 ? makeGrand(enemies[enemies.length - 1]) : null;
-      banner(grandName ? "grand boss, " + grandName : "boss : " + BOSS_NAMES[world % 5]);
+      const bossLabel = bossKind(enemies[enemies.length - 1]);
+      banner(bossLabel || "boss : " + BOSS_NAMES[world % 5]);
       SFX.boss();
       shake = Math.max(shake, 8);
     }

@@ -17,7 +17,8 @@ const BOSS_PHASES = {};
 const bossPhases = (bk) => BOSS_PHASES[bk] || [{ at: 1, atks: BOSS_ATKS[bk], cd: 2.6 }, { at: 0.5, atks: BOSS_ATKS[bk], cd: 1.7 }];
 const BOSS_MINIONS = ["crawler", "crawler", "brute", "splitter", "brute"];
 
-const bossBullet = (x, y, a, sp) => ebullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 4, dmg: 10 * dm.dmg });
+let BOSS_GM = 1; // vitesse des tirs du boss en cours (propre à chaque boss généré)
+const bossBullet = (x, y, a, sp) => ebullets.push({ x, y, vx: Math.cos(a) * sp * BOSS_GM, vy: Math.sin(a) * sp * BOSS_GM, life: 4, dmg: 10 * dm.dmg });
 // une zone rose au sol : elle se remplit puis claque
 const bossZone = (x, y, delay) => zones.push({ x: clamp(x, 40, ARENA_W - 40), y: clamp(y, 40, ARENA_H - 40), r: 50, t: delay, max: delay, dmg: 14 * dm.dmg, fired: false, boom: 0 });
 
@@ -43,7 +44,7 @@ const BOSS_BRICKS = {
     for (let k = 0; k < n; k++) { const a = rnd(0, 6.283), r = rnd(30, 220); bossZone(P.x + Math.cos(a) * r, P.y + Math.sin(a) * r, 1 + k * 0.14); }
   },
   summon(e, c) {
-    for (let k = 0, n = c.enr ? 6 : 4; k < n; k++) spawn(BOSS_MINIONS[e.bk], e.x + rnd(-40, 40), e.y + rnd(-40, 40));
+    for (let k = 0, n = c.enr ? 6 : 4; k < n; k++) spawn(e.mi || BOSS_MINIONS[e.bk], e.x + rnd(-40, 40), e.y + rnd(-40, 40));
   },
   charge(e, c) {
     e.dirx = c.dx / c.d; e.diry = c.dy / c.d; e.dashSp = e.bk === 2 ? 330 : 480;
@@ -59,7 +60,9 @@ const bossAI = (e, dt, dx, dy, d) => {
   if (e.bk === undefined) { e.bk = world % 5; e.ai = 0; e.cd = 2; e.mode = "walk"; e.mt = 0; e.spiral = 0; e.sc = 0; e.sa = 0; e.tele = 0; e.ph = 0; e.invT = 0; if (e.pk === undefined) e.pk = e.bk; }
   const phases = bossPhases(e.pk);
   e.bindN = e.grand ? enemies.reduce((n, q) => n + (q.pylon && q.hp > 0 ? 1 : 0), 0) : 0; // des pylônes en vie rendent le boss intouchable
-  if (e.grand && GRAND_TICK["g" + (((e.grand - 1) % 5) + 1)]) GRAND_TICK["g" + (((e.grand - 1) % 5) + 1)](e, dt);
+  BOSS_GM = e.gm || 1;
+  const gt = GRAND_TICK[e.gtick || e.pk];
+  if (e.grand && gt) gt(e, dt);
   let mx = dx / d, my = dy / d, sp = e.sp;
   e.mt -= dt;
   e.tele = 0;
@@ -112,7 +115,7 @@ const bossAI = (e, dt, dx, dy, d) => {
     e.cd -= dt;
     if (e.cd <= 0) {
       e.cd = ph.cd;
-      BOSS_BRICKS[list[e.ai++ % list.length]](e, { dx, dy, d, enr, lvl: e.ph });
+      BOSS_BRICKS[list[e.ai++ % list.length]](e, { dx, dy, d, enr, lvl: Math.min(3, e.ph) });
     }
   }
   return { mx, my, sp };
