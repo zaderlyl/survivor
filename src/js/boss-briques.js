@@ -159,3 +159,38 @@ Object.assign(BOSS_BRICKS, {
     });
   },
 });
+
+/* ---------- Les trois phases de chaque boss de monde ---------- */
+// at : part de vie qui fait entrer dans la phase ; atks : les briques, dans l'ordre ; cd : le repos entre deux attaques
+Object.assign(BOSS_PHASES, {
+  // chef de gang : charges et renforts, puis un mur de tirs
+  0: [
+    { at: 1, atks: ["ring", "charge", "summon"], cd: 2.6 },
+    { at: 0.66, atks: ["fan", "wall", "charge"], cd: 2.3 },
+    { at: 0.33, atks: ["ring", "wall", "summon", "charge"], cd: 1.8 },
+  ],
+  // abomination : des flaques, puis des zones qui te traquent, puis un bouclier de chair
+  1: [
+    { at: 1, atks: ["fan", "pools", "summon"], cd: 2.6 },
+    { at: 0.66, atks: ["follow", "summon", "fan"], cd: 2.4 },
+    { at: 0.33, atks: ["shield", "pools", "follow", "summon"], cd: 1.9 },
+  ],
+  // machine : rafales et coups de piston, puis un laser, puis des mines
+  2: [
+    { at: 1, atks: ["burst", "pound", "charge"], cd: 2.6 },
+    { at: 0.66, atks: ["laser", "burst", "charge"], cd: 2.4 },
+    { at: 0.33, atks: ["laser", "mines", "pound", "charge"], cd: 1.9 },
+  ],
+  // IA corrompue : spirales et téléportations, puis des clones, puis un bouclier de code
+  3: [
+    { at: 1, atks: ["spiral", "teleport", "summon"], cd: 2.6 },
+    { at: 0.66, atks: ["clones", "spiral", "teleport"], cd: 2.3 },
+    { at: 0.33, atks: ["shield", "clones", "teleport", "spiral"], cd: 1.9 },
+  ],
+  // pdg augmenté : tout ce qu'il a, en trois temps
+  4: [
+    { at: 1, atks: ["ring", "spiral", "charge", "pound"], cd: 2.6 },
+    { at: 0.66, atks: ["wall", "laser", "summon"], cd: 2.3 },
+    { at: 0.33, atks: ["shield", "laser", "wall", "mines", "charge"], cd: 1.8 },
+  ],
+});
