@@ -223,6 +223,36 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "firewall") {
+      // le pare-feu : un disque et un anneau de flammes qui tourne
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.09;
+      g.beginPath();
+      g.arc(f.x, f.y, f.R, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = f.life < 0.6 && !calm ? 0.4 + 0.4 * Math.sin(t * 20) : 0.85;
+      g.lineWidth = 3;
+      g.setLineDash([8, 6]);
+      g.lineDashOffset = calm ? 0 : -t * 40;
+      g.beginPath();
+      g.arc(f.x, f.y, f.R, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.lineDashOffset = 0;
+    } else if (f.k === "nova") {
+      g.globalAlpha = Math.max(0, f.life / f.t);
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 9;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r || 1, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r || 1, 0, 6.283);
+      g.stroke();
     } else if (f.k === "sword") {
       // une épée qui tombe du ciel pointe en bas, puis reste plantée et s'efface
       const fall = f.landed ? 0 : Math.max(0, (f.life - 1.15) / 0.35), tip = f.y - 4 - 260 * fall;
@@ -440,6 +470,40 @@ const render = () => {
       g.fillRect(e.x - 30, e.y - e.r - 16, 60, 5);
       g.fillStyle = PINK;
       g.fillRect(e.x - 30, e.y - e.r - 16, 60 * Math.max(0, e.hp / e.max), 5);
+    }
+  }
+
+  // les états posés sur les ennemis : infection (pixels verts), marque (réticule), piratage (anneau pulsant)
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    if (e.virus > 0 && !calm) {
+      g.fillStyle = WEAPON_COLOR.virus;
+      for (let k = 0; k < 3; k++) g.fillRect(Math.round(e.x + rnd(-e.r, e.r)), Math.round(e.y + rnd(-e.r, e.r)), 2, 2);
+    }
+    if (e.marked) {
+      const pulse = calm ? 1 : 0.7 + 0.3 * Math.sin(t * 10);
+      g.strokeStyle = WEAPON_COLOR.mark;
+      g.lineWidth = 2;
+      g.globalAlpha = pulse;
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 6, 0, 6.283);
+      g.moveTo(e.x - e.r - 10, e.y); g.lineTo(e.x - e.r + 2, e.y);
+      g.moveTo(e.x + e.r - 2, e.y); g.lineTo(e.x + e.r + 10, e.y);
+      g.moveTo(e.x, e.y - e.r - 10); g.lineTo(e.x, e.y - e.r + 2);
+      g.moveTo(e.x, e.y + e.r - 2); g.lineTo(e.x, e.y + e.r + 10);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
+    if (e.hacked > 0) {
+      g.strokeStyle = WEAPON_COLOR.hack;
+      g.lineWidth = 2;
+      g.globalAlpha = calm ? 0.8 : 0.5 + 0.4 * Math.sin(t * 14);
+      g.setLineDash([3, 3]);
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 4, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.globalAlpha = 1;
     }
   }
 

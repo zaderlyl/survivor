@@ -23,8 +23,11 @@ const WEAPON_COLOR = {
   // les nouvelles armes uniques
   rainswords: "#ff9ccf", greatsword: "#ffd0e4", riposte: "#ff3d7f",
   cannon: "#ffd23f", raysalvo: "#ff9f2e", overload: "#ff5f2e",
+  virus: "#6dff9a", firewall: "#ff7a3a", hack: "#ff3dd0",
+  backstab: "#e6fff0", smoke: "#9aa0c8", mark: "#ff3d5f",
+  prism: "#c8a8ff", mirror: "#e0f4ff", nova: "#35c8ff",
 };
-const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm })[src] || heroColor();
+const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8" })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
 const spark = (x, y, color, n, speed) => {

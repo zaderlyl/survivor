@@ -68,6 +68,8 @@ const kill = (i) => {
   SFX.kill();
   if (st.steal > 0) P.hp = Math.min(st.maxHp, P.hp + st.steal);
   if (st.deathBlast) splash(e, 45, st.dmg * 0.8);
+  if (e.virus > 0) virusSpread(e); // un ennemi infecté contamine les autres en mourant
+  if (e.marked) { const mk = e.marked; e.marked = null; detonateMark(e, mk); } // une marque détone si l'ennemi meurt
   burst(e.x, e.y, e.type === "boss" ? 40 : 6, e.type === "boss" ? PINK : GREY, e.type === "boss" ? 300 : 140);
   spark(e.x, e.y, worldTheme().glow, e.type === "boss" ? 30 : 9, e.type === "boss" ? 320 : 200); // et des étincelles aux couleurs du monde
   flashFx(e.x, e.y, worldTheme().glow, e.type === "boss" ? 40 : 14);
@@ -104,6 +106,7 @@ const hurt = (dmg) => {
 };
 
 const damage = (e, d, crit, kx, ky, src) => {
+  if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
   e.hp -= d;
   e.hit = 0.06;
@@ -310,6 +313,26 @@ const update = (dt) => {
       }
     }
     if (e.frozen > 0) { e.frozen -= dt; sp = 0; }
+    if (e.blind > 0) { e.blind -= dt; mx = Math.cos(e.ba); my = Math.sin(e.ba); } // aveuglé par la fumée : il erre
+    if (e.hacked > 0) {
+      // piraté : il combat pour toi, il fonce sur l'ennemi le plus proche
+      e.hacked -= dt;
+      e.fire = 5;
+      let tg = null, bd = 1e9;
+      for (let q = 0; q < enemies.length; q++) {
+        const o = enemies[q];
+        if (o === e || o.hp <= 0) continue;
+        const ddx = o.x - e.x, ddy = o.y - e.y, dd = ddx * ddx + ddy * ddy;
+        if (dd < bd) { bd = dd; tg = o; }
+      }
+      if (tg) {
+        const dl = Math.sqrt(bd) || 1;
+        mx = (tg.x - e.x) / dl; my = (tg.y - e.y) / dl; sp = e.sp;
+        e.hk = (e.hk || 0) - dt;
+        if (dl < e.r + tg.r + 8 && e.hk <= 0) { e.hk = 0.4; damage(tg, e.hdmg, false, mx * 120, my * 120, "hack"); }
+      } else { mx = 0; my = 0; }
+      if (e.hacked <= 0 && e.hackEnd) { const fn = e.hackEnd; e.hackEnd = null; fn(e); }
+    }
     e.x = clamp(e.x + mx * sp * dt + px * 10 * dt + e.kx * dt, e.r, ARENA_W - e.r);
     e.y = clamp(e.y + my * sp * dt + py * 10 * dt + e.ky * dt, e.r, ARENA_H - e.r);
     e.kx *= Math.max(0, 1 - 9 * dt);
@@ -321,7 +344,13 @@ const update = (dt) => {
       e.burnT -= dt;
       if (e.burnT <= 0) { e.burnT = 0.5; damage(e, st.dmg * 0.4, false, 0, 0, "burn"); }
     }
-    if (d < e.r + P.r && e.age > 0.25) hurt(e.dmg);
+    if (e.virus > 0) {
+      e.virus -= dt;
+      e.virusT -= dt;
+      if (e.virusT <= 0) { e.virusT = 0.5; damage(e, e.vd, false, 0, 0, "virus"); }
+    }
+    if (e.marked) { e.marked.t -= dt; if (e.marked.t <= 0) { const mk = e.marked; e.marked = null; detonateMark(e, mk, true); } }
+    if (d < e.r + P.r && e.age > 0.25 && !(e.hacked > 0)) hurt(e.dmg);
   }
   if (mode !== "play") return;
 
