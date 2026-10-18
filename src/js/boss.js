@@ -85,7 +85,11 @@ const bossAI = (e, dt, dx, dy, d) => {
     e.sc -= dt;
     if (e.sc <= 0) { e.sc = enr ? 0.07 : 0.1; e.sa += 0.45; bossBullet(e.x, e.y, e.sa, 190); bossBullet(e.x, e.y, e.sa + Math.PI, 190); }
   }
-  if (e.mode === "windup") {
+  if (e.shield > 0) { e.shT -= dt; if (e.shT <= 0) { e.shield = 0; for (let k = 0; k < 20; k++) bossBullet(e.x, e.y, (k / 20) * 6.283, 160); } } // le bouclier tient 9 s, puis il éclate en tirs
+  if (e.mode === "busy") {
+    sp = 0;
+    if (e.mt <= 0) e.mode = "walk";
+  } else if (e.mode === "windup") {
     sp = 0;
     e.tele = 1;
     if (e.mt <= 0) { e.mode = "dash"; e.mt = 0.5; }

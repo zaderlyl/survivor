@@ -393,6 +393,9 @@ const render = () => {
       g.moveTo(f.x, f.y - 2);
       g.lineTo(f.x + Math.cos(f.a || 0) * 12, f.y - 2 + Math.sin(f.a || 0) * 12);
       g.stroke();
+    } else if (f.k === "bhaz") {
+      g.globalAlpha = 1;
+      f.draw(f, g);
     } else if (f.k === "screenflash") {
       // un éclair qui couvre tout l'écran
       g.globalCompositeOperation = "lighter";
@@ -713,6 +716,15 @@ const render = () => {
     blit(art, e.x, e.y, ART[art].s || d.s, mode === "menu" ? Math.floor(performance.now() / 250 + e.seed) & 1 : frame, flip, e.hit > 0);
     g.globalAlpha = 1;
     if (e.type === "boss") {
+      if (e.shield > 0) {
+        g.strokeStyle = "#35f2ff";
+        g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
+        g.lineWidth = 3 + 5 * (e.shield / e.shMax);
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 10, 0, 6.283);
+        g.stroke();
+        g.globalAlpha = 1;
+      }
       if (e.invT > 0) {
         g.strokeStyle = "#ffffff";
         g.globalAlpha = 0.5 + 0.4 * Math.sin(t * 30);

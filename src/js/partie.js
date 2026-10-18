@@ -113,6 +113,13 @@ const hurt = (dmg) => {
 
 const damage = (e, d, crit, kx, ky, src) => {
   if (e.invT > 0) { floatText(e.x, e.y - e.r - 4, "invulnérable", LIGHT, 10); return; } // un boss qui change de phase ne subit rien
+  if (e.shield > 0) { // un bouclier de boss absorbe tout ; brisé, le boss est étourdi et vulnérable
+    e.shield -= d;
+    e.hit = 0.06;
+    spark(e.x, e.y, "#35f2ff", 6, 180);
+    if (e.shield <= 0) { e.shield = 0; e.mode = "busy"; e.mt = 1.8; e.spiral = 0; e.vuln = 1.8; e.vuln2 = 1.6; ringFx(e.x, e.y, "#35f2ff", 140, 0.5); burst(e.x, e.y, 24, "#35f2ff", 300); floatText(e.x, e.y - e.r - 16, "bouclier brisé", "#35f2ff", 14); }
+    return;
+  }
   if (e.vuln > 0) d *= e.vuln2 || 1.5; // un ennemi vulnérable subit plus
   if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
@@ -384,6 +391,7 @@ const update = (dt) => {
     const z = zones[i];
     if (!z.fired) {
       z.t -= dt;
+      if (z.follow && z.t > 0.45) { const zx = P.x - z.x, zy = P.y - z.y, zd = Math.hypot(zx, zy) || 1; z.x += (zx / zd) * z.follow * dt; z.y += (zy / zd) * z.follow * dt; } // elle te suit, puis s'immobilise avant de claquer
       if (z.t <= 0) {
         z.fired = true;
         z.boom = 0.18;
