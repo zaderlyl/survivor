@@ -40,6 +40,12 @@ const WEAPON_COLOR = {
   // les armes rares et légendaires : Chrome et Rig
   swordring: "#ff7ab8", quake: "#ff9ccf", swordwall: "#ffb3d9", spectreknights: "#ff9ccf", steeldragon: "#ff3d7f", judgment: "#ffe0ee",
   prismrays: "#ff9f2e", columnsalvo: "#ffd23f", heavyturret: "#ff8a1f", particlefield: "#ffc95c", destroyer: "#ff5f2e", lightwall: "#fff0b0",
+  // les armes rares et légendaires des cinq autres héros
+  botnet: "#4fd8ff", ransom: "#ff5fa8", codecascade: "#6dff9a", restorepoint: "#8affd8", kernelpanic: "#3a7bff", aiassistant: "#7ad6ff",
+  shadowflurry: "#b8ffd8", deadmist: "#7dff9a", wolfpack: "#a8ffd0", graveyard: "#9ad8b0", reaper: "#c8ffe0", eclipse: "#40507a",
+  constellation: "#ffe27a", spiralbeam: "#7ad6ff", seekerlasers: "#a0f0ff", ioncannon: "#c8a8ff", sun: "#ffd860", laserstorm: "#7ad6ff",
+  bombstring: "#ffb02e", airstrike: "#ff8a1f", furnace: "#ff6a1f", barragefire: "#ff9a3c", cataclysm: "#ff5a2e", meltdown: "#ff7a3a",
+  lightningrod: "#b8e6ff", staticaura: "#9fd8ff", mjolnir: "#d8f0ff", deluge: "#8fd8ff", skywrath: "#ffffff", stormgod: "#fff27a",
 };
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 

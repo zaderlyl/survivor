@@ -13,6 +13,7 @@ const zapAround = (x, y, range, count, d, color) => {
     fx.push({ k: "bolt", color, pts: [[x, y], [e.x, e.y]], life: 0.12, t: 0.12 });
     flashFx(e.x, e.y, color, 12);
   });
+  return list;
 };
 
 Object.assign(WEAPONS, {

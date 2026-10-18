@@ -223,6 +223,94 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "codecol") {
+      // une colonne de code qui tombe : une file de petits carrés
+      for (let i = 0; i < 8; i++) {
+        g.globalAlpha = Math.max(0, 1 - i / 8) * Math.min(1, f.life / 0.3);
+        g.fillStyle = i === 0 ? "#ffffff" : col;
+        g.fillRect(f.x - 2, f.y - i * 11, 4, 7);
+      }
+    } else if (f.k === "constellation") {
+      // des étoiles reliées par des lignes de lumière
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 4;
+      g.beginPath();
+      (f.lines || []).forEach((l) => { g.moveTo(f.pts[l[0]][0], f.pts[l[0]][1]); g.lineTo(f.pts[l[1]][0], f.pts[l[1]][1]); });
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 1.5;
+      g.beginPath();
+      (f.lines || []).forEach((l) => { g.moveTo(f.pts[l[0]][0], f.pts[l[0]][1]); g.lineTo(f.pts[l[1]][0], f.pts[l[1]][1]); });
+      g.stroke();
+      g.fillStyle = "#ffffff";
+      f.pts.forEach((p) => g.fillRect(p[0] - 3, p[1] - 3, 6, 6));
+    } else if (f.k === "aiface") {
+      // l'IA : un grand visage de lumière qui flotte
+      const pulse = calm ? 0 : Math.sin(t * 6) * 2;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.3;
+      g.beginPath();
+      g.arc(f.x, f.y, 26 + pulse, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.strokeStyle = col;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(f.x, f.y, 18, 0, 6.283);
+      g.stroke();
+      g.fillStyle = "#ffffff";
+      g.fillRect(f.x - 9, f.y - 6, 5, 5);
+      g.fillRect(f.x + 4, f.y - 6, 5, 5);
+      g.fillRect(f.x - 7, f.y + 6, 14, 2);
+    } else if (f.k === "screendark") {
+      // l'écran qui s'assombrit
+      g.fillStyle = "#000000";
+      g.globalAlpha = Math.min(0.5, f.life * 0.6, (f.t - f.life) * 3);
+      g.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+    } else if (f.k === "sun") {
+      // un soleil : un grand disque de lumière et un cœur blanc
+      const r = f.r || 10;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.35;
+      g.beginPath();
+      g.arc(f.x, f.y, r, 0, 6.283);
+      g.fill();
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(f.x, f.y, r * 0.6, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.fillStyle = "#ffffff";
+      g.beginPath();
+      g.arc(f.x, f.y, r * 0.25, 0, 6.283);
+      g.fill();
+    } else if (f.k === "tomb") {
+      // une pierre tombale
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 5, f.y - 10, 10, 14);
+      g.fillStyle = "#0b1410";
+      g.fillRect(f.x - 1, f.y - 8, 2, 8);
+      g.fillRect(f.x - 3, f.y - 5, 6, 2);
+    } else if (f.k === "hammer") {
+      // un marteau qui tourne : un bloc et un manche
+      g.save();
+      g.translate(f.x, f.y);
+      g.rotate(f.spin || 0);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.4;
+      g.beginPath();
+      g.arc(0, 0, 14, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+      g.fillRect(-9, -6, 18, 12);
+      g.fillStyle = "#ffffff";
+      g.fillRect(-1, 6, 2, 12);
+      g.fillRect(-7, -4, 14, 3);
+      g.restore();
     } else if (f.k === "swordring" || f.k === "swordwall") {
       // un cercle ou un mur d'épées géantes
       (f.sw || []).forEach((s) => drawSword(s.x, s.y, s.a, col, 1.3));
@@ -664,6 +752,15 @@ const render = () => {
       g.moveTo(e.x, e.y + e.r - 2); g.lineTo(e.x, e.y + e.r + 10);
       g.stroke();
       g.globalAlpha = 1;
+    }
+    if (e.ransom) { // un cadenas rose au-dessus de l'ennemi chiffré
+      g.strokeStyle = WEAPON_COLOR.ransom;
+      g.fillStyle = WEAPON_COLOR.ransom;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(e.x, e.y - e.r - 10, 4, Math.PI, 0);
+      g.stroke();
+      g.fillRect(Math.round(e.x - 5), Math.round(e.y - e.r - 10), 10, 7);
     }
     if (e.lbomb) { // une bombe logique : un petit carré qui clignote de plus en plus vite
       g.fillStyle = WEAPON_COLOR.logicbomb;

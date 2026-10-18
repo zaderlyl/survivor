@@ -350,6 +350,7 @@ const update = (dt) => {
       e.virusT -= dt;
       if (e.virusT <= 0) { e.virusT = 0.5; damage(e, e.vd, false, 0, 0, "virus"); }
     }
+    if (e.ransom) { e.ransom.t -= dt; if (e.ransom.t <= 0) { const rs = e.ransom; e.ransom = null; ransomPay(e, rs); } }
     if (e.lbomb) { e.lbomb.t -= dt; if (e.lbomb.t <= 0) { const lb = e.lbomb; e.lbomb = null; lbombBlast(e, lb); } }
     if (e.poison > 0) {
       e.poison -= dt;
