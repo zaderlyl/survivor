@@ -25,10 +25,10 @@ Object.assign(WEAPONS, {
     legendText: "l'orbe foudroie 4 ennemis à la fois au lieu de 2",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "orbe") + " lancé à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'orbe", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "l'orbe dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "lance l'orbe " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "orbe") + " lancé à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'orbe", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "l'orbe dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "lance l'orbe " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -61,10 +61,10 @@ Object.assign(WEAPONS, {
     legendText: "la zone te suit",
     cd0: 1,
     variants: [
-      { id: "rad", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du champ", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le champ dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose un champ " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rad", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du champ", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le champ dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose un champ " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -95,10 +95,10 @@ Object.assign(WEAPONS, {
     legendText: "la bobine foudroie deux fois plus d'ennemis",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "bobine") + " posée à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la bobine", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "la bobine dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose une bobine " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "bobine") + " posée à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la bobine", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "la bobine dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose une bobine " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;

@@ -27,10 +27,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde ligne la croise à angle droit",
     cd0: 2,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ligne") + " à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lignes", apply: bump("dm") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "lignes " + pct(v) + " plus épaisses", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le rail revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ligne") + " à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lignes", apply: bump("dm") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "lignes " + pct(v) + " plus épaisses", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le rail revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -60,10 +60,10 @@ Object.assign(WEAPONS, {
     legendText: "il se courbe encore au second impact",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du laser", apply: bump("dm") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "laser " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "n", max: 3, vals: [1, 2, 3], text: (v) => "+" + plural(v, "courbure"), apply: bump("n") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le réfracteur revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du laser", apply: bump("dm") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "laser " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "courbure"), apply: bump("n") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le réfracteur revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -86,10 +86,10 @@ Object.assign(WEAPONS, {
     legendText: "la sentinelle tire deux faisceaux à la fois",
     cd0: 1,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "sentinelle") + " posée à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la sentinelle", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "la sentinelle dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la sentinelle tire " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "sentinelle") + " posée à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la sentinelle", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "la sentinelle dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la sentinelle tire " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -121,10 +121,10 @@ Object.assign(WEAPONS, {
     legendText: "il se termine par une grosse explosion",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -169,12 +169,13 @@ Object.assign(WEAPONS, {
     name: "Pluie de lasers",
     intro: "des lignes de lumière obliques croisent une zone pendant quelques secondes",
     legendText: "les lignes se croisent dans les deux sens",
+    legendStacks: true,
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lasers", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "la pluie dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rad", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la pluie revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lasers", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "la pluie dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rad", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la pluie revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -189,8 +190,11 @@ Object.assign(WEAPONS, {
           f.c -= h;
           if (f.c > 0) return;
           f.c = 0.1;
-          const px = cx + rnd(-R, R), py = cy + rnd(-R, R), al = (w.legend && Math.random() < 0.5 ? -1 : 1) * rnd(0.5, 1.1);
-          thickBeam(px - Math.cos(al) * 150, py - Math.sin(al) * 150, al, 300, d, 5, col);
+          for (let m = 1 + lg(w) * 0.5; m > 0; m--) { // chaque reprise ajoute une demi-ligne par tir, dans les deux sens
+            if (m < 1 && Math.random() > m) break;
+            const px = cx + rnd(-R, R), py = cy + rnd(-R, R), al = (lg(w) && Math.random() < 0.5 ? -1 : 1) * rnd(0.5, 1.1);
+            thickBeam(px - Math.cos(al) * 150, py - Math.sin(al) * 150, al, 300, d, 5, col);
+          }
         } });
     },
   },

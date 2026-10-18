@@ -68,10 +68,10 @@ Object.assign(WEAPONS, {
     legendText: "la copie se copie encore une fois",
     cd0: 1,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la bombe", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "copie") + " à chaque explosion", apply: bump("n") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose les bombes " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la bombe", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "copie") + " à chaque explosion", apply: bump("n") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose les bombes " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -94,10 +94,10 @@ Object.assign(WEAPONS, {
     legendText: "le ver se divise en deux à mi-parcours",
     cd0: 1,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ver") + " lancé à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du ver", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le ver vit " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "lance les vers " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ver") + " lancé à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du ver", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le ver vit " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "lance les vers " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -119,10 +119,10 @@ Object.assign(WEAPONS, {
     legendText: "la zone te suit",
     cd0: 1,
     variants: [
-      { id: "rad", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "la zone dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts dans la zone", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la zone revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rad", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "la zone dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts dans la zone", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la zone revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -156,10 +156,10 @@ Object.assign(WEAPONS, {
     legendText: "les pixels traversent deux ennemis",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v * 4, "pixel") + " par rafale", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des pixels", apply: bump("dm") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée +" + pct(v), apply: bump("rng") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la rafale revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 4, "pixel") + " par rafale", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des pixels", apply: bump("dm") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée +" + pct(v), apply: bump("rng") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la rafale revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -184,10 +184,10 @@ Object.assign(WEAPONS, {
     legendText: "le gel dure deux fois plus longtemps",
     cd0: 3,
     variants: [
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le gel dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts à l'impact", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le gel dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts à l'impact", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -213,10 +213,10 @@ Object.assign(WEAPONS, {
     legendText: "le poison passe aux voisins",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "dard") + " par volée", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du poison", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "poison " + pct(v) + " plus long", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "lance les dards " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "dard") + " par volée", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du poison", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "poison " + pct(v) + " plus long", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "lance les dards " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -239,10 +239,10 @@ Object.assign(WEAPONS, {
     legendText: "les clones explosent à la fin",
     cd0: 2,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "clone"), apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des clones", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "les clones durent " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "invoque les clones " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "clone"), apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des clones", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "les clones durent " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "invoque les clones " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -278,10 +278,10 @@ Object.assign(WEAPONS, {
     legendText: "le piège explose en refermant ses dents",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "piège") + " posé à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du piège", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "immobilise " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose les pièges " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "piège") + " posé à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du piège", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "immobilise " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose les pièges " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -320,10 +320,10 @@ Object.assign(WEAPONS, {
     legendText: "les poignards traversent tout",
     cd0: 1,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "poignard") + " par lancer", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des poignards", apply: bump("dm") },
-      { id: "pierce", max: 5, vals: [1, 2, 3], text: (v) => "perce +" + plural(v, "ennemi"), apply: bump("pierce") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "lance " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "poignard") + " par lancer", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des poignards", apply: bump("dm") },
+      { id: "pierce", max: 99, vals: [1, 2, 3], text: (v) => "perce +" + plural(v, "ennemi"), apply: bump("pierce") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "lance " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -346,10 +346,10 @@ Object.assign(WEAPONS, {
     legendText: "les ombres explosent quand tu es touché",
     cd0: 0,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ombre"), apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des ombres", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée des ombres +" + pct(v), apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "les ombres frappent " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "ombre"), apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des ombres", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée des ombres +" + pct(v), apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "les ombres frappent " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       const n = 1 + (w.n || 0), R = 70 * (1 + (w.rad || 0)), d = st.dmg * 3 * (1 + (w.dm || 0)), col = WEAPON_COLOR.shadow;

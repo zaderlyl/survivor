@@ -52,10 +52,10 @@ Object.assign(WEAPONS, {
     legendText: "il enchaîne un second dash",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du dash", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le dash revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée du dash +" + pct(v), apply: bump("rng") },
-      { id: "wid", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "coupe " + pct(v) + " plus large", apply: bump("wid") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du dash", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le dash revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée du dash +" + pct(v), apply: bump("rng") },
+      { id: "wid", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "coupe " + pct(v) + " plus large", apply: bump("wid") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -74,10 +74,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde lame suit la première",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "lame") + " lancée à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du boomerang", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le boomerang revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée du boomerang +" + pct(v), apply: bump("rng") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "lame") + " lancée à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du boomerang", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le boomerang revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée du boomerang +" + pct(v), apply: bump("rng") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -103,10 +103,10 @@ Object.assign(WEAPONS, {
     legendText: "il finit par un souffle qui repousse tout",
     cd0: 1,
     variants: [
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "tourbillon " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du tourbillon", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le tourbillon revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le tourbillon dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "tourbillon " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du tourbillon", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le tourbillon revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le tourbillon dure " + pct(v) + " plus longtemps", apply: bump("dur") },
     ],
     update(w, dt) {
       w.cd -= dt;

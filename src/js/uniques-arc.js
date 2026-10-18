@@ -22,10 +22,10 @@ Object.assign(WEAPONS, {
     legendText: "la frappe se répète une seconde fois au même endroit",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "frappe") + " à chaque tir", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du satellite", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "zone " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le satellite tire " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "frappe") + " à chaque tir", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du satellite", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "zone " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le satellite tire " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -56,30 +56,31 @@ Object.assign(WEAPONS, {
     name: "Faisceau tournant",
     intro: "un laser tourne autour de toi pendant quelques secondes",
     legendText: "un second faisceau tourne à l'opposé",
+    legendStacks: true,
     cd0: 1,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
-      { id: "len", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "faisceau " + pct(v) + " plus long", apply: bump("len") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
+      { id: "len", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "faisceau " + pct(v) + " plus long", apply: bump("len") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
       if (w.cd > 0) return;
       const L = 190 * (1 + (w.len || 0)) * rngMul();
       if (!nearest(L + 60)) return;
-      const dur = 3 * (1 + (w.dur || 0)), d = st.dmg * 0.9 * (1 + (w.dm || 0)), n = w.legend ? 2 : 1;
+      const dur = 3 * (1 + (w.dur || 0)), d = st.dmg * 0.9 * (1 + (w.dm || 0)), n = 1 + lg(w);
       w.cd = slow(w, 6) * cdMul() + dur;
       SFX.wave();
       fx.push({ k: "rotbeam", color: WEAPON_COLOR.rotbeam, L, n, ang: rnd(0, 6.283), life: dur, t: dur, cd: 0,
         tick(f, h) {
-          for (let b = 0; b < n; b++) spark(P.x + Math.cos(f.ang + b * Math.PI) * L, P.y + Math.sin(f.ang + b * Math.PI) * L, WEAPON_COLOR.rotbeam, 1, 90); // des étincelles au bout du faisceau
+          for (let b = 0; b < n; b++) spark(P.x + Math.cos(f.ang + (b / n) * 6.283) * L, P.y + Math.sin(f.ang + (b / n) * 6.283) * L, WEAPON_COLOR.rotbeam, 1, 90); // des étincelles au bout du faisceau
           f.ang += h * 3.2;
           f.cd -= h;
           if (f.cd > 0) return;
           f.cd = 0.1;
           for (let b = 0; b < n; b++) {
-            const a = f.ang + b * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+            const a = f.ang + (b / n) * 6.283, ca = Math.cos(a), sa = Math.sin(a);
             enemies.forEach((e) => {
               const dx = e.x - P.x, dy = e.y - P.y, along = dx * ca + dy * sa;
               if (e.hp > 0 && along > 0 && along < L && Math.abs(-dx * sa + dy * ca) < 8 + e.r) strike(e, d, ca * 40, sa * 40, "beam");
@@ -97,10 +98,10 @@ Object.assign(WEAPONS, {
     legendText: "huit lasers au lieu de quatre",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lasers", apply: bump("dm") },
-      { id: "len", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "lasers " + pct(v) + " plus longs", apply: bump("len") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "lasers " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la croix revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lasers", apply: bump("dm") },
+      { id: "len", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "lasers " + pct(v) + " plus longs", apply: bump("len") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "lasers " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la croix revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;

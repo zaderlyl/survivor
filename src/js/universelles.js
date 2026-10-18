@@ -3,11 +3,12 @@
 /* ---------- Les armes universelles ---------- */
 // Chaque arme a des variantes : des cartes qui ne sortent que si on possède l'arme (sinon c'est la carte de l'arme elle-même qui sort).
 // Une variante a ses 3 valeurs de rareté ; la rareté légendaire active en plus l'effet changé de l'arme (legendText).
-const orbCount = (w) => Math.min(12, 1 + (w.n || 0));
+const orbCount = (w) => 1 + (w.n || 0);
 const orbRadius = (w) => st.orbR * (1 + (w.rad || 0));
 const flameRadius = (w) => 54 * (1 + (w.size || 0)) * rngMul();
-const droneCount = (w) => Math.min(8, 1 + (w.n || 0));
-const slow = (w, base) => Math.max(base * 0.4, base * (1 - (w.rate || 0))); // recharge raccourcie par la variante « rate »
+const droneCount = (w) => 1 + (w.n || 0);
+const slow = (w, base) => Math.max(0.06, base * Math.exp(-1.15 * (w.rate || 0))); // pas de plafond de cartes, mais une arme ne se lance pas plus de 16 fois par seconde (sinon le jeu se fige) // recharge raccourcie par la variante « rate »
+const lg = (w) => Number(w.legend) || 0; // combien de fois l'effet légendaire a été pris : certains effets s'empilent
 const bump = (key) => (w, v) => { w[key] = (w[key] || 0) + v; };
 
 Object.assign(WEAPONS, {
@@ -17,10 +18,10 @@ Object.assign(WEAPONS, {
     intro: "des lames tournent autour de toi",
     legendText: "les lames lancent des éclats vers l'extérieur",
     variants: [
-      { id: "n", max: 8, vals: [1, 2, 3], text: (v) => "+" + plural(v, "lame") + " qui tourne autour de toi", apply: bump("n") },
-      { id: "spin", max: 6, vals: [0.15, 0.3, 0.6], text: (v) => "les lames tournent " + pct(v) + " plus vite", apply: bump("spin") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lames", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.12, 0.25, 0.45], text: (v) => "cercle " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "lame") + " qui tourne autour de toi", apply: bump("n") },
+      { id: "spin", max: 99, vals: [0.15, 0.3, 0.6], text: (v) => "les lames tournent " + pct(v) + " plus vite", apply: bump("spin") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des lames", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.12, 0.25, 0.45], text: (v) => "cercle " + pct(v) + " plus large", apply: bump("rad") },
     ],
     update(w, dt) {
       w.angle += dt * 3.2 * (1 + (w.spin || 0));
@@ -55,16 +56,16 @@ Object.assign(WEAPONS, {
     legendText: "gèle les ennemis touchés 1 s",
     cd0: 3,
     variants: [
-      { id: "size", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "onde " + pct(v) + " plus large", apply: bump("size") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "l'onde revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'onde", apply: bump("dm") },
-      { id: "knock", max: 6, vals: [0.25, 0.5, 1], text: (v) => "recul " + pct(v) + " plus fort", apply: bump("knock") },
+      { id: "size", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "onde " + pct(v) + " plus large", apply: bump("size") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "l'onde revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'onde", apply: bump("dm") },
+      { id: "knock", max: 99, vals: [0.25, 0.5, 1], text: (v) => "recul " + pct(v) + " plus fort", apply: bump("knock") },
     ],
     update(w, dt) {
       w.cd -= dt;
       if (w.cd > 0) return;
       w.cd = Math.max(1.2, slow(w, 5.2) * st.waveMul);
-      const R = Math.min(330, 82 * (1 + (w.size || 0))), kn = 1 + (w.knock || 0);
+      const R = 82 * (1 + (w.size || 0)), kn = 1 + (w.knock || 0);
       SFX.wave();
       ringFx(P.x, P.y, WEAPON_COLOR.wave, R, 0.35);
       ringFx(P.x, P.y, "#e6d6ff", R * 0.7, 0.3);
@@ -88,10 +89,10 @@ Object.assign(WEAPONS, {
     legendText: "les mines se divisent en deux explosions",
     cd0: 1,
     variants: [
-      { id: "n", max: 6, vals: [1, 2, 3], text: (v) => "+" + plural(v, "mine") + " posée à la fois", apply: bump("n") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des mines", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose les mines " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "mine") + " posée à la fois", apply: bump("n") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des mines", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose les mines " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -125,10 +126,10 @@ Object.assign(WEAPONS, {
     intro: "un drone tourne autour de toi et tire seul",
     legendText: "les drones lancent des missiles à tête chercheuse",
     variants: [
-      { id: "n", max: 7, vals: [1, 2, 3], text: (v) => "+" + plural(v, "drone"), apply: bump("n") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "les drones tirent " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des drones", apply: bump("dm") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée des drones +" + pct(v), apply: bump("rng") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "drone"), apply: bump("n") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "les drones tirent " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des drones", apply: bump("dm") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée des drones +" + pct(v), apply: bump("rng") },
     ],
     update(w, dt) {
       w.angle += dt * 1.6;
@@ -156,9 +157,9 @@ Object.assign(WEAPONS, {
     intro: "une zone brûle les ennemis autour de toi",
     legendText: "les brûlures suivent les ennemis qui fuient",
     variants: [
-      { id: "size", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("size") },
-      { id: "dm", max: 6, vals: [0.3, 0.6, 1.2], text: (v) => "brûlure " + pct(v) + " plus forte", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "la brûlure frappe " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "size", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "zone " + pct(v) + " plus large", apply: bump("size") },
+      { id: "dm", max: 99, vals: [0.3, 0.6, 1.2], text: (v) => "brûlure " + pct(v) + " plus forte", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "la brûlure frappe " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.em = (w.em || 0) - dt;
@@ -186,10 +187,10 @@ Object.assign(WEAPONS, {
     intro: "la foudre tombe sur un ennemi au hasard",
     legendText: "la foudre rebondit sur 3 ennemis",
     variants: [
-      { id: "n", max: 6, vals: [1, 2, 3], text: (v) => "+" + plural(v, "foudre") + " à chaque coup", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la foudre", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la foudre tombe " + pct(v) + " plus souvent", apply: bump("rate") },
-      { id: "blast", max: 6, vals: [24, 36, 55], text: (v) => "petite explosion de " + v + " px à l'impact", apply: (w, v) => { w.blast = Math.max(w.blast || 0, v); } },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "foudre") + " à chaque coup", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la foudre", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la foudre tombe " + pct(v) + " plus souvent", apply: bump("rate") },
+      { id: "blast", max: 99, vals: [24, 36, 55], text: (v) => "+" + v + " px d'explosion à l'impact", apply: bump("blast") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -232,13 +233,13 @@ const weaponPool = () => {
       // une arme rare n'apparaît qu'à partir du niveau 6, une légendaire du niveau 12, et une seule par partie
       if (d.tier === "rare" && level < 6) return;
       if (d.tier === "legend" && (level < 12 || P.weapons.some((o) => WEAPONS[o.id].tier === "legend"))) return;
-      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = true; } });
+      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = lg(weapon(id)) + 1; } });
       return;
     }
     d.variants.forEach((va) => out.push({
       id: id + "." + va.id, weapon: id, weight: d.char ? 2 : 0.7, name: d.name, max: va.max, vals: va.vals,
-      text: (v, r) => va.text(v) + (r === 2 ? " — " + d.legendText : ""),
-      apply: (v, r) => { va.apply(weapon(id), v); if (r === 2) weapon(id).legend = true; },
+      text: (v, r) => va.text(v) + (r === 2 && (!weapon(id).legend || d.legendStacks) ? (weapon(id).legend ? " — et encore : " : " — ") + d.legendText : ""), // l'effet légendaire ne s'ajoute qu'une fois : inutile de l'annoncer de nouveau
+      apply: (v, r) => { va.apply(weapon(id), v); if (r === 2) weapon(id).legend = lg(weapon(id)) + 1; },
     }));
   });
   return out;

@@ -11,10 +11,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde explosion, plus grande, suit",
     cd0: 3,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du leurre", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le leurre tient " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose un leurre " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du leurre", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le leurre tient " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose un leurre " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -37,10 +37,10 @@ Object.assign(WEAPONS, {
     legendText: "les lames traversent un ennemi de plus",
     cd0: 1,
     variants: [
-      { id: "n", max: 6, vals: [1, 2, 3], text: (v) => "+" + plural(v, "shuriken") + " par lancer", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des shurikens", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "lance les shurikens " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "bounce", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rebond"), apply: bump("bounce") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "shuriken") + " par lancer", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des shurikens", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "lance les shurikens " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "bounce", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rebond"), apply: bump("bounce") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -63,10 +63,10 @@ Object.assign(WEAPONS, {
     legendText: "les ennemis restent empoisonnés en sortant du nuage",
     cd0: 1,
     variants: [
-      { id: "rad", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "nuage " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du poison", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le nuage dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose un nuage " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rad", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "nuage " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du poison", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le nuage dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose un nuage " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;

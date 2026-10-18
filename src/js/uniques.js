@@ -19,10 +19,10 @@ Object.assign(WEAPONS, {
     legendText: "la tourelle explose à la fin",
     cd0: 1,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "tourelle") + " posée à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des tourelles", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "les tourelles tirent " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "les tourelles durent " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "tourelle") + " posée à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des tourelles", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "les tourelles tirent " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "les tourelles durent " + pct(v) + " plus longtemps", apply: bump("dur") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -55,10 +55,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde rafale suit, décalée",
     cd0: 2,
     variants: [
-      { id: "n", max: 6, vals: [2, 4, 6], text: (v) => "+" + plural(v, "tir") + " par rafale", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la rafale", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la rafale revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée de la rafale +" + pct(v), apply: bump("rng") },
+      { id: "n", max: 99, vals: [2, 4, 6], text: (v) => "+" + plural(v, "tir") + " par rafale", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la rafale", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la rafale revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée de la rafale +" + pct(v), apply: bump("rng") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -81,10 +81,10 @@ Object.assign(WEAPONS, {
     legendText: "l'explosion lâche 4 petites bombes",
     cd0: 1,
     variants: [
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mortier", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le mortier tire " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "obus") + " à chaque tir", apply: bump("n") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "explosion " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mortier", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le mortier tire " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "obus") + " à chaque tir", apply: bump("n") },
     ],
     update(w, dt) {
       w.cd -= dt;

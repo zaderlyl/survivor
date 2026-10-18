@@ -50,12 +50,13 @@ Object.assign(WEAPONS, {
     name: "Cercle de lames",
     intro: "un anneau de grandes épées s'ouvre autour de toi, puis se referme",
     legendText: "un second anneau tourne en sens inverse",
+    legendStacks: true,
     cd0: 3,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "épée") + " dans l'anneau", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du cercle", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "cercle " + pct(v) + " plus grand", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le cercle revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "épée") + " dans l'anneau", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du cercle", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "cercle " + pct(v) + " plus grand", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le cercle revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -86,7 +87,7 @@ Object.assign(WEAPONS, {
           } });
       };
       ring(1);
-      if (w.legend) ring(-1);
+      for (let k = 1; k <= lg(w); k++) ring(k % 2 ? -1 : 1);
     },
   },
 
@@ -99,10 +100,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde fissure s'ouvre à angle droit",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la fissure", apply: bump("dm") },
-      { id: "len", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "épée") + " dans la fissure", apply: bump("len") },
-      { id: "stun", max: 5, vals: [0.3, 0.6, 1], text: (v) => "étourdit " + pct(v) + " plus longtemps", apply: bump("stun") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la fissure", apply: bump("dm") },
+      { id: "len", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "épée") + " dans la fissure", apply: bump("len") },
+      { id: "stun", max: 99, vals: [0.3, 0.6, 1], text: (v) => "étourdit " + pct(v) + " plus longtemps", apply: bump("stun") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -135,10 +136,10 @@ Object.assign(WEAPONS, {
     legendText: "le mur tourne autour de toi",
     cd0: 2,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v * 3, "épée") + " dans le mur", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le mur dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le mur revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 3, "épée") + " dans le mur", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le mur dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le mur revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -177,12 +178,13 @@ Object.assign(WEAPONS, {
     name: "Ronde des spectres",
     intro: "des spectres de toi chargent en ligne droite à travers les ennemis",
     legendText: "ils reviennent en sens inverse",
+    legendStacks: true,
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "spectre"), apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des spectres", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "ils chargent " + pct(v) + " plus loin", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la ronde revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "spectre"), apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des spectres", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "ils chargent " + pct(v) + " plus loin", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la ronde revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -190,15 +192,15 @@ Object.assign(WEAPONS, {
       const tgt = nearest(st.range);
       if (!tgt) return;
       w.cd = slow(w, 8) * cdMul();
-      const a0 = Math.atan2(tgt.y - P.y, tgt.x - P.x), n = 4 + (w.n || 0), d = st.dmg * 3.5 * (1 + (w.dm || 0)), T = 0.7 * (1 + (w.dur || 0)) * (w.legend ? 2 : 1), col = WEAPON_COLOR.spectreknights;
+      const a0 = Math.atan2(tgt.y - P.y, tgt.x - P.x), n = 4 + (w.n || 0), d = st.dmg * 3.5 * (1 + (w.dm || 0)), T = 0.7 * (1 + (w.dur || 0)) * (1 + lg(w)), col = WEAPON_COLOR.spectreknights;
       P.aim = a0;
       SFX.dash();
       for (let k = 0; k < n; k++) {
         const a = a0 + (k - (n - 1) / 2) * 0.25, ca = Math.cos(a), sa = Math.sin(a);
-        let dir = 1, hit = new Set();
+        let dir = 1, seg = 0, hit = new Set();
         fx.push({ k: "spectre", color: col, x: P.x, y: P.y, a, life: T, t: T,
           tick(f, h) {
-            if (w.legend && dir === 1 && f.life < f.t / 2) { dir = -1; hit = new Set(); } // ils reviennent
+            if (lg(w) && Math.floor((1 - f.life / f.t) * (1 + lg(w))) > seg) { seg++; dir = -dir; hit = new Set(); } // ils reviennent, autant de fois que de reprises
             f.x += ca * 520 * h * dir;
             f.y += sa * 520 * h * dir;
             trail(f.x, f.y, col, 3);
@@ -224,10 +226,10 @@ Object.assign(WEAPONS, {
     legendText: "le dragon crache des épées devant lui",
     cd0: 4,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du dragon", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le dragon vit " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "len", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v * 10, "segment") + " au dragon", apply: bump("len") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le dragon revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du dragon", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le dragon vit " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "len", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 10, "segment") + " au dragon", apply: bump("len") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le dragon revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -266,10 +268,10 @@ Object.assign(WEAPONS, {
     legendText: "elle frappe trois fois d'affilée",
     cd0: 4,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du jugement", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "zone " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "n", max: 3, vals: [1, 2, 3], text: (v) => "+" + plural(v, "frappe"), apply: bump("n") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le jugement revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du jugement", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "zone " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "frappe"), apply: bump("n") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le jugement revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -307,10 +309,10 @@ Object.assign(WEAPONS, {
     legendText: "les rayons tournent deux fois plus vite",
     cd0: 3,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rayon"), apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des rayons", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "les rayons durent " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "reviennent " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rayon"), apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des rayons", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "les rayons durent " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "reviennent " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -331,10 +333,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde ligne part en V",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "colonne") + " par ligne", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des colonnes", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "les colonnes durent " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la salve revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "colonne") + " par ligne", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des colonnes", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "les colonnes durent " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la salve revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -368,10 +370,10 @@ Object.assign(WEAPONS, {
     legendText: "la tourelle tire deux fois plus vite",
     cd0: 3,
     variants: [
-      { id: "n", max: 3, vals: [1, 2, 3], text: (v) => "+" + plural(v, "tourelle") + " posée à la fois", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la tourelle", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "la tourelle dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la tourelle revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "tourelle") + " posée à la fois", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la tourelle", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "la tourelle dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la tourelle revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -401,12 +403,13 @@ Object.assign(WEAPONS, {
     name: "Champ de particules",
     intro: "un anneau de rayons courts tourne autour de toi et brûle tout ce qui s'approche",
     legendText: "un second anneau tourne en sens inverse",
+    legendStacks: true,
     cd0: 3,
     variants: [
-      { id: "n", max: 4, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "rayon"), apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du champ", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le champ dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le champ revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "rayon"), apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du champ", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le champ dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le champ revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -415,7 +418,7 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 10) * cdMul() + dur;
       SFX.wave();
       spinBeams(col, n, 150 * rngMul(), 40, 8, dur, d, 12, 2.6);
-      if (w.legend) spinBeams(col, n, 150 * rngMul(), 40, 8, dur, d, 12, -2.6);
+      for (let k = 1; k <= lg(w); k++) spinBeams(col, n, 150 * rngMul(), 40, 8, dur, d, 12, k % 2 ? -2.6 : 2.6);
     },
   },
 
@@ -428,12 +431,13 @@ Object.assign(WEAPONS, {
     name: "Rayon destructeur",
     intro: "un faisceau gigantesque balaie tout autour de toi, deux tours complets",
     legendText: "un second faisceau tourne à l'opposé",
+    legendStacks: true,
     cd0: 4,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "wid", max: 6, vals: [0.15, 0.3, 0.6], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "wid", max: 99, vals: [0.15, 0.3, 0.6], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le faisceau revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -442,8 +446,8 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 18) * cdMul() + dur;
       SFX.boss();
       const a0 = rnd(0, 6.283);
-      for (let k = 0; k < (w.legend ? 2 : 1); k++) {
-        fx.push({ k: "cbeam", color: col, x: P.x, y: P.y, a: a0 + k * Math.PI, len: 520, w: wid, life: dur, t: dur, cd: 0, k0: k,
+      for (let k = 0, cnt = 1 + lg(w); k < cnt; k++) {
+        fx.push({ k: "cbeam", color: col, x: P.x, y: P.y, a: a0 + (k / cnt) * 6.283, len: 520, w: wid, life: dur, t: dur, cd: 0, k0: k,
           tick(f, h) {
             f.x = P.x;
             f.y = P.y;
@@ -470,12 +474,13 @@ Object.assign(WEAPONS, {
     name: "Mur de lumière",
     intro: "un mur de lumière immense traverse tout l'écran et balaie les ennemis devant lui",
     legendText: "le mur revient sur ses pas",
+    legendStacks: true,
     cd0: 4,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
-      { id: "wid", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "mur " + pct(v) + " plus large", apply: bump("wid") },
-      { id: "rng", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "portée du mur +" + pct(v), apply: bump("rng") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le mur revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
+      { id: "wid", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "mur " + pct(v) + " plus large", apply: bump("wid") },
+      { id: "rng", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "portée du mur +" + pct(v), apply: bump("rng") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le mur revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -488,10 +493,10 @@ Object.assign(WEAPONS, {
       P.aim = a;
       SFX.boss();
       shake = Math.max(shake, 8);
-      let dir = 1, hit = new Set();
-      fx.push({ k: "pwave", color: col, x: P.x + ca * 30, y: P.y + sa * 30, a, w: W, life: w.legend ? T * 2 : T, t: w.legend ? T * 2 : T,
+      let dir = 1, seg = 0, hit = new Set();
+      fx.push({ k: "pwave", color: col, x: P.x + ca * 30, y: P.y + sa * 30, a, w: W, life: T * (1 + lg(w)), t: T * (1 + lg(w)),
         tick(f, h) {
-          if (w.legend && dir === 1 && f.life < f.t / 2) { dir = -1; hit = new Set(); }
+          if (lg(w) && Math.floor((1 - f.life / f.t) * (1 + lg(w))) > seg) { seg++; dir = -dir; hit = new Set(); }
           f.x += ca * 260 * h * dir;
           f.y += sa * 260 * h * dir;
           spark(f.x + -sa * rnd(-W, W), f.y + ca * rnd(-W, W), col, 2, 140);

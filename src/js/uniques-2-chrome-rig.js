@@ -37,10 +37,10 @@ Object.assign(WEAPONS, {
     legendText: "chaque épée libère un arc tranchant autour d'elle",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "épée") + " par pluie", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des épées", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "zone d'impact " + pct(v) + " plus grande", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la pluie revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "épée") + " par pluie", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des épées", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "zone d'impact " + pct(v) + " plus grande", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la pluie revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -77,10 +77,10 @@ Object.assign(WEAPONS, {
     legendText: "un second coup part dans ton dos",
     cd0: 1,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'épée", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée de l'épée +" + pct(v), apply: bump("rad") },
-      { id: "arc", max: 5, vals: [0.15, 0.3, 0.5], text: (v) => "coup " + pct(v) + " plus large", apply: bump("arc") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "l'épée frappe " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de l'épée", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée de l'épée +" + pct(v), apply: bump("rad") },
+      { id: "arc", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "coup " + pct(v) + " plus large", apply: bump("arc") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "l'épée frappe " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -105,10 +105,10 @@ Object.assign(WEAPONS, {
     legendText: "la riposte se déclenche deux fois",
     cd0: 0,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la riposte", apply: bump("dm") },
-      { id: "rad", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "riposte " + pct(v) + " plus large", apply: bump("rad") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la riposte se recharge " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "drain", max: 5, vals: [1, 2, 4], text: (v) => "rend " + v + " PV par ennemi touché (5 au plus)", apply: bump("drain") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la riposte", apply: bump("dm") },
+      { id: "rad", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "riposte " + pct(v) + " plus large", apply: bump("rad") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la riposte se recharge " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "drain", max: 99, vals: [1, 2, 4], text: (v) => "rend " + v + " PV par ennemi touché (5 au plus)", apply: bump("drain") },
     ],
     update(w, dt) { w.cd -= dt; },
     onHurt(w) {
@@ -141,10 +141,10 @@ Object.assign(WEAPONS, {
     legendText: "le faisceau est bien plus large",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le canon se recharge " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du faisceau", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le faisceau dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "faisceau " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le canon se recharge " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -187,10 +187,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde salve suit",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rayon") + " par salve", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des rayons", apply: bump("dm") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "rayons " + pct(v) + " plus épais", apply: bump("wid") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la salve revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "rayon") + " par salve", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des rayons", apply: bump("dm") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "rayons " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la salve revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -217,10 +217,10 @@ Object.assign(WEAPONS, {
     legendText: "deux fois plus de rayons",
     cd0: 2,
     variants: [
-      { id: "n", max: 5, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "rayon") + " par surcharge", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la surcharge", apply: bump("dm") },
-      { id: "len", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "rayons " + pct(v) + " plus longs", apply: bump("len") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "la surcharge revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v * 2, "rayon") + " par surcharge", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts de la surcharge", apply: bump("dm") },
+      { id: "len", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "rayons " + pct(v) + " plus longs", apply: bump("len") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "la surcharge revient " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;

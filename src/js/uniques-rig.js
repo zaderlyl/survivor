@@ -26,10 +26,10 @@ Object.assign(WEAPONS, {
     legendText: "un second tir part dans la direction opposée",
     cd0: 2,
     variants: [
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du rail", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le rail se recharge " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "rng", max: 6, vals: [0.15, 0.3, 0.5], text: (v) => "portée du rail +" + pct(v), apply: bump("rng") },
-      { id: "wid", max: 6, vals: [0.25, 0.5, 1], text: (v) => "tir " + pct(v) + " plus épais", apply: bump("wid") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du rail", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le rail se recharge " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rng", max: 99, vals: [0.15, 0.3, 0.5], text: (v) => "portée du rail +" + pct(v), apply: bump("rng") },
+      { id: "wid", max: 99, vals: [0.25, 0.5, 1], text: (v) => "tir " + pct(v) + " plus épais", apply: bump("wid") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -55,10 +55,10 @@ Object.assign(WEAPONS, {
     legendText: "une seconde salve suit",
     cd0: 2,
     variants: [
-      { id: "n", max: 6, vals: [1, 2, 3], text: (v) => "+" + plural(v, "missile") + " par salve", apply: bump("n") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des missiles", apply: bump("dm") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le barrage revient " + pct(v) + " plus vite", apply: bump("rate") },
-      { id: "rad", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "explosions " + pct(v) + " plus grandes", apply: bump("rad") },
+      { id: "n", max: 99, vals: [1, 2, 3], text: (v) => "+" + plural(v, "missile") + " par salve", apply: bump("n") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts des missiles", apply: bump("dm") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "le barrage revient " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "rad", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "explosions " + pct(v) + " plus grandes", apply: bump("rad") },
     ],
     update(w, dt) {
       w.cd -= dt;
@@ -85,10 +85,10 @@ Object.assign(WEAPONS, {
     legendText: "le mur étourdit les ennemis qu'il touche",
     cd0: 1,
     variants: [
-      { id: "len", max: 6, vals: [0.2, 0.4, 0.7], text: (v) => "mur " + pct(v) + " plus long", apply: bump("len") },
-      { id: "dm", max: 6, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
-      { id: "dur", max: 6, vals: [0.2, 0.4, 0.8], text: (v) => "le mur dure " + pct(v) + " plus longtemps", apply: bump("dur") },
-      { id: "rate", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "pose un mur " + pct(v) + " plus vite", apply: bump("rate") },
+      { id: "len", max: 99, vals: [0.2, 0.4, 0.7], text: (v) => "mur " + pct(v) + " plus long", apply: bump("len") },
+      { id: "dm", max: 99, vals: [0.25, 0.5, 1], text: (v) => "+" + pct(v) + " de dégâts du mur", apply: bump("dm") },
+      { id: "dur", max: 99, vals: [0.2, 0.4, 0.8], text: (v) => "le mur dure " + pct(v) + " plus longtemps", apply: bump("dur") },
+      { id: "rate", max: 99, vals: [0.1, 0.2, 0.35], text: (v) => "pose un mur " + pct(v) + " plus vite", apply: bump("rate") },
     ],
     update(w, dt) {
       w.cd -= dt;
