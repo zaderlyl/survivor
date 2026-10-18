@@ -26,6 +26,8 @@ const WEAPON_COLOR = {
   virus: "#6dff9a", firewall: "#ff7a3a", hack: "#ff3dd0",
   backstab: "#e6fff0", smoke: "#9aa0c8", mark: "#ff3d5f",
   prism: "#c8a8ff", mirror: "#e0f4ff", nova: "#35c8ff",
+  rocket: "#ff8a1f", fragmine: "#ffb02e", molotov: "#ff5a2e",
+  stormbarrage: "#8fd8ff", pylon: "#b8e6ff", thunderclap: "#fff27a",
 };
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8" })[src] || heroColor();
 

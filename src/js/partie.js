@@ -409,6 +409,7 @@ const update = (dt) => {
               damage(e, (bl.dmg !== undefined ? bl.dmg : st.dmg) * (crit ? st.critMul : 1), crit, (bl.vx / 520) * kb, (bl.vy / 520) * kb, "bullet");
               if (st.blast > 0 && !bl.dmg) splash(e, st.blast, st.dmg * 0.5);
               if (bl.blast) splash(e, bl.blast, bl.bd !== undefined ? bl.bd : st.dmg);
+              if (bl.cluster) clusterBurst(e); // une roquette légendaire se divise à l'impact
               bl.hit.push(e);
               if (bl.bounce > 0) {
                 // le tir repart vers l'ennemi le plus proche qu'il n'a pas encore touché

@@ -223,6 +223,17 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "pylon") {
+      // un pylône : une colonne avec une lueur au sommet
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 3, f.y - 14, 6, 16);
+      g.fillRect(f.x - 6, f.y + 1, 12, 3);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(f.x, f.y - 16, calm ? 6 : 5 + 2 * Math.sin(t * 12), 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
     } else if (f.k === "firewall") {
       // le pare-feu : un disque et un anneau de flammes qui tourne
       g.globalCompositeOperation = "lighter";
@@ -348,14 +359,15 @@ const render = () => {
       g.globalAlpha = 1;
       g.fillRect(f.tx - 2, f.ty - 2 - 140 * al, 4, 4);
     } else if (f.k === "mine") {
+      const mc = f.color || WEAPON_COLOR.mine;
       // une mine : un carré jaune, qui clignote une fois armée, avec un halo
-      g.strokeStyle = WEAPON_COLOR.mine;
+      g.strokeStyle = mc;
       const on = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
       g.globalAlpha = on;
       g.lineWidth = 2;
       g.strokeRect(f.x - 4, f.y - 4, 8, 8);
       if (f.arm <= 0) {
-        g.fillStyle = WEAPON_COLOR.mine;
+        g.fillStyle = mc;
         g.fillRect(f.x - 1.5, f.y - 1.5, 3, 3);
         g.globalCompositeOperation = "lighter";
         g.globalAlpha = on * 0.3;
