@@ -75,6 +75,7 @@ const dash = () => {
     if (d < 90 && e.type !== "boss") { e.kx += (dx / d) * 380; e.ky += (dy / d) * 380; }
   });
   P.inv = Math.max(P.inv, DASH_TIME + 0.12);
+  P.weapons.forEach((w) => { const od = WEAPONS[w.id].onDash; if (od) od(w); }); // les lames cachées jaillissent
   SFX.dash();
 };
 

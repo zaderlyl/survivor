@@ -12,7 +12,8 @@ const addWeapon = (id, n) => {
 
 
 // multiplicateurs issus des boosts : cadence, dégâts et portée, rapportés aux valeurs de départ
-const cdMul = () => st.cd / 0.42;
+const hasteNow = () => (st.hasteT > 0 ? st.hasteV : 0); // le bonus de cadence temporaire
+const cdMul = () => st.cd / 0.42 / (1 + hasteNow());
 const dmgMul = () => st.dmg / 2;
 const rngMul = () => st.range / 440;
 // l'ennemi vivant le plus proche dans un rayon
@@ -27,8 +28,10 @@ const nearest = (maxR, ox = P.x, oy = P.y) => {
   return near;
 };
 // une explosion : onde visible et dégâts de zone
+const recentBooms = [];
 const boom = (x, y, r, d, color) => {
   SFX.bomb();
+  recentBooms.push({ x, y, r, t });
   explodeFx(x, y, color || heroColor(), r);
   enemies.forEach((e) => {
     const dx = e.x - x, dy = e.y - y, dd = Math.hypot(dx, dy) || 1;
@@ -56,7 +59,7 @@ const WEAPONS = {
         if (dd < nd) { nd = dd; near = e; }
       }
       if (!near) return;
-      w.cd = st.cd;
+      w.cd = st.cd / (1 + hasteNow());
       const base = Math.atan2(near.y - P.y, near.x - P.x);
       P.aim = base;
       P.muzzle = 0.06;

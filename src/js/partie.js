@@ -71,6 +71,8 @@ const kill = (i) => {
   if (e.virus > 0) virusSpread(e); // un ennemi infecté contamine les autres en mourant
   if (e.marked) { const mk = e.marked; e.marked = null; detonateMark(e, mk); } // une marque détone si l'ennemi meurt
   if (e.lbomb) { const lb = e.lbomb; e.lbomb = null; lbombBlast(e, lb); } // une bombe logique aussi
+  if (st.hasteT > 0 && st.hasteExt) st.hasteT = Math.min(st.hasteT + st.hasteExt, 12); // chaque victoire prolonge le téléchargement
+  if (e.charge && e.charge.legend) chargeTransfer(e); // la charge saute à un nouvel ennemi
   burst(e.x, e.y, e.type === "boss" ? 40 : 6, e.type === "boss" ? PINK : GREY, e.type === "boss" ? 300 : 140);
   spark(e.x, e.y, worldTheme().glow, e.type === "boss" ? 30 : 9, e.type === "boss" ? 320 : 200); // et des étincelles aux couleurs du monde
   flashFx(e.x, e.y, worldTheme().glow, e.type === "boss" ? 40 : 14);
@@ -96,6 +98,9 @@ const kill = (i) => {
 const hurt = (dmg) => {
   if (P.inv > 0 || dbg.god) return;
   dmg *= incoming() * (1 - st.armor);
+  P.weapons.forEach((w) => { const rd = WEAPONS[w.id].reduce; if (rd) dmg *= rd(w); }); // une garde réduit les dégâts
+  P.weapons.forEach((w) => { const ab = WEAPONS[w.id].absorb; if (ab) dmg = ab(w, dmg); }); // un bouclier en absorbe une part
+  if (dmg < 0.5) { P.inv = 0.4; P.flash = 0.1; return; } // tout est absorbé
   P.hp -= dmg;
   P.weapons.forEach((w) => { const od = WEAPONS[w.id].onHurt; if (od) od(w, dmg); }); // les armes qui réagissent aux coups reçus
   P.inv = 0.8;
@@ -107,6 +112,7 @@ const hurt = (dmg) => {
 };
 
 const damage = (e, d, crit, kx, ky, src) => {
+  if (e.vuln > 0) d *= e.vuln2 || 1.5; // un ennemi vulnérable subit plus
   if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
   e.hp -= d;
@@ -175,6 +181,8 @@ const update = (dt) => {
     P.y = clamp(P.y + iy * st.speed * dt, P.r, ARENA_H - P.r);
   }
   P.dashCd = Math.max(0, P.dashCd - dt);
+  if (st.hasteT > 0) st.hasteT -= dt;
+  while (recentBooms.length && recentBooms[0].t < t - 0.15) recentBooms.shift();
   if (st.regen > 0) P.hp = Math.min(st.maxHp, P.hp + st.regen * dt);
   P.inv = Math.max(0, P.inv - dt);
   P.flash = Math.max(0, P.flash - dt);
@@ -314,6 +322,7 @@ const update = (dt) => {
       }
     }
     if (e.frozen > 0) { e.frozen -= dt; sp = 0; }
+    if (e.vuln > 0) e.vuln -= dt;
     if (e.blind > 0) { e.blind -= dt; mx = Math.cos(e.ba); my = Math.sin(e.ba); } // aveuglé par la fumée : il erre
     if (e.hacked > 0) {
       // piraté : il combat pour toi, il fonce sur l'ennemi le plus proche
@@ -351,6 +360,12 @@ const update = (dt) => {
       if (e.virusT <= 0) { e.virusT = 0.5; damage(e, e.vd, false, 0, 0, "virus"); }
     }
     if (e.ransom) { e.ransom.t -= dt; if (e.ransom.t <= 0) { const rs = e.ransom; e.ransom = null; ransomPay(e, rs); } }
+    if (e.charge) {
+      e.charge.t -= dt;
+      e.charge.c -= dt;
+      if (e.charge.c <= 0) { e.charge.c = 0.5; chargeZap(e); }
+      if (e.charge.t <= 0) e.charge = null;
+    }
     if (e.lbomb) { e.lbomb.t -= dt; if (e.lbomb.t <= 0) { const lb = e.lbomb; e.lbomb = null; lbombBlast(e, lb); } }
     if (e.poison > 0) {
       e.poison -= dt;

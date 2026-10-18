@@ -223,6 +223,14 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "powder") {
+      // une ligne de poudre : de petits grains sombres, quelques points qui brillent
+      g.globalAlpha = Math.min(1, f.life / 0.5);
+      f.pts.forEach((p, i) => {
+        g.fillStyle = "#2a2118";
+        g.fillRect(p[0] - 3, p[1] - 2, 6, 4);
+        if (!calm && (Math.floor(t * 4 + i) % 5 === 0)) { g.fillStyle = col; g.fillRect(p[0] - 1, p[1] - 1, 2, 2); }
+      });
     } else if (f.k === "codecol") {
       // une colonne de code qui tombe : une file de petits carrés
       for (let i = 0; i < 8; i++) {
@@ -753,6 +761,15 @@ const render = () => {
       g.stroke();
       g.globalAlpha = 1;
     }
+    if (e.charge) { // un ennemi chargé : un anneau électrique qui pulse
+      g.strokeStyle = WEAPON_COLOR.livingbattery;
+      g.lineWidth = 2;
+      g.globalAlpha = calm ? 0.8 : 0.5 + 0.4 * Math.sin(t * 16);
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 5, 0, 6.283);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
     if (e.ransom) { // un cadenas rose au-dessus de l'ennemi chiffré
       g.strokeStyle = WEAPON_COLOR.ransom;
       g.fillStyle = WEAPON_COLOR.ransom;
@@ -939,6 +956,31 @@ const render = () => {
   ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45, heroLook()));
   if (mode !== "menu" && !(P.inv > 0 && P.dash <= 0 && !calm && Math.floor(P.inv * 20) % 2 === 0)) {
     blit(heroName(), P.x, P.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0, undefined, heroLook());
+    const shW = weapon("elecshield");
+    if (shW && shW.sh > 0) { // le bouclier électrique
+      g.strokeStyle = WEAPON_COLOR.elecshield;
+      g.lineWidth = 3;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = (calm ? 0.45 : 0.35 + 0.15 * Math.sin(t * 9)) * Math.min(1, shW.sh / shW.cap + 0.3);
+      g.beginPath();
+      g.arc(P.x, P.y, 24, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+    }
+    if (st.hasteT > 0) { // le bonus de cadence : un anneau qui tourne
+      g.strokeStyle = WEAPON_COLOR.download;
+      g.lineWidth = 2;
+      g.globalAlpha = 0.6;
+      g.setLineDash([3, 5]);
+      g.lineDashOffset = calm ? 0 : -t * 30;
+      g.beginPath();
+      g.arc(P.x, P.y, 20, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.lineDashOffset = 0;
+      g.globalAlpha = 1;
+    }
     if (st.legends > 0) {
       // l'aura : un anneau en pointillés par carte légendaire prise
       const gc = ART[heroName()].pal ? ART[heroName()].pal.t : LIGHT;

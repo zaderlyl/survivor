@@ -46,6 +46,9 @@ const WEAPON_COLOR = {
   constellation: "#ffe27a", spiralbeam: "#7ad6ff", seekerlasers: "#a0f0ff", ioncannon: "#c8a8ff", sun: "#ffd860", laserstorm: "#7ad6ff",
   bombstring: "#ffb02e", airstrike: "#ff8a1f", furnace: "#ff6a1f", barragefire: "#ff9a3c", cataclysm: "#ff5a2e", meltdown: "#ff7a3a",
   lightningrod: "#b8e6ff", staticaura: "#9fd8ff", mjolnir: "#d8f0ff", deluge: "#8fd8ff", skywrath: "#ffffff", stormgod: "#fff27a",
+  // les armes à mécanique nouvelle
+  download: "#6fe8ff", perfectguard: "#ff9ccf", elecshield: "#8fd8ff", hiddenblades: "#cfe8dc", blackpowder: "#ffb02e",
+  tractor: "#ffd28a", grapple: "#9ad8b0", silence: "#a8b0d8", ghostshot: "#9bffe0", livingbattery: "#ffe27a",
 };
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 
