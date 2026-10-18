@@ -28,8 +28,17 @@ const WEAPON_COLOR = {
   prism: "#c8a8ff", mirror: "#e0f4ff", nova: "#35c8ff",
   rocket: "#ff8a1f", fragmine: "#ffb02e", molotov: "#ff5a2e",
   stormbarrage: "#8fd8ff", pylon: "#b8e6ff", thunderclap: "#fff27a",
+  // le deuxième lot : Chrome et Rig
+  spectral: "#ff9ccf", thrust: "#ffd0e4", bladedance: "#ff7ab8", execution: "#ff3d5f", flurry: "#ffb3d9",
+  particlewave: "#ffd23f", pillar: "#ffe680", plasmawhip: "#ff7a3a", twincannon: "#ffb02e", particlerain: "#ffc95c",
+  // le troisième lot : Volt, Ghost, Arc, Pulse, Zap
+  logicbomb: "#8a7cff", worm: "#9dff6d", ddos: "#4fd8ff", pixelburst: "#c8f0ff", bsod: "#3a7bff",
+  poisondarts: "#a8ff7a", illusions: "#7dffb0", beartrap: "#b8d86a", throwingdagger: "#e6fff0", shadow: "#5a6a66",
+  railorbital: "#b0e8ff", refractor: "#a0f0ff", lasersentinel: "#7ad6ff", focalbeam: "#9bffd8", laserrain: "#7ad6ff",
+  shellrain: "#ff9a3c", fusiongrenade: "#c46bff", reactivearmor: "#ffb02e", timebomb: "#ff5a2e", flamethrower: "#ff6a1f",
+  ballightning: "#b0f0ff", staticstorm: "#9fd8ff", longchain: "#6fd0ff", mobilecoil: "#b8f0ff", arcvolt: "#9fe9ff",
 };
-const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8" })[src] || heroColor();
+const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
 const spark = (x, y, color, n, speed) => {

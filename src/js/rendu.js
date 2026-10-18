@@ -223,6 +223,118 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "worm") {
+      // un ver de code : une file de carrés qui s'estompent
+      for (let i = f.segs.length - 1; i >= 0; i--) {
+        g.globalAlpha = Math.max(0.15, 1 - i / f.segs.length) * Math.min(1, f.life / 0.4);
+        g.fillStyle = i === 0 ? "#ffffff" : col;
+        const s2 = i === 0 ? 6 : 5 - (i / f.segs.length) * 2;
+        g.fillRect(f.segs[i][0] - s2 / 2, f.segs[i][1] - s2 / 2, s2, s2);
+      }
+    } else if (f.k === "tline") {
+      // une ligne qui annonce un tir
+      g.globalAlpha = 0.6;
+      g.lineWidth = 2;
+      g.setLineDash([6, 6]);
+      g.beginPath();
+      g.moveTo(f.x1, f.y1);
+      g.lineTo(f.x2, f.y2);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "sentinel") {
+      // une sentinelle : un socle et un canon tourné vers la cible
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 6, f.y - 3, 12, 6);
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(f.x, f.y - 2);
+      g.lineTo(f.x + Math.cos(f.a || 0) * 12, f.y - 2 + Math.sin(f.a || 0) * 12);
+      g.stroke();
+    } else if (f.k === "screenflash") {
+      // un éclair qui couvre tout l'écran
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = al * 0.4;
+      g.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+      g.globalCompositeOperation = "source-over";
+    } else if (f.k === "trap") {
+      // un piège à ours : un socle hérissé de dents
+      g.globalAlpha = f.arm > 0 ? 0.4 : 1;
+      g.fillRect(f.x - 6, f.y - 1, 12, 3);
+      for (let i = 0; i < 4; i++) g.fillRect(f.x - 6 + i * 4, f.y - 4, 2, 3);
+    } else if (f.k === "clone") {
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.45 * Math.min(1, f.life / 0.4), heroLook());
+    } else if (f.k === "singularity") {
+      // une singularité : un noyau sombre, un anneau qui se resserre
+      const k2 = f.life / f.t;
+      g.fillStyle = "#14081f";
+      g.beginPath();
+      g.arc(f.x, f.y, 9, 0, 6.283);
+      g.fill();
+      g.globalAlpha = 0.8;
+      g.lineWidth = 3;
+      g.globalCompositeOperation = "lighter";
+      g.beginPath();
+      g.arc(f.x, f.y, 12 + f.R * 0.5 * k2, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+    } else if (f.k === "tbomb") {
+      // une bombe à retardement : un cube qui clignote, un anneau qui se resserre
+      const k2 = f.life / f.t;
+      g.globalAlpha = calm ? 1 : (Math.floor(f.life * (2 + 10 * (1 - k2))) % 2 ? 1 : 0.35);
+      g.fillRect(f.x - 5, f.y - 5, 10, 10);
+      g.fillStyle = "#ffffff";
+      g.fillRect(f.x - 2, f.y - 2, 4, 4);
+      g.globalAlpha = 0.5;
+      g.lineWidth = 2;
+      g.setLineDash([5, 5]);
+      g.beginPath();
+      g.arc(f.x, f.y, f.R * (0.3 + 0.7 * k2), 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "orb2") {
+      // un globe de foudre : un halo, un cœur blanc
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.45;
+      g.beginPath();
+      g.arc(f.x, f.y, (f.sz || 6) * 1.8, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+      g.fillStyle = "#ffffff";
+      g.beginPath();
+      g.arc(f.x, f.y, (f.sz || 6) * 0.6, 0, 6.283);
+      g.fill();
+    } else if (f.k === "pwave") {
+      // une large bande de lumière qui avance
+      const px = -Math.sin(f.a) * f.w, py = Math.cos(f.a) * f.w;
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 18;
+      g.beginPath();
+      g.moveTo(f.x - px, f.y - py);
+      g.lineTo(f.x + px, f.y + py);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(f.x - px, f.y - py);
+      g.lineTo(f.x + px, f.y + py);
+      g.stroke();
+    } else if (f.k === "pillar") {
+      // une colonne de lumière qui tombe du ciel
+      const fade = Math.min(1, f.life / 0.4);
+      g.globalAlpha = 0.35 * fade;
+      g.globalCompositeOperation = "lighter";
+      g.fillRect(f.x - f.R * 0.45, f.y - 320, f.R * 0.9, 320);
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9 * fade;
+      g.fillStyle = "#ffffff";
+      g.fillRect(f.x - 2, f.y - 320, 4, 320);
+      g.strokeStyle = col;
+      g.lineWidth = 3;
+      g.beginPath();
+      g.arc(f.x, f.y, f.R, 0, 6.283);
+      g.stroke();
     } else if (f.k === "pylon") {
       // un pylône : une colonne avec une lueur au sommet
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
@@ -506,6 +618,16 @@ const render = () => {
       g.stroke();
       g.globalAlpha = 1;
     }
+    if (e.lbomb) { // une bombe logique : un petit carré qui clignote de plus en plus vite
+      g.fillStyle = WEAPON_COLOR.logicbomb;
+      g.globalAlpha = calm ? 1 : (Math.floor(e.lbomb.t * (3 + 8 / Math.max(0.3, e.lbomb.t))) % 2 ? 1 : 0.3);
+      g.fillRect(Math.round(e.x - 3), Math.round(e.y - e.r - 11), 6, 6);
+      g.globalAlpha = 1;
+    }
+    if (e.poison > 0 && !calm) { // du poison qui goutte
+      g.fillStyle = WEAPON_COLOR.poisondarts;
+      g.fillRect(Math.round(e.x + rnd(-e.r, e.r)), Math.round(e.y + rnd(0, e.r + 3)), 2, 3);
+    }
     if (e.hacked > 0) {
       g.strokeStyle = WEAPON_COLOR.hack;
       g.lineWidth = 2;
@@ -584,6 +706,53 @@ const render = () => {
     g.stroke();
     g.setLineDash([]);
     g.globalAlpha = 1;
+  }
+  // l'épée spectrale : une lame fantôme qui tourne autour de toi et se jette sur les ennemis
+  const specW = weapon("spectral");
+  if (specW && specW.sw) {
+    specW.sw.forEach((s) => {
+      if (s.x === undefined) return;
+      g.save();
+      g.translate(s.x, s.y);
+      g.rotate(s.a + Math.PI / 2);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.4;
+      g.fillStyle = WEAPON_COLOR.spectral;
+      g.beginPath();
+      g.arc(0, 0, 10, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.fillStyle = WEAPON_COLOR.spectral;
+      g.fillRect(-2, -13, 4, 20);
+      g.fillStyle = "#ffffff";
+      g.fillRect(-1, -12, 2, 15);
+      g.fillRect(-5, 5, 10, 2);
+      g.restore();
+    });
+    g.globalAlpha = 1;
+  }
+  // l'ombre : un double sombre qui te suit et attaque
+  const shW = weapon("shadow");
+  if (shW && shW.sh) {
+    shW.sh.forEach((s) => { if (s.x !== undefined) blit(heroName(), s.x, s.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 6) & 1, P.face < 0, false, 0.35, "000"); });
+  }
+  // la bobine mobile : une bobine qui te suit
+  const mcW = weapon("mobilecoil");
+  if (mcW && mcW.co) {
+    mcW.co.forEach((c) => {
+      if (c.x === undefined) return;
+      g.fillStyle = WEAPON_COLOR.mobilecoil;
+      g.fillRect(c.x - 3, c.y - 2, 6, 6);
+      g.fillRect(c.x - 1, c.y - 10, 2, 8);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(c.x, c.y - 11, calm ? 5 : 4 + 2 * Math.sin(t * 12), 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+    });
   }
   // les drones : de petits carrés qui tournent autour de toi
   const droneW = weapon("drone");

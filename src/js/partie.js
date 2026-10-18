@@ -70,6 +70,7 @@ const kill = (i) => {
   if (st.deathBlast) splash(e, 45, st.dmg * 0.8);
   if (e.virus > 0) virusSpread(e); // un ennemi infecté contamine les autres en mourant
   if (e.marked) { const mk = e.marked; e.marked = null; detonateMark(e, mk); } // une marque détone si l'ennemi meurt
+  if (e.lbomb) { const lb = e.lbomb; e.lbomb = null; lbombBlast(e, lb); } // une bombe logique aussi
   burst(e.x, e.y, e.type === "boss" ? 40 : 6, e.type === "boss" ? PINK : GREY, e.type === "boss" ? 300 : 140);
   spark(e.x, e.y, worldTheme().glow, e.type === "boss" ? 30 : 9, e.type === "boss" ? 320 : 200); // et des étincelles aux couleurs du monde
   flashFx(e.x, e.y, worldTheme().glow, e.type === "boss" ? 40 : 14);
@@ -349,6 +350,12 @@ const update = (dt) => {
       e.virusT -= dt;
       if (e.virusT <= 0) { e.virusT = 0.5; damage(e, e.vd, false, 0, 0, "virus"); }
     }
+    if (e.lbomb) { e.lbomb.t -= dt; if (e.lbomb.t <= 0) { const lb = e.lbomb; e.lbomb = null; lbombBlast(e, lb); } }
+    if (e.poison > 0) {
+      e.poison -= dt;
+      e.poisonT -= dt;
+      if (e.poisonT <= 0) { e.poisonT = 0.4; damage(e, e.pd, false, 0, 0, "poison"); if (e.pspread) poisonSpread(e); }
+    }
     if (e.marked) { e.marked.t -= dt; if (e.marked.t <= 0) { const mk = e.marked; e.marked = null; detonateMark(e, mk, true); } }
     if (d < e.r + P.r && e.age > 0.25 && !(e.hacked > 0)) hurt(e.dmg);
   }
@@ -410,6 +417,7 @@ const update = (dt) => {
               if (st.blast > 0 && !bl.dmg) splash(e, st.blast, st.dmg * 0.5);
               if (bl.blast) splash(e, bl.blast, bl.bd !== undefined ? bl.bd : st.dmg);
               if (bl.cluster) clusterBurst(e); // une roquette légendaire se divise à l'impact
+              if (bl.poison) { e.poison = bl.pdur || 3; e.poisonT = 0.4; e.pd = bl.poison; e.pspread = bl.pspread; } // un dard empoisonné
               bl.hit.push(e);
               if (bl.bounce > 0) {
                 // le tir repart vers l'ennemi le plus proche qu'il n'a pas encore touché
