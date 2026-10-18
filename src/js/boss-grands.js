@@ -1,198 +1,370 @@
 "use strict";
 
 /* ---------- Les grands boss : un tous les 5 mondes, chacun avec sa règle d'arène ---------- */
-// monde 5 le PDG (secteurs) · 10 le réacteur (pylônes) · 15 la singularité (gravité) · 20 chronos (échos) · 25 le rival (damier)
-const GRAND_NAMES = ["le pdg : licenciements", "le réacteur : pylônes", "la singularité : gravité", "chronos : échos", "le rival : damier"];
-const GRAND_ART = [["boss4", 0], ["boss2", 120], ["boss3", 200], ["boss1", 270], ["boss0", 330]]; // le dessin de base et la rotation de teinte
+/*
+  Monde 5  : le PDG          (secteurs : le sol se découpe en parts mortelles)
+  Monde 10 : le réacteur     (pylônes : intouchable tant qu'ils vivent)
+  Monde 15 : la singularité  (gravité : elle t'attire sans cesse)
+  Monde 20 : chronos         (échos : des zones claquent là où tu étais)
+  Monde 25 : le rival        (damier : une couleur du sol claque, puis l'autre)
+  Les grands boss suivants (mondes 30, 35...) sont créés par boss-generateur.js.
+*/
 
-// change la teinte d'une couleur "#rrggbb"
-const hueShift = (hex, deg) => {
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return hex;
-  const r = parseInt(hex.slice(1, 3), 16) / 255, gr = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
-  const mx = Math.max(r, gr, b), mn = Math.min(r, gr, b), l = (mx + mn) / 2, dl = mx - mn;
-  let h = 0, s = 0;
-  if (dl) {
-    s = dl / (1 - Math.abs(2 * l - 1));
-    h = mx === r ? ((gr - b) / dl) % 6 : mx === gr ? (b - r) / dl + 2 : (r - gr) / dl + 4;
-    h = ((h * 60 + deg) % 360 + 360) % 360;
+const GRAND_NAMES = ["le pdg : licenciements", "le réacteur : pylônes", "la singularité : gravité", "chronos : échos", "le rival : damier"];
+
+// pour chaque grand boss : le dessin de départ, et de combien on tourne sa teinte (en degrés) pour le distinguer
+const GRAND_ART = [["boss4", 0], ["boss2", 120], ["boss3", 200], ["boss1", 270], ["boss0", 330]];
+
+/* ---------- Changer la teinte d'une couleur ---------- */
+// prend une couleur "#rrggbb" et tourne sa teinte de `degres` (0 = identique, 180 = couleur opposée)
+const hueShift = (couleurHex, degres) => {
+  if (!/^#[0-9a-f]{6}$/i.test(couleurHex)) return couleurHex; // autre format : on ne touche pas
+
+  // 1) rouge, vert, bleu entre 0 et 1
+  const rouge = parseInt(couleurHex.slice(1, 3), 16) / 255;
+  const vert = parseInt(couleurHex.slice(3, 5), 16) / 255;
+  const bleu = parseInt(couleurHex.slice(5, 7), 16) / 255;
+
+  // 2) on passe en teinte / saturation / luminosité
+  const maxi = Math.max(rouge, vert, bleu);
+  const mini = Math.min(rouge, vert, bleu);
+  const luminosite = (maxi + mini) / 2;
+  const ecart = maxi - mini;
+  let teinte = 0;
+  let saturation = 0;
+  if (ecart) {
+    saturation = ecart / (1 - Math.abs(2 * luminosite - 1));
+    if (maxi === rouge) teinte = ((vert - bleu) / ecart) % 6;
+    else if (maxi === vert) teinte = (bleu - rouge) / ecart + 2;
+    else teinte = (rouge - vert) / ecart + 4;
+    teinte = ((teinte * 60 + degres) % 360 + 360) % 360; // on tourne la teinte
   }
-  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
-  const [r1, g1, b1] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
-  const hx = (v) => Math.round((v + m) * 255).toString(16).padStart(2, "0");
-  return "#" + hx(r1) + hx(g1) + hx(b1);
+
+  // 3) on revient en rouge / vert / bleu
+  const chroma = (1 - Math.abs(2 * luminosite - 1)) * saturation;
+  const x = chroma * (1 - Math.abs(((teinte / 60) % 2) - 1));
+  const decalage = luminosite - chroma / 2;
+  let rgb;
+  if (teinte < 60) rgb = [chroma, x, 0];
+  else if (teinte < 120) rgb = [x, chroma, 0];
+  else if (teinte < 180) rgb = [0, chroma, x];
+  else if (teinte < 240) rgb = [0, x, chroma];
+  else if (teinte < 300) rgb = [x, 0, chroma];
+  else rgb = [chroma, 0, x];
+  const enHexa = (valeur) => Math.round((valeur + decalage) * 255).toString(16).padStart(2, "0");
+  return "#" + enHexa(rgb[0]) + enHexa(rgb[1]) + enHexa(rgb[2]);
 };
-GRAND_ART.forEach(([base, deg], i) => {
-  const a = ART[base], pal = {};
-  for (const k in a.pal) pal[k] = hueShift(a.pal[k], deg);
-  ART["bossG" + (i + 1)] = { pal, s: 3, frames: a.frames };
+
+// crée les 5 dessins des grands boss (bossG1 à bossG5) : le dessin de base, teinte tournée, en plus grand (échelle 3)
+GRAND_ART.forEach(([dessinDeBase, degres], i) => {
+  const base = ART[dessinDeBase];
+  const palette = {};
+  for (const lettre in base.pal) palette[lettre] = hueShift(base.pal[lettre], degres);
+  ART["bossG" + (i + 1)] = { pal: palette, s: 3, frames: base.frames };
 });
 
-// un boss de monde 5, 10, 15... devient un grand boss : plus gros, plus de vie, un autre dessin
-const makeGrand = (e) => {
-  const g = (world + 1) / 5, m = (g - 1) % 5;
-  e.grand = g;
-  e.pk = "g" + (m + 1);
-  e.art = "bossG" + (m + 1);
-  e.r = 40;
-  e.hp = e.max = e.hp * 1.8;
-  return GRAND_NAMES[m];
+/* ---------- Faire d'un boss un grand boss ---------- */
+// appelée au monde 5, 10, 15, 20, 25 : plus gros, 1,8 fois plus de vie, un autre dessin. Renvoie son nom.
+const makeGrand = (boss) => {
+  const numero = (world + 1) / 5; // 1 pour le monde 5, 2 pour le monde 10...
+  const index = (numero - 1) % 5;
+  boss.grand = numero;
+  boss.pk = "g" + (index + 1); // la clé de ses phases dans BOSS_PHASES
+  boss.art = "bossG" + (index + 1);
+  boss.r = 40;
+  boss.hp = boss.max = boss.hp * 1.8;
+  return GRAND_NAMES[index];
 };
 
-// ce que fait le grand boss en permanence (la règle d'arène qui lui est propre)
+/* ---------- La règle d'arène permanente ---------- */
+// Ce que fait un grand boss à chaque image, en plus de ses briques. La clé est celle de ses phases.
 const GRAND_TICK = {
   // la singularité attire le joueur vers elle, de plus en plus fort selon la phase
-  g3(e, dt) {
-    if (e.invT > 0) return;
-    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, pull = 24 + 14 * e.ph;
-    if (d > 70) { P.x = clamp(P.x + (dx / d) * pull * dt, 12, ARENA_W - 12); P.y = clamp(P.y + (dy / d) * pull * dt, 12, ARENA_H - 12); }
+  g3(boss, dt) {
+    if (boss.invT > 0) return;
+    const dx = boss.x - P.x;
+    const dy = boss.y - P.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    const force = 24 + 14 * boss.ph; // pixels par seconde
+    if (distance > 70) {
+      P.x = clamp(P.x + (dx / distance) * force * dt, 12, ARENA_W - 12);
+      P.y = clamp(P.y + (dy / distance) * force * dt, 12, ARENA_H - 12);
+    }
   },
 };
 
+/* ---------- Les briques propres aux grands boss ---------- */
 Object.assign(BOSS_BRICKS, {
-  // le PDG : le sol se découpe en parts, certaines sont « licenciées » (mortelles) après un signal ; il reste toujours une part voisine saine
-  sectors(e, c) {
-    const n = 8, cx = e.x, cy = e.y, base = rnd(0, 6.283), W = 6.283 / n, L = Math.min(6, 3 + c.lvl), tel = 2.3 - 0.1 * c.lvl;
-    const wedgeOf = (x, y) => Math.floor((((Math.atan2(y - cy, x - cx) - base) % 6.283) + 6.283) % 6.283 / W);
-    const idx = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5), bad = new Set(idx.slice(0, L)), pw = wedgeOf(P.x, P.y);
-    const reach = (i) => { const am = base + (i + 0.5) * W, rr = Math.max(60, Math.min(420, Math.hypot(P.x - cx, P.y - cy))), x = cx + Math.cos(am) * rr, y = cy + Math.sin(am) * rr; return x > 50 && y > 50 && x < ARENA_W - 50 && y < ARENA_H - 50; };
-    const nb = [(pw + 1) % n, (pw + n - 1) % n].sort(() => Math.random() - 0.5).find(reach);
-    if (nb !== undefined) bad.delete(nb); else bad.delete(pw); // sinon c'est la part où tu te trouves qui reste saine
-    e.mode = "busy";
-    e.mt = tel + 0.3;
-    hazard(tel + 0.5, {
-      done: false,
-      danger(f, x, y) { return !f.done && bad.has(wedgeOf(x, y)) ? 1 : 0; },
-      tick(f) {
-        if (f.done || f.t - f.life < tel) return;
-        f.done = true;
-        if (bad.has(wedgeOf(P.x, P.y)) && Math.hypot(P.x - cx, P.y - cy) < 1000) hurt(16 * dm.dmg);
+  // ---------- Secteurs (le PDG) ----------
+  // Le sol autour du boss se découpe en 8 parts. Certaines deviennent mortelles après un signal jaune (≈ 2 s).
+  // Il reste toujours une part saine voisine de la tienne, atteignable.
+  sectors(boss, ctx) {
+    const nbParts = 8;
+    const centreX = boss.x;
+    const centreY = boss.y;
+    const angleDepart = rnd(0, 6.283);
+    const largeurPart = 6.283 / nbParts;
+    const nbMortelles = Math.min(6, 3 + ctx.lvl);
+    const dureeSignal = 2.3 - 0.1 * ctx.lvl;
+
+    // dans quelle part se trouve le point (x, y) ?
+    const partDe = (x, y) => {
+      const angle = Math.atan2(y - centreY, x - centreX) - angleDepart;
+      return Math.floor((((angle % 6.283) + 6.283) % 6.283) / largeurPart);
+    };
+
+    // on tire au hasard quelles parts sont mortelles
+    const ordre = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5);
+    const mortelles = new Set(ordre.slice(0, nbMortelles));
+    const partDuJoueur = partDe(P.x, P.y);
+
+    // une part voisine est-elle atteignable (dans l'arène, à ta distance du boss) ?
+    const atteignable = (part) => {
+      const angleMilieu = angleDepart + (part + 0.5) * largeurPart;
+      const distance = Math.max(60, Math.min(420, Math.hypot(P.x - centreX, P.y - centreY)));
+      const x = centreX + Math.cos(angleMilieu) * distance;
+      const y = centreY + Math.sin(angleMilieu) * distance;
+      return x > 50 && y > 50 && x < ARENA_W - 50 && y < ARENA_H - 50;
+    };
+    const voisinesAuHasard = [(partDuJoueur + 1) % nbParts, (partDuJoueur + nbParts - 1) % nbParts].sort(() => Math.random() - 0.5);
+    const voisineSaine = voisinesAuHasard.find(atteignable);
+    if (voisineSaine !== undefined) mortelles.delete(voisineSaine);
+    else mortelles.delete(partDuJoueur); // sinon c'est la part où tu te trouves qui reste saine
+
+    boss.mode = "busy";
+    boss.mt = dureeSignal + 0.3;
+
+    hazard(dureeSignal + 0.5, {
+      done: false, // les dégâts ont-ils déjà été infligés ?
+
+      // pour le bot de test
+      danger(effet, x, y) {
+        return !effet.done && mortelles.has(partDe(x, y)) ? 1 : 0;
+      },
+
+      tick(effet) {
+        if (effet.done || effet.t - effet.life < dureeSignal) return;
+        effet.done = true;
+        const dansUnePartMortelle = mortelles.has(partDe(P.x, P.y));
+        if (dansUnePartMortelle && Math.hypot(P.x - centreX, P.y - centreY) < 1000) hurt(16 * dm.dmg);
         shake = Math.max(shake, 8);
         SFX.bomb();
       },
-      draw(f, g) {
-        const el = f.t - f.life, fired = el >= tel;
-        g.fillStyle = fired ? PINK : WARN;
-        g.globalAlpha = fired ? 0.6 * Math.max(0, f.life / 0.5) : 0.1 + 0.25 * (el / tel);
-        bad.forEach((i) => { g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, 1000, base + i * W, base + (i + 1) * W); g.closePath(); g.fill(); });
-        g.globalAlpha = 1;
+
+      draw(effet, toile) {
+        const ecoule = effet.t - effet.life;
+        const claque = ecoule >= dureeSignal;
+        toile.fillStyle = claque ? PINK : WARN;
+        toile.globalAlpha = claque ? 0.6 * Math.max(0, effet.life / 0.5) : 0.1 + 0.25 * (ecoule / dureeSignal);
+        mortelles.forEach((part) => {
+          toile.beginPath();
+          toile.moveTo(centreX, centreY);
+          toile.arc(centreX, centreY, 1000, angleDepart + part * largeurPart, angleDepart + (part + 1) * largeurPart);
+          toile.closePath();
+          toile.fill();
+        });
+        toile.globalAlpha = 1;
       },
     });
   },
 
-  // le réacteur : des pylônes relient le boss, qui reste invulnérable tant qu'il en reste un
-  pylons(e, c) {
-    if (enemies.some((q) => q.pylon && q.hp > 0)) return;
-    if (e.pylPh === e.ph) return BOSS_BRICKS.fan(e, c); // une seule fois par phase : sinon le boss reste intouchable presque tout le combat
-    e.pylPh = e.ph;
-    const n = Math.min(5, 2 + c.lvl), a0 = rnd(0, 6.283);
-    for (let k = 0; k < n; k++) {
-      const a = a0 + (k / n) * 6.283;
-      spawn("tank", clamp(e.x + Math.cos(a) * 300, 40, ARENA_W - 40), clamp(e.y + Math.sin(a) * 300, 40, ARENA_H - 40), true);
-      const q = enemies[enemies.length - 1];
-      q.pylon = true;
-      q.sp = 0;
-      q.r = 14;
-      q.hp = q.max = e.max * 0.025;
+  // ---------- Pylônes (le réacteur) ----------
+  // Des pylônes apparaissent autour du boss, qui reste invulnérable tant qu'il en reste un (voir damage() dans partie.js).
+  // Une seule fois par phase : sinon le boss resterait intouchable presque tout le combat.
+  pylons(boss, ctx) {
+    if (enemies.some((q) => q.pylon && q.hp > 0)) return; // il en reste déjà
+    if (boss.pylPh === boss.ph) return BOSS_BRICKS.fan(boss, ctx); // déjà fait dans cette phase : un éventail à la place
+    boss.pylPh = boss.ph;
+
+    const nbPylones = Math.min(5, 2 + ctx.lvl);
+    const angleDepart = rnd(0, 6.283);
+    for (let k = 0; k < nbPylones; k++) {
+      const angle = angleDepart + (k / nbPylones) * 6.283;
+      const x = clamp(boss.x + Math.cos(angle) * 300, 40, ARENA_W - 40);
+      const y = clamp(boss.y + Math.sin(angle) * 300, 40, ARENA_H - 40);
+      spawn("tank", x, y, true);
+      const pylone = enemies[enemies.length - 1];
+      pylone.pylon = true; // le repère qui le distingue d'un ennemi normal
+      pylone.sp = 0; // il ne bouge pas
+      pylone.r = 14;
+      pylone.hp = pylone.max = boss.max * 0.025;
     }
     banner("détruis les pylônes");
-    ringFx(e.x, e.y, "#35f2ff", 160, 0.5);
+    ringFx(boss.x, boss.y, "#35f2ff", 160, 0.5);
+
+    // l'effet qui dessine les liens boss-pylône tant qu'il en reste
     hazard(120, {
-      tick(f) { if (!enemies.some((q) => q.pylon && q.hp > 0)) f.life = 0; },
-      draw(f, g) {
-        g.strokeStyle = "#35f2ff";
-        g.lineWidth = 2;
-        enemies.forEach((q) => {
-          if (!q.pylon || q.hp <= 0) return;
-          g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 10);
-          g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(q.x, q.y); g.stroke();
-          g.beginPath(); g.arc(q.x, q.y, q.r + 8, 0, 6.283); g.stroke();
+      tick(effet) {
+        if (!enemies.some((q) => q.pylon && q.hp > 0)) effet.life = 0; // plus de pylône : l'effet s'arrête
+      },
+      draw(effet, toile) {
+        toile.strokeStyle = "#35f2ff";
+        toile.lineWidth = 2;
+        enemies.forEach((pylone) => {
+          if (!pylone.pylon || pylone.hp <= 0) return;
+          toile.globalAlpha = 0.5 + 0.3 * Math.sin(t * 10);
+          toile.beginPath();
+          toile.moveTo(boss.x, boss.y);
+          toile.lineTo(pylone.x, pylone.y);
+          toile.stroke();
+          toile.beginPath();
+          toile.arc(pylone.x, pylone.y, pylone.r + 8, 0, 6.283);
+          toile.stroke();
         });
-        g.globalAlpha = 1;
+        toile.globalAlpha = 1;
       },
     });
   },
 
-  // la singularité : un puits qui t'attire vers un cœur qui fait mal (il n'attire qu'après un instant)
-  well(e, c) {
-    const a0 = rnd(0, 6.283);
-    for (let k = 0, n = c.lvl >= 2 ? 2 : 1; k < n; k++) {
-      const a = a0 + k * (Math.PI + rnd(-0.5, 0.5)), r = rnd(200, 320), wx = clamp(P.x + Math.cos(a) * r, 80, ARENA_W - 80), wy = clamp(P.y + Math.sin(a) * r, 80, ARENA_H - 80), R = 260;
+  // ---------- Puits (la singularité) ----------
+  // Un puits t'attire vers un cœur qui fait mal. Il n'attire qu'après 0,9 s (le temps de le voir).
+  well(boss, ctx) {
+    const angleDepart = rnd(0, 6.283);
+    const nbPuits = ctx.lvl >= 2 ? 2 : 1;
+    for (let k = 0; k < nbPuits; k++) {
+      // le second puits se place de l'autre côté de toi
+      const angle = angleDepart + k * (Math.PI + rnd(-0.5, 0.5));
+      const distance = rnd(200, 320);
+      const puitsX = clamp(P.x + Math.cos(angle) * distance, 80, ARENA_W - 80);
+      const puitsY = clamp(P.y + Math.sin(angle) * distance, 80, ARENA_H - 80);
+      const rayonAttraction = 260;
+
       hazard(7, {
-        hc: 0,
-        danger(f, x, y) { return Math.hypot(wx - x, wy - y) < 34 + P.r + 24 ? 1 : 0; },
-        tick(f, h) {
-          if (f.t - f.life < 0.9) return;
-          f.hc -= h;
-          const d = Math.hypot(wx - P.x, wy - P.y);
-          if (d < R && d > 4) { const pull = 100 * (1 - d / R); P.x = clamp(P.x + ((wx - P.x) / d) * pull * h, 12, ARENA_W - 12); P.y = clamp(P.y + ((wy - P.y) / d) * pull * h, 12, ARENA_H - 12); }
-          if (d < 34 + P.r && f.hc <= 0) { hurt(12 * dm.dmg); f.hc = 0.4; }
+        hc: 0, // délai avant de pouvoir blesser à nouveau
+
+        // pour le bot de test : près du cœur, c'est dangereux
+        danger(effet, x, y) {
+          return Math.hypot(puitsX - x, puitsY - y) < 34 + P.r + 24 ? 1 : 0;
         },
-        draw(f, g) {
-          const armed = f.t - f.life >= 0.9, fade = Math.min(1, f.life / 0.5);
-          g.globalAlpha = (armed ? 0.8 : 0.35) * fade;
-          g.fillStyle = "#07051a";
-          g.beginPath(); g.arc(wx, wy, 34, 0, 6.283); g.fill();
-          g.strokeStyle = armed ? PINK : WARN;
-          g.lineWidth = 2;
-          for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(wx, wy, 50 + i * 60 - ((t * 60) % 60), 0, 6.283); g.stroke(); }
-          g.globalAlpha = 1;
+
+        tick(effet, h) {
+          if (effet.t - effet.life < 0.9) return; // pas encore actif
+          effet.hc -= h;
+          const distanceAuJoueur = Math.hypot(puitsX - P.x, puitsY - P.y);
+          if (distanceAuJoueur < rayonAttraction && distanceAuJoueur > 4) {
+            const force = 100 * (1 - distanceAuJoueur / rayonAttraction); // plus fort près du cœur
+            P.x = clamp(P.x + ((puitsX - P.x) / distanceAuJoueur) * force * h, 12, ARENA_W - 12);
+            P.y = clamp(P.y + ((puitsY - P.y) / distanceAuJoueur) * force * h, 12, ARENA_H - 12);
+          }
+          if (distanceAuJoueur < 34 + P.r && effet.hc <= 0) {
+            hurt(12 * dm.dmg);
+            effet.hc = 0.4;
+          }
+        },
+
+        draw(effet, toile) {
+          const actif = effet.t - effet.life >= 0.9;
+          const fondu = Math.min(1, effet.life / 0.5); // il s'efface à la fin
+          toile.globalAlpha = (actif ? 0.8 : 0.35) * fondu;
+          toile.fillStyle = "#07051a";
+          toile.beginPath();
+          toile.arc(puitsX, puitsY, 34, 0, 6.283);
+          toile.fill();
+          // trois anneaux qui se resserrent vers le cœur
+          toile.strokeStyle = actif ? PINK : WARN;
+          toile.lineWidth = 2;
+          for (let i = 0; i < 3; i++) {
+            toile.beginPath();
+            toile.arc(puitsX, puitsY, 50 + i * 60 - ((t * 60) % 60), 0, 6.283);
+            toile.stroke();
+          }
+          toile.globalAlpha = 1;
         },
       });
     }
   },
 
-  // chronos : tu laisses une traînée, et deux secondes plus tard des zones claquent là où tu étais
-  echo(e, c) {
-    const trail = [];
-    hazard(5.5 + c.lvl, {
-      rc: 0,
-      tick(f, h) {
-        f.rc -= h;
-        if (f.rc > 0) return;
-        f.rc = 0.12;
-        trail.push({ x: P.x, y: P.y });
-        if (trail.length > 15) { const p = trail.shift(); bossZone(p.x, p.y, 0.55); }
+  // ---------- Échos (chronos) ----------
+  // Pendant quelques secondes, ta position est enregistrée ; 1,8 s plus tard une zone claque à l'endroit où tu étais.
+  echo(boss, ctx) {
+    const trace = []; // les positions passées du joueur
+    hazard(5.5 + ctx.lvl, {
+      rc: 0, // délai avant le prochain enregistrement
+      tick(effet, h) {
+        effet.rc -= h;
+        if (effet.rc > 0) return;
+        effet.rc = 0.12;
+        trace.push({ x: P.x, y: P.y });
+        if (trace.length > 15) {
+          const ancienne = trace.shift(); // la position d'il y a 1,8 s
+          bossZone(ancienne.x, ancienne.y, 0.55);
+        }
       },
-      draw(f, g) {
-        g.fillStyle = WARN;
-        trail.forEach((p, i) => { g.globalAlpha = 0.5 * (1 - i / trail.length); g.beginPath(); g.arc(p.x, p.y, 3, 0, 6.283); g.fill(); });
-        g.globalAlpha = 1;
+      draw(effet, toile) {
+        // la traînée : des points jaunes qui s'effacent
+        toile.fillStyle = WARN;
+        trace.forEach((point, i) => {
+          toile.globalAlpha = 0.5 * (1 - i / trace.length);
+          toile.beginPath();
+          toile.arc(point.x, point.y, 3, 0, 6.283);
+          toile.fill();
+        });
+        toile.globalAlpha = 1;
       },
     });
   },
 
-  // le rival : le sol devient un damier ; une couleur claque, puis l'autre : il faut changer de case à chaque signal
-  checker(e, c) {
-    const S = 190, flips = c.lvl >= 2 ? 4 : 3, warn = c.lvl >= 2 ? 1.1 : 1.3, step = warn + 0.45, p0 = Math.random() < 0.5 ? 0 : 1, done = {};
-    e.mode = "busy";
-    e.mt = step;
-    hazard(flips * step + 0.1, {
-      danger(f, x, y, a) {
-        const k = Math.floor((f.t - f.life + a) / step);
-        return k < flips && (((Math.floor(x / S) + Math.floor(y / S)) % 2) + 2) % 2 === (p0 + k) % 2 ? 1 : 0;
+  // ---------- Damier (le rival) ----------
+  // Le sol devient un damier. Une couleur (jaune d'abord) claque, puis l'autre, 3 ou 4 fois : il faut changer de case à chaque signal.
+  checker(boss, ctx) {
+    const tailleCase = 190;
+    const nbChangements = ctx.lvl >= 2 ? 4 : 3;
+    const dureeSignal = ctx.lvl >= 2 ? 1.1 : 1.3;
+    const dureeEtape = dureeSignal + 0.45; // signal + claquement
+    const couleurDepart = Math.random() < 0.5 ? 0 : 1; // 0 ou 1 : quelle couleur claque en premier
+    const dejaClaque = {}; // étape -> true quand les dégâts ont été infligés
+
+    boss.mode = "busy";
+    boss.mt = dureeEtape;
+
+    hazard(nbChangements * dureeEtape + 0.1, {
+      // pour le bot de test : la couleur de la case est-elle celle qui claque ?
+      danger(effet, x, y, dans) {
+        const etape = Math.floor((effet.t - effet.life + dans) / dureeEtape);
+        const couleurCase = (((Math.floor(x / tailleCase) + Math.floor(y / tailleCase)) % 2) + 2) % 2;
+        return etape < nbChangements && couleurCase === (couleurDepart + etape) % 2 ? 1 : 0;
       },
-      tick(f) {
-        const el = f.t - f.life, k = Math.floor(el / step);
-        if (k >= flips || el - k * step < warn || done[k]) return;
-        done[k] = true;
-        const par = (p0 + k) % 2;
-        if ((Math.floor(P.x / S) + Math.floor(P.y / S)) % 2 === par) hurt(15 * dm.dmg);
+
+      tick(effet) {
+        const ecoule = effet.t - effet.life;
+        const etape = Math.floor(ecoule / dureeEtape);
+        if (etape >= nbChangements || ecoule - etape * dureeEtape < dureeSignal || dejaClaque[etape]) return;
+        dejaClaque[etape] = true;
+        const couleurQuiClaque = (couleurDepart + etape) % 2;
+        const couleurDuJoueur = (Math.floor(P.x / tailleCase) + Math.floor(P.y / tailleCase)) % 2;
+        if (couleurDuJoueur === couleurQuiClaque) hurt(15 * dm.dmg);
         SFX.bomb();
       },
-      draw(f, g) {
-        const el = f.t - f.life, k = Math.floor(el / step);
-        if (k >= flips) return;
-        const w = el - k * step, fired = w >= warn, par = (p0 + k) % 2;
-        g.fillStyle = fired ? PINK : WARN;
-        g.globalAlpha = fired ? 0.55 * Math.max(0, 1 - (w - warn) / 0.45) : 0.08 + 0.22 * (w / warn);
-        const x0 = Math.floor((P.x - 700) / S), x1 = Math.floor((P.x + 700) / S), y0 = Math.floor((P.y - 500) / S), y1 = Math.floor((P.y + 500) / S);
-        for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) if ((((cx + cy) % 2) + 2) % 2 === par) g.fillRect(cx * S, cy * S, S, S);
-        g.globalAlpha = 1;
+
+      draw(effet, toile) {
+        const ecoule = effet.t - effet.life;
+        const etape = Math.floor(ecoule / dureeEtape);
+        if (etape >= nbChangements) return;
+        const dansEtape = ecoule - etape * dureeEtape;
+        const claque = dansEtape >= dureeSignal;
+        const couleurQuiClaque = (couleurDepart + etape) % 2;
+        toile.fillStyle = claque ? PINK : WARN;
+        toile.globalAlpha = claque ? 0.55 * Math.max(0, 1 - (dansEtape - dureeSignal) / 0.45) : 0.08 + 0.22 * (dansEtape / dureeSignal);
+        // on ne dessine que les cases autour du joueur
+        const caseMinX = Math.floor((P.x - 700) / tailleCase);
+        const caseMaxX = Math.floor((P.x + 700) / tailleCase);
+        const caseMinY = Math.floor((P.y - 500) / tailleCase);
+        const caseMaxY = Math.floor((P.y + 500) / tailleCase);
+        for (let cx = caseMinX; cx <= caseMaxX; cx++) {
+          for (let cy = caseMinY; cy <= caseMaxY; cy++) {
+            if ((((cx + cy) % 2) + 2) % 2 === couleurQuiClaque) {
+              toile.fillRect(cx * tailleCase, cy * tailleCase, tailleCase, tailleCase);
+            }
+          }
+        }
+        toile.globalAlpha = 1;
       },
     });
   },
 });
 
+/* ---------- Les 4 phases de chaque grand boss ---------- */
+// at = part de vie qui fait entrer dans la phase · atks = les briques, dans l'ordre · cd = repos entre deux attaques (secondes)
 Object.assign(BOSS_PHASES, {
   g1: [
     { at: 1, atks: ["ring", "charge", "pound"], cd: 2.6 },
