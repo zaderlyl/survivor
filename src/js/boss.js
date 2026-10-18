@@ -56,8 +56,10 @@ BOSS_BRICKS.pound = BOSS_BRICKS.pools;
 
 // renvoie le mouvement du boss : { mx, my, sp }
 const bossAI = (e, dt, dx, dy, d) => {
-  if (e.bk === undefined) { e.bk = world % 5; e.ai = 0; e.cd = 2; e.mode = "walk"; e.mt = 0; e.spiral = 0; e.sc = 0; e.sa = 0; e.tele = 0; e.ph = 0; e.invT = 0; }
-  const phases = bossPhases(e.bk);
+  if (e.bk === undefined) { e.bk = world % 5; e.ai = 0; e.cd = 2; e.mode = "walk"; e.mt = 0; e.spiral = 0; e.sc = 0; e.sa = 0; e.tele = 0; e.ph = 0; e.invT = 0; if (e.pk === undefined) e.pk = e.bk; }
+  const phases = bossPhases(e.pk);
+  e.bindN = e.grand ? enemies.reduce((n, q) => n + (q.pylon && q.hp > 0 ? 1 : 0), 0) : 0; // des pylônes en vie rendent le boss intouchable
+  if (e.grand && GRAND_TICK["g" + (((e.grand - 1) % 5) + 1)]) GRAND_TICK["g" + (((e.grand - 1) % 5) + 1)](e, dt);
   let mx = dx / d, my = dy / d, sp = e.sp;
   e.mt -= dt;
   e.tele = 0;

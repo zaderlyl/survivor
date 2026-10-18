@@ -712,7 +712,7 @@ const render = () => {
     const flip = e.x > P.x;
     const frame = Math.floor(t * 6 + e.seed) & 1;
     if (grow < 1) g.globalAlpha = 0.3 + 0.7 * grow;
-    const art = ART[e.type + e.skin] ? e.type + e.skin : e.type; // le dessin propre au monde, sinon l'ancien
+    const art = e.art || (ART[e.type + e.skin] ? e.type + e.skin : e.type); // le dessin propre au monde, sinon l'ancien
     blit(art, e.x, e.y, ART[art].s || d.s, mode === "menu" ? Math.floor(performance.now() / 250 + e.seed) & 1 : frame, flip, e.hit > 0);
     g.globalAlpha = 1;
     if (e.type === "boss") {

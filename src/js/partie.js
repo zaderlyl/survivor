@@ -113,6 +113,7 @@ const hurt = (dmg) => {
 
 const damage = (e, d, crit, kx, ky, src) => {
   if (e.invT > 0) { floatText(e.x, e.y - e.r - 4, "invulnérable", LIGHT, 10); return; } // un boss qui change de phase ne subit rien
+  if (e.bindN > 0) { floatText(e.x, e.y - e.r - 4, "lié aux pylônes", "#35f2ff", 10); return; }
   if (e.shield > 0) { // un bouclier de boss absorbe tout ; brisé, le boss est étourdi et vulnérable
     e.shield -= d;
     e.hit = 0.06;
@@ -124,7 +125,7 @@ const damage = (e, d, crit, kx, ky, src) => {
   if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
   e.hp -= d;
-  if (e.type === "boss" && e.ph !== undefined) { const nx = bossPhases(e.bk)[e.ph + 1]; if (nx && e.hp < e.max * nx.at - 1) e.hp = e.max * nx.at - 1; } // une seule phase à la fois : un gros coup ne les saute pas
+  if (e.type === "boss" && e.ph !== undefined) { const nx = bossPhases(e.pk)[e.ph + 1]; if (nx && e.hp < e.max * nx.at - 1) e.hp = e.max * nx.at - 1; } // une seule phase à la fois : un gros coup ne les saute pas
   e.hit = 0.06;
   e.kx += kx;
   e.ky += ky;
@@ -246,7 +247,8 @@ const update = (dt) => {
       phase = "boss";
       const [x, y] = edgePoint(80);
       spawn("boss", x, y);
-      banner("boss : " + BOSS_NAMES[world % 5]);
+      const grandName = (world + 1) % 5 === 0 ? makeGrand(enemies[enemies.length - 1]) : null;
+      banner(grandName ? "grand boss, " + grandName : "boss : " + BOSS_NAMES[world % 5]);
       SFX.boss();
       shake = Math.max(shake, 8);
     }
