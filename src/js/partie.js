@@ -55,7 +55,7 @@ const dropGem = (x, y, v) => {
 };
 const XP_MUL = 1.6; // les cristaux rapportent plus : monter de niveau doit être rapide
 const gainXp = (v) => {
-  xp += v * XP_MUL;
+  xp += v * XP_MUL * (1 + st.xpMul);
   while (xp >= need) { xp -= need; if (mode === "levelup") pending++; else levelUpNext(); }
 };
 

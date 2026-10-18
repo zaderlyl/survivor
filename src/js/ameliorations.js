@@ -18,6 +18,7 @@ const UPGRADES = [
   { id: "regen", name: "Régénération", max: 6, vals: [0.5, 1.5, 3], text: (v) => "rend " + v + " PV par seconde", apply: (v) => (st.regen += v) },
   { id: "armor", name: "Armure", max: 6, vals: [0.06, 0.12, 0.25], text: (v) => "dégâts reçus -" + pct(v), apply: (v) => (st.armor = Math.min(0.6, st.armor + v)) },
   { id: "steal", name: "Vol de vie", max: 6, vals: [0.4, 1, 2.5], text: (v) => "rend " + v + " PV par ennemi tué", apply: (v) => (st.steal += v) },
+  { id: "xp", name: "Savoir", max: 99, vals: [0.1, 0.25, 0.6], text: (v) => "+" + pct(v) + " d'expérience gagnée", apply: (v) => (st.xpMul += v) },
   { id: "dash", name: "Glissade", max: 6, vals: [0.1, 0.2, 0.35], text: (v) => "le dash revient " + pct(v) + " plus vite", apply: (v) => (st.dashMul *= 1 - v) },
   // propres au tir de base de Volt, en attendant d'en faire des armes uniques
   { id: "multi", only: "shot", name: "Salve", max: 8, vals: [1, 2, 3], text: (v) => "+" + plural(v, "projectile"), apply: (v) => (st.count = Math.min(9, st.count + v)) },
