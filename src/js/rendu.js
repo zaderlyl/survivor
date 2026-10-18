@@ -157,24 +157,24 @@ const render = () => {
 
   // les coups des armes : arc d'épée, laser, éclair, grenade
   fx.forEach((f) => {
-    const al = Math.max(0, f.life / f.t), col = f.color || heroColor();
+    const al = f.k === "cbeam" ? 1 : Math.max(0, f.life / f.t), col = f.color || heroColor();
     g.globalAlpha = al;
     g.strokeStyle = col;
     g.fillStyle = col;
     if (f.k === "arc") {
       // un arc de couleur qui brille, avec un cœur blanc
       g.globalCompositeOperation = "lighter";
-      g.lineWidth = 9;
+      g.lineWidth = 9 * (f.big || 1);
       g.beginPath();
       g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
       g.stroke();
       g.globalCompositeOperation = "source-over";
       g.strokeStyle = "#ffffff";
-      g.lineWidth = 3;
+      g.lineWidth = 3 * (f.big || 1);
       g.beginPath();
       g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
       g.stroke();
-    } else if (f.k === "beam") {
+    } else if (f.k === "beam" || f.k === "cbeam") {
       g.globalCompositeOperation = "lighter";
       g.lineWidth = (f.w * al + 2) * 1.8;
       g.beginPath();
@@ -223,6 +223,24 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "sword") {
+      // une épée qui tombe du ciel pointe en bas, puis reste plantée et s'efface
+      const fall = f.landed ? 0 : Math.max(0, (f.life - 1.15) / 0.35), tip = f.y - 4 - 260 * fall;
+      g.globalAlpha = f.landed ? Math.min(1, f.life / 0.5) : 1;
+      g.strokeStyle = col;
+      g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(f.x, tip - 24);
+      g.lineTo(f.x, tip);
+      g.stroke();
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.moveTo(f.x, tip - 22);
+      g.lineTo(f.x, tip - 2);
+      g.stroke();
+      g.fillStyle = "#ffffff";
+      g.fillRect(f.x - 5, tip - 26, 10, 3);
     } else if (f.k === "rotbeam") {
       g.globalAlpha = 0.9;
       g.lineWidth = 5;

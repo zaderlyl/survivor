@@ -20,6 +20,9 @@ const WEAPON_COLOR = {
   satellite: "#ff5fb0", rotbeam: "#35c8ff", cross: "#7ad6ff",
   sticky: "#ffb02e", napalm: "#ff6a1f", bombard: "#ff8a1f",
   thunder: "#7ad6ff", field: "#6fb8ff", tesla: "#b8e6ff",
+  // les nouvelles armes uniques
+  rainswords: "#ff9ccf", greatsword: "#ffd0e4", riposte: "#ff3d7f",
+  cannon: "#ffd23f", raysalvo: "#ff9f2e", overload: "#ff5f2e",
 };
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm })[src] || heroColor();
 

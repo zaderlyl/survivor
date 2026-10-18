@@ -94,6 +94,7 @@ const hurt = (dmg) => {
   if (P.inv > 0 || dbg.god) return;
   dmg *= incoming() * (1 - st.armor);
   P.hp -= dmg;
+  P.weapons.forEach((w) => { const od = WEAPONS[w.id].onHurt; if (od) od(w, dmg); }); // les armes qui réagissent aux coups reçus
   P.inv = 0.8;
   P.flash = 0.2;
   shake = Math.max(shake, 6);

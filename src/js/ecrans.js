@@ -208,7 +208,10 @@ const showLevelUp = () => {
   const picks = [];
   const usedWeapons = new Set();
   while (picks.length < 3 && pool.length) {
-    const u = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    // tirage pondéré : une arme unique du héros pèse 2, une arme universelle 0,7, le reste 1
+    let r0 = Math.random() * pool.reduce((s, c) => s + (c.weight || 1), 0), at = pool.length - 1;
+    for (let i = 0; i < pool.length; i++) { r0 -= pool[i].weight || 1; if (r0 <= 0) { at = i; break; } }
+    const u = pool.splice(at, 1)[0];
     if (u.weapon && usedWeapons.has(u.weapon)) continue; // une seule carte par arme dans un tirage
     if (u.weapon) usedWeapons.add(u.weapon);
     picks.push({ u, r: rollRarity() });

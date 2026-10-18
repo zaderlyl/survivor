@@ -229,11 +229,11 @@ const weaponPool = () => {
     const d = WEAPONS[id];
     if (!d.variants || (d.char && d.char !== best.char)) return; // les armes uniques ne sortent qu'avec leur personnage
     if (!weapon(id)) {
-      out.push({ id, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = true; } });
+      out.push({ id, weight: d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = true; } });
       return;
     }
     d.variants.forEach((va) => out.push({
-      id: id + "." + va.id, weapon: id, name: d.name, max: va.max, vals: va.vals,
+      id: id + "." + va.id, weapon: id, weight: d.char ? 2 : 0.7, name: d.name, max: va.max, vals: va.vals,
       text: (v, r) => va.text(v) + (r === 2 ? " — " + d.legendText : ""),
       apply: (v, r) => { va.apply(weapon(id), v); if (r === 2) weapon(id).legend = true; },
     }));
