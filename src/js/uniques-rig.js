@@ -7,7 +7,9 @@ const railShot = (w, a, L, d, wid) => {
   const ca = Math.cos(a), sa = Math.sin(a);
   SFX.bomb();
   shake = Math.max(shake, 4);
-  fx.push({ k: "beam", x: P.x, y: P.y, a, len: L, w: wid * 1.6, life: 0.25, t: 0.25 });
+  fx.push({ k: "beam", color: WEAPON_COLOR.rail, x: P.x, y: P.y, a, len: L, w: wid * 1.6, life: 0.25, t: 0.25 });
+  flashFx(P.x + ca * 14, P.y + sa * 14, WEAPON_COLOR.rail, 24);
+  spark(P.x + ca * 20, P.y + sa * 20, WEAPON_COLOR.rail, 10, 260);
   enemies.forEach((e) => {
     const dx = e.x - P.x, dy = e.y - P.y, along = dx * ca + dy * sa;
     if (along < 0 || along > L) return;
@@ -38,7 +40,7 @@ Object.assign(WEAPONS, {
       const a = Math.atan2(tgt.y - P.y, tgt.x - P.x), d = st.dmg * 9 * (1 + (w.dm || 0)), wid = 7 * (1 + (w.wid || 0));
       P.aim = a;
       // la ligne de visée, pendant la charge
-      fx.push({ k: "aim", a, len: L, life: 0.45, t: 0.45, onEnd: () => {
+      fx.push({ k: "aim", color: WEAPON_COLOR.rail, a, len: L, life: 0.45, t: 0.45, tick() { chargeFx(P.x + Math.cos(a) * 14, P.y + Math.sin(a) * 14, WEAPON_COLOR.rail); }, onEnd: () => {
         railShot(w, a, L, d, wid);
         if (w.legend) railShot(w, a + Math.PI, L, d, wid);
       } });
@@ -67,7 +69,7 @@ Object.assign(WEAPONS, {
       const salvo = () => {
         const base = Math.atan2(tgt.y - P.y, tgt.x - P.x), n = 4 + (w.n || 0), d = st.dmg * 1.5 * (1 + (w.dm || 0)), R = 40 * (1 + (w.rad || 0));
         SFX.bomb();
-        for (let k = 0; k < n; k++) fire(base + (k - (n - 1) / 2) * 0.35, 280, 2.5, { dmg: d, home: true, blast: R, bd: d * 0.8, size: 1.6 });
+        for (let k = 0; k < n; k++) fire(base + (k - (n - 1) / 2) * 0.35, 280, 2.5, { dmg: d, home: true, blast: R, bd: d * 0.8, size: 1.6, color: WEAPON_COLOR.barrage, smoke: true });
       };
       P.aim = Math.atan2(tgt.y - P.y, tgt.x - P.x);
       salvo();
@@ -98,8 +100,9 @@ Object.assign(WEAPONS, {
       const cx = P.x + Math.cos(a) * 80, cy = P.y + Math.sin(a) * 80, px = -Math.sin(a), py = Math.cos(a);
       const x1 = cx - px * half, y1 = cy - py * half, x2 = cx + px * half, y2 = cy + py * half;
       SFX.wave();
-      fx.push({ k: "wall", x1, y1, x2, y2, life: dur, t: dur, cd: 0,
+      fx.push({ k: "wall", color: WEAPON_COLOR.barrier, x1, y1, x2, y2, life: dur, t: dur, cd: 0,
         tick(f, h) {
+          if (Math.random() < 0.4) { const u = Math.random(); spark(x1 + (x2 - x1) * u, y1 + (y2 - y1) * u, WEAPON_COLOR.barrier, 2, 80); }
           f.cd -= h;
           if (f.cd > 0) return;
           f.cd = 0.3;

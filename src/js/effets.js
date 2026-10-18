@@ -10,7 +10,17 @@ const heroColor = () => {
 };
 // la couleur d'un impact selon l'origine du coup
 // chaque arme universelle a sa propre couleur
-const WEAPON_COLOR = { orb: "#9fe9ff", wave: "#b58cff", mine: "#ffc83a", drone: "#4a8cff", flame: "#ff6a1f", storm: "#fff27a" };
+const WEAPON_COLOR = {
+  orb: "#9fe9ff", wave: "#b58cff", mine: "#ffc83a", drone: "#4a8cff", flame: "#ff6a1f", storm: "#fff27a",
+  // les armes uniques : Volt, Chrome, Rig, Ghost, Arc, Pulse, Zap
+  turret: "#2ef2ff", burst: "#6ec6ff", mortar: "#ffb02e",
+  dashcut: "#ff7ab8", boomerang: "#ffd0e4", whirl: "#ff3d7f",
+  rail: "#ffb02e", barrage: "#ff8a1f", barrier: "#4af0ff",
+  decoy: "#7dffb0", shuriken: "#b8ffd8", toxic: "#6dff5a",
+  satellite: "#ff5fb0", rotbeam: "#35c8ff", cross: "#7ad6ff",
+  sticky: "#ffb02e", napalm: "#ff6a1f", bombard: "#ff8a1f",
+  thunder: "#7ad6ff", field: "#6fb8ff", tesla: "#b8e6ff",
+};
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
@@ -53,4 +63,10 @@ const smokeFx = (x, y, n) => {
 const emberFx = (x, y, color) => {
   if (calm || parts.length >= MAX_PARTS) return;
   parts.push({ x, y, vx: rnd(-10, 10), vy: rnd(-55, -25), life: rnd(0.4, 0.8), max: 0.8, color, size: Math.random() < 0.5 ? 3 : 2, glow: true });
+};
+// des points de lumière qui convergent vers un point : la charge d'une arme
+const chargeFx = (x, y, color) => {
+  if (calm || parts.length >= MAX_PARTS) return;
+  const a = Math.random() * 6.283, r = 30;
+  parts.push({ x: x + Math.cos(a) * r, y: y + Math.sin(a) * r, vx: -Math.cos(a) * r / 0.22, vy: -Math.sin(a) * r / 0.22, life: 0.22, max: 0.22, color, size: 3, glow: true });
 };

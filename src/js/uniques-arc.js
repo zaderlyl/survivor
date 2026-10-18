@@ -5,7 +5,7 @@
 // un laser tracé depuis toi : touche tout ce qui est sur la ligne
 const lineHit = (a, L, d, wid) => {
   const ca = Math.cos(a), sa = Math.sin(a);
-  fx.push({ k: "beam", x: P.x, y: P.y, a, len: L, w: wid, life: 0.18, t: 0.18 });
+  fx.push({ k: "beam", color: WEAPON_COLOR.cross, x: P.x, y: P.y, a, len: L, w: wid, life: 0.18, t: 0.18 });
   enemies.forEach((e) => {
     const dx = e.x - P.x, dy = e.y - P.y, along = dx * ca + dy * sa;
     if (along < 0 || along > L) return;
@@ -35,12 +35,13 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 4) * cdMul();
       const R = 68 * (1 + (w.rad || 0)), d = st.dmg * 7 * (1 + (w.dm || 0));
       const hit = (tx, ty) => {
-        boom(tx, ty, R, d);
-        fx.push({ k: "bolt", pts: [[tx, ty - 360], [tx, ty]], life: 0.2, t: 0.2 });
+        boom(tx, ty, R, d, WEAPON_COLOR.satellite);
+        flashFx(tx, ty, WEAPON_COLOR.satellite, R * 0.8);
+        fx.push({ k: "bolt", color: WEAPON_COLOR.satellite, pts: [[tx, ty - 360], [tx, ty]], life: 0.2, t: 0.2 });
       };
       for (let k = 0, n = 1 + (w.n || 0); k < n; k++) {
         const tg = cand[(Math.random() * cand.length) | 0];
-        fx.push({ k: "shell", tx: tg.x, ty: tg.y, R, life: 0.9, t: 0.9,
+        fx.push({ k: "shell", color: WEAPON_COLOR.satellite, tx: tg.x, ty: tg.y, R, life: 0.9, t: 0.9,
           onEnd(f) {
             hit(f.tx, f.ty);
             if (w.legend) fx.push({ k: "flash", x: f.tx, y: f.ty, life: 0.5, t: 0.5, onEnd: (q) => hit(q.x, q.y) });
@@ -70,8 +71,9 @@ Object.assign(WEAPONS, {
       const dur = 3 * (1 + (w.dur || 0)), d = st.dmg * 0.9 * (1 + (w.dm || 0)), n = w.legend ? 2 : 1;
       w.cd = slow(w, 6) * cdMul() + dur;
       SFX.wave();
-      fx.push({ k: "rotbeam", L, n, ang: rnd(0, 6.283), life: dur, t: dur, cd: 0,
+      fx.push({ k: "rotbeam", color: WEAPON_COLOR.rotbeam, L, n, ang: rnd(0, 6.283), life: dur, t: dur, cd: 0,
         tick(f, h) {
+          for (let b = 0; b < n; b++) spark(P.x + Math.cos(f.ang + b * Math.PI) * L, P.y + Math.sin(f.ang + b * Math.PI) * L, WEAPON_COLOR.rotbeam, 1, 90); // des étincelles au bout du faisceau
           f.ang += h * 3.2;
           f.cd -= h;
           if (f.cd > 0) return;
@@ -110,7 +112,7 @@ Object.assign(WEAPONS, {
       SFX.wave();
       for (let k = 0; k < n; k++) {
         const a = base + (k / n) * 6.283;
-        fx.push({ k: "aim", a, len: L, life: 0.45, t: 0.45, onEnd: k === n - 1 ? () => { SFX.bomb(); for (let j = 0; j < n; j++) lineHit(base + (j / n) * 6.283, L, d, wid); } : null });
+        fx.push({ k: "aim", color: WEAPON_COLOR.cross, a, len: L, life: 0.45, t: 0.45, onEnd: k === n - 1 ? () => { SFX.bomb(); for (let j = 0; j < n; j++) lineHit(base + (j / n) * 6.283, L, d, wid); } : null });
       }
     },
   },

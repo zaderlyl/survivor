@@ -5,10 +5,10 @@
 // une grenade collée sur un ennemi : elle le suit et explose au bout d'un instant
 const stickOn = (w, e, R, d, gen) => {
   const T = 1.5;
-  fx.push({ k: "stick", e, x: e.x, y: e.y, life: T, t: T,
+  fx.push({ k: "stick", color: WEAPON_COLOR.sticky, spk: WEAPON_COLOR.sticky, e, x: e.x, y: e.y, life: T, t: T,
     tick(f) { if (f.e.hp > 0) { f.x = f.e.x; f.y = f.e.y; } },
     onEnd(f) {
-      boom(f.x, f.y, R, d);
+      boom(f.x, f.y, R, d, WEAPON_COLOR.sticky);
       if (w.legend && gen === 0) {
         // l'explosion colle une autre grenade sur l'ennemi le plus proche
         let nx = null, nd = 200 * 200;
@@ -74,7 +74,7 @@ Object.assign(WEAPONS, {
       // le temps du vol, puis la flaque
       fx.push({ k: "flash", x: tx, y: ty, life: 0.4, t: 0.4, onEnd: () => {
         SFX.bomb();
-        fx.push({ k: "cloud", x: tx, y: ty, R: R0, life: dur, t: dur, cd: 0,
+        fx.push({ k: "cloud", color: WEAPON_COLOR.napalm, emb: WEAPON_COLOR.napalm, x: tx, y: ty, R: R0, life: dur, t: dur, cd: 0,
           tick(f, h) {
             if (w.legend) f.R += 14 * h;
             f.cd -= h;
@@ -112,7 +112,7 @@ Object.assign(WEAPONS, {
         for (let k = 0; k < n; k++) {
           const a = rnd(0, 6.283), r = rnd(0, 110), tx = cx + Math.cos(a) * r, ty = cy + Math.sin(a) * r;
           fx.push({ k: "flash", x: tx, y: ty, life: k * 0.13, t: 0.1, onEnd: () => {
-            fx.push({ k: "shell", tx, ty, R, life: 0.7, t: 0.7, onEnd: () => boom(tx, ty, R, d) });
+            fx.push({ k: "shell", color: WEAPON_COLOR.bombard, tx, ty, R, life: 0.7, t: 0.7, onEnd: () => boom(tx, ty, R, d, WEAPON_COLOR.bombard) });
           } });
         }
       };

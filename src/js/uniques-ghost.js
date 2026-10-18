@@ -21,10 +21,10 @@ Object.assign(WEAPONS, {
       if (w.cd > 0 || enemies.length < 3) return;
       w.cd = slow(w, 8) * cdMul();
       const dur = 3.5 * (1 + (w.dur || 0)), R = 80 * (1 + (w.rad || 0)) * rngMul(), d = st.dmg * 6 * (1 + (w.dm || 0));
-      fx.push({ k: "decoy", x: P.x, y: P.y, life: dur, t: dur,
+      fx.push({ k: "decoy", color: WEAPON_COLOR.decoy, spk: WEAPON_COLOR.decoy, x: P.x, y: P.y, life: dur, t: dur,
         onEnd(f) {
-          boom(f.x, f.y, R, d);
-          if (w.legend) fx.push({ k: "flash", x: f.x, y: f.y, life: 0.35, t: 0.35, onEnd: (q) => boom(q.x, q.y, R * 1.5, d * 0.7) });
+          boom(f.x, f.y, R, d, WEAPON_COLOR.decoy);
+          if (w.legend) fx.push({ k: "flash", x: f.x, y: f.y, life: 0.35, t: 0.35, onEnd: (q) => boom(q.x, q.y, R * 1.5, d * 0.7, WEAPON_COLOR.decoy) });
         } });
     },
   },
@@ -51,7 +51,7 @@ Object.assign(WEAPONS, {
       const base = Math.atan2(tgt.y - P.y, tgt.x - P.x), n = 4 + (w.n || 0), d = st.dmg * 1.3 * (1 + (w.dm || 0));
       P.aim = base;
       SFX.shoot();
-      for (let k = 0; k < n; k++) fire(base + (k - (n - 1) / 2) * 0.28, 420, st.range / 420, { dmg: d, bounce: 2 + (w.bounce || 0), pierce: w.legend ? 1 : 0, star: true, size: 1.2 });
+      for (let k = 0; k < n; k++) fire(base + (k - (n - 1) / 2) * 0.28, 420, st.range / 420, { dmg: d, bounce: 2 + (w.bounce || 0), pierce: w.legend ? 1 : 0, star: true, size: 1.2, color: WEAPON_COLOR.shuriken });
     },
   },
 
@@ -75,7 +75,7 @@ Object.assign(WEAPONS, {
       if (!cand.length) return;
       w.cd = slow(w, 5) * cdMul();
       const tg = cand[(Math.random() * cand.length) | 0], R = 62 * (1 + (w.rad || 0)), dur = 5 * (1 + (w.dur || 0)), d = st.dmg * 0.6 * (1 + (w.dm || 0));
-      fx.push({ k: "cloud", x: tg.x, y: tg.y, R, life: dur, t: dur, cd: 0,
+      fx.push({ k: "cloud", color: WEAPON_COLOR.toxic, emb: WEAPON_COLOR.toxic, x: tg.x, y: tg.y, R, life: dur, t: dur, cd: 0,
         tick(f, h) {
           f.cd -= h;
           if (f.cd > 0) return;

@@ -363,6 +363,7 @@ const update = (dt) => {
       bl.y += bl.vy * h;
       bl.life -= h;
       if (sub === 0 && Math.random() < 0.7) trail(bl.x, bl.y, bl.color || heroColor(), bl.size ? 3 : 2); // la traînée du tir
+      if (bl.smoke && sub === 0 && Math.random() < 0.4) smokeFx(bl.x, bl.y, 1); // et la fumée des missiles
       if (bl.life <= 0 || bl.x < 0 || bl.y < 0 || bl.x > ARENA_W || bl.y > ARENA_H) { gone = true; break; }
       const cx = clamp((bl.x / CELL) | 0, 0, COLS - 1), cy = clamp((bl.y / CELL) | 0, 0, ROWS - 1);
       for (let yy = Math.max(0, cy - 1); yy <= Math.min(ROWS - 1, cy + 1) && !gone; yy++) {
@@ -411,6 +412,9 @@ const update = (dt) => {
     const f = fx[i];
     f.life -= dt;
     if (f.tick) f.tick(f, dt);
+    // ambiance d'un effet : des braises qui montent (emb), des étincelles qui crépitent (spk)
+    if (f.emb && Math.random() < 0.5) { const aa = rnd(0, 6.283), rr = Math.sqrt(Math.random()) * (f.R || 20); emberFx(f.x + Math.cos(aa) * rr, f.y + Math.sin(aa) * rr, f.emb); }
+    if (f.spk && Math.random() < 0.4) { const aa = rnd(0, 6.283), rr = Math.sqrt(Math.random()) * (f.R || 14); spark(f.x + Math.cos(aa) * rr, f.y + Math.sin(aa) * rr, f.spk, 1, 90); }
     if (f.k === "nade") {
       const u = 1 - Math.max(0, f.life) / f.t;
       f.x = f.x0 + (f.tx - f.x0) * u;

@@ -5,7 +5,7 @@
 
 // un anneau de tirs autour de (x, y)
 const ring = (x, y, n, off, spd, life, dmg) => {
-  for (let k = 0; k < n; k++) fire(off + (k / n) * 6.283, spd, life, { x, y, dmg });
+  for (let k = 0; k < n; k++) fire(off + (k / n) * 6.283, spd, life, { x, y, dmg, color: WEAPON_COLOR.burst });
 };
 
 Object.assign(WEAPONS, {
@@ -31,7 +31,7 @@ Object.assign(WEAPONS, {
       const dur = 6 * (1 + (w.dur || 0)), d = st.dmg * 0.5 * (1 + (w.dm || 0));
       for (let k = 0, n = 1 + (w.n || 0); k < n; k++) {
         const a = rnd(0, 6.283);
-        fx.push({ k: "turret", x: P.x + Math.cos(a) * 34, y: P.y + Math.sin(a) * 34, life: dur, t: dur, cd: 0.3,
+        fx.push({ k: "turret", color: WEAPON_COLOR.turret, x: P.x + Math.cos(a) * 34, y: P.y + Math.sin(a) * 34, life: dur, t: dur, cd: 0.3,
           tick(f, h) {
             f.cd -= h;
             if (f.cd > 0) return;
@@ -39,9 +39,10 @@ Object.assign(WEAPONS, {
             if (!tgt) return;
             f.cd = slow(w, 0.3) * cdMul();
             f.a = Math.atan2(tgt.y - f.y, tgt.x - f.x);
-            fire(f.a, 520, 0.5, { x: f.x, y: f.y, dmg: d });
+            fire(f.a, 520, 0.5, { x: f.x, y: f.y, dmg: d, color: WEAPON_COLOR.turret });
+            spark(f.x + Math.cos(f.a) * 8, f.y + Math.sin(f.a) * 8, WEAPON_COLOR.turret, 2, 100);
           },
-          onEnd(f) { if (w.legend) boom(f.x, f.y, 60, st.dmg * 3 * (1 + (w.dm || 0))); } });
+          onEnd(f) { if (w.legend) boom(f.x, f.y, 60, st.dmg * 3 * (1 + (w.dm || 0)), WEAPON_COLOR.turret); } });
       }
     },
   },
@@ -65,6 +66,8 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 3) * cdMul();
       SFX.shoot();
       const n = 12 + (w.n || 0), life = 0.5 * (1 + (w.rng || 0)) * rngMul(), d = st.dmg * 0.7 * (1 + (w.dm || 0)), off = rnd(0, 6.283);
+      ringFx(P.x, P.y, WEAPON_COLOR.burst, 30, 0.2);
+      flashFx(P.x, P.y, WEAPON_COLOR.burst, 18);
       ring(P.x, P.y, n, off, 480, life, d);
       if (w.legend) fx.push({ k: "flash", x: P.x, y: P.y, life: 0.3, t: 0.3, onEnd: (f) => ring(P.x, P.y, n, off + 3.1416 / n, 480, life, d) });
     },
@@ -93,12 +96,12 @@ Object.assign(WEAPONS, {
       SFX.shoot();
       for (let k = 0, n = 1 + (w.n || 0); k < n; k++) {
         const tg = cand[(Math.random() * cand.length) | 0];
-        fx.push({ k: "shell", tx: tg.x, ty: tg.y, R, life: 0.8, t: 0.8,
+        fx.push({ k: "shell", color: WEAPON_COLOR.mortar, tx: tg.x, ty: tg.y, R, life: 0.8, t: 0.8,
           onEnd(f) {
-            boom(f.tx, f.ty, R, d);
+            boom(f.tx, f.ty, R, d, WEAPON_COLOR.mortar);
             if (w.legend) for (let j = 0; j < 4; j++) {
               const a = (j / 4) * 6.283 + 0.7;
-              fx.push({ k: "flash", x: f.tx + Math.cos(a) * R * 0.7, y: f.ty + Math.sin(a) * R * 0.7, life: 0.2, t: 0.2, onEnd: (q) => boom(q.x, q.y, R * 0.45, d * 0.4) });
+              fx.push({ k: "flash", x: f.tx + Math.cos(a) * R * 0.7, y: f.ty + Math.sin(a) * R * 0.7, life: 0.2, t: 0.2, onEnd: (q) => boom(q.x, q.y, R * 0.45, d * 0.4, WEAPON_COLOR.mortar) });
             }
           } });
       }

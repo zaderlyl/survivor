@@ -3,14 +3,15 @@
 /* ---------- Les armes uniques de Zap ---------- */
 
 // foudroie les `count` ennemis les plus proches de (x, y), dans un rayon
-const zapAround = (x, y, range, count, d) => {
+const zapAround = (x, y, range, count, d, color) => {
   const list = enemies.filter((e) => e.hp > 0 && Math.hypot(e.x - x, e.y - y) < range)
     .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))
     .slice(0, count);
   if (list.length) SFX.hit();
   list.forEach((e) => {
     strike(e, d, 0, 0, "bolt");
-    fx.push({ k: "bolt", pts: [[x, y], [e.x, e.y]], life: 0.12, t: 0.12 });
+    fx.push({ k: "bolt", color, pts: [[x, y], [e.x, e.y]], life: 0.12, t: 0.12 });
+    flashFx(e.x, e.y, color, 12);
   });
 };
 
@@ -38,14 +39,14 @@ Object.assign(WEAPONS, {
       SFX.shoot();
       for (let k = 0; k < n; k++) {
         const a = base + (k - (n - 1) / 2) * 0.7;
-        fx.push({ k: "thunder", x: P.x, y: P.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, life: dur, t: dur, cd: 0.3,
+        fx.push({ k: "thunder", color: WEAPON_COLOR.thunder, spk: WEAPON_COLOR.thunder, x: P.x, y: P.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, life: dur, t: dur, cd: 0.3,
           tick(f, h) {
             f.x += f.vx * h;
             f.y += f.vy * h;
             f.cd -= h;
             if (f.cd > 0) return;
             f.cd = 0.4;
-            zapAround(f.x, f.y, 130, hits, d);
+            zapAround(f.x, f.y, 130, hits, d, WEAPON_COLOR.thunder);
           } });
       }
     },
@@ -72,7 +73,7 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 5) * cdMul();
       const tg = cand[(Math.random() * cand.length) | 0], R = 66 * (1 + (w.rad || 0)), dur = 3 * (1 + (w.dur || 0)), d = st.dmg * 0.5 * (1 + (w.dm || 0));
       SFX.wave();
-      fx.push({ k: "cloud", x: tg.x, y: tg.y, R, life: dur, t: dur, cd: 0,
+      fx.push({ k: "cloud", color: WEAPON_COLOR.field, spk: WEAPON_COLOR.field, x: tg.x, y: tg.y, R, life: dur, t: dur, cd: 0,
         tick(f, h) {
           if (w.legend) { f.x = P.x; f.y = P.y; }
           f.cd -= h;
@@ -105,12 +106,12 @@ Object.assign(WEAPONS, {
       const dur = 6 * (1 + (w.dur || 0)), d = st.dmg * 1.5 * (1 + (w.dm || 0)), hits = w.legend ? 6 : 3;
       for (let k = 0, n = 1 + (w.n || 0); k < n; k++) {
         const a = rnd(0, 6.283);
-        fx.push({ k: "tesla", x: P.x + Math.cos(a) * 40, y: P.y + Math.sin(a) * 40, life: dur, t: dur, cd: 0.3,
+        fx.push({ k: "tesla", color: WEAPON_COLOR.tesla, spk: WEAPON_COLOR.tesla, x: P.x + Math.cos(a) * 40, y: P.y + Math.sin(a) * 40, life: dur, t: dur, cd: 0.3,
           tick(f, h) {
             f.cd -= h;
             if (f.cd > 0) return;
             f.cd = 0.6;
-            zapAround(f.x, f.y, 140 * rngMul(), hits, d);
+            zapAround(f.x, f.y, 140 * rngMul(), hits, d, WEAPON_COLOR.tesla);
           } });
       }
     },

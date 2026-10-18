@@ -92,6 +92,7 @@ const WEAPONS = {
       P.muzzle = 0.06;
       SFX.dash();
       fx.push({ k: "arc", x: P.x, y: P.y, a, r: R, spread: 1.1, life: 0.16, t: 0.16 });
+      spark(P.x + Math.cos(a) * R * 0.8, P.y + Math.sin(a) * R * 0.8, heroColor(), 8, 200);
       enemies.forEach((e) => {
         const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
         if (d > R + e.r) return;
@@ -116,6 +117,8 @@ const WEAPONS = {
       P.muzzle = 0.1;
       SFX.bomb();
       fire(a, 380, st.range / 380, { dmg: st.dmg * 6, rad: 8, size: 2.4, pierce: 3 });
+      ringFx(P.x + Math.cos(a) * 14, P.y + Math.sin(a) * 14, heroColor(), 22, 0.18);
+      flashFx(P.x + Math.cos(a) * 14, P.y + Math.sin(a) * 14, heroColor(), 14);
     },
   },
 
@@ -133,6 +136,7 @@ const WEAPONS = {
       P.muzzle = 0.08;
       SFX.shoot();
       for (let k = 0; k < 6; k++) fire(a + (k - 2.5) * 0.12 + rnd(-0.03, 0.03), 560, R / 560, { dmg: st.dmg * 0.9 });
+      spark(P.x + Math.cos(a) * 12, P.y + Math.sin(a) * 12, heroColor(), 8, 230);
     },
   },
 
@@ -150,6 +154,7 @@ const WEAPONS = {
       P.muzzle = 0.1;
       SFX.wave();
       fx.push({ k: "beam", x: P.x, y: P.y, a, len: L, w: 9, life: 0.14, t: 0.14 });
+      flashFx(P.x + ca * 12, P.y + sa * 12, heroColor(), 16);
       enemies.forEach((e) => {
         const dx = e.x - P.x, dy = e.y - P.y, along = dx * ca + dy * sa;
         if (along < 0 || along > L) return;
@@ -171,9 +176,9 @@ const WEAPONS = {
       P.muzzle = 0.06;
       SFX.shoot();
       const R = 66 * rngMul(), d = st.dmg * 3.5;
-      fx.push({ k: "nade", x0: P.x, y0: P.y, x: P.x, y: P.y, tx: tgt.x, ty: tgt.y, life: 0.5, t: 0.5, onEnd: (f) => {
+      fx.push({ k: "nade", x0: P.x, y0: P.y, x: P.x, y: P.y, tx: tgt.x, ty: tgt.y, life: 0.5, t: 0.5, tick(f) { trail(f.x, f.y, heroColor(), 2); }, onEnd: (f) => {
         SFX.bomb();
-        waves.push({ x: f.tx, y: f.ty, r: 0, max: R, life: 0.25, t: 0.25 });
+        explodeFx(f.tx, f.ty, heroColor(), R);
         enemies.forEach((e) => {
           const dx = e.x - f.tx, dy = e.y - f.ty, dd = Math.hypot(dx, dy) || 1;
           if (dd < R + e.r) strike(e, d, (dx / dd) * 160, (dy / dd) * 160, "blast");
@@ -198,6 +203,7 @@ const WEAPONS = {
       for (let j = 0; j < 3 && cur; j++) {
         pts.push([cur.x, cur.y]);
         strike(cur, st.dmg * 1.7, 0, 0, "bolt");
+        flashFx(cur.x, cur.y, heroColor(), 12);
         done.push(cur);
         let nx = null, nd = 150 * 150;
         for (let i = 0; i < enemies.length; i++) {

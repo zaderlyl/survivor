@@ -9,7 +9,9 @@ const dashCut = (w) => {
   const a = Math.atan2(tgt.y - P.y, tgt.x - P.x), ca = Math.cos(a), sa = Math.sin(a);
   const len = Math.min(Math.hypot(tgt.x - P.x, tgt.y - P.y) + 50, 320 * (1 + (w.rng || 0))), d = st.dmg * 4 * (1 + (w.dm || 0)), wid = 16 * (1 + (w.wid || 0));
   SFX.dash();
-  fx.push({ k: "beam", x: P.x, y: P.y, a, len, w: wid, life: 0.2, t: 0.2 });
+  fx.push({ k: "beam", color: WEAPON_COLOR.dashcut, x: P.x, y: P.y, a, len, w: wid, life: 0.2, t: 0.2 });
+  for (let i = 0; i < len; i += 26) ghosts.push({ x: P.x + ca * i, y: P.y + sa * i, life: 0.3, face: ca >= 0 ? 1 : -1 }); // des images rémanentes le long de la coupe
+  spark(P.x + ca * len / 2, P.y + sa * len / 2, WEAPON_COLOR.dashcut, 10, 220);
   enemies.forEach((e) => {
     const dx = e.x - P.x, dy = e.y - P.y, along = dx * ca + dy * sa;
     if (along < -10 || along > len) return;
@@ -25,10 +27,11 @@ const dashCut = (w) => {
 // une lame de boomerang : part vers (a), revient vers toi
 const throwBoomerang = (w, a, d, dist) => {
   const T = 1.1;
-  fx.push({ k: "blade", a, x: P.x, y: P.y, life: T, t: T, hit: [], spin: 0,
+  fx.push({ k: "blade", color: WEAPON_COLOR.boomerang, a, x: P.x, y: P.y, life: T, t: T, hit: [], spin: 0,
     tick(f, h) {
       const u = 1 - f.life / T;
       f.spin += h * 22;
+      trail(f.x, f.y, WEAPON_COLOR.boomerang, 3);
       if (u > 0.5 && !f.back) { f.back = true; f.hit = []; }
       f.x = P.x + Math.cos(a) * dist * Math.sin(Math.PI * u);
       f.y = P.y + Math.sin(a) * dist * Math.sin(Math.PI * u);
@@ -113,11 +116,12 @@ Object.assign(WEAPONS, {
       w.cd = slow(w, 3.6) * cdMul();
       const dur = 0.6 * (1 + (w.dur || 0)), d = st.dmg * 1.6 * (1 + (w.dm || 0));
       SFX.wave();
-      fx.push({ k: "spin", R, life: dur, t: dur, pulse: 0,
+      fx.push({ k: "spin", color: WEAPON_COLOR.whirl, R, life: dur, t: dur, pulse: 0,
         tick(f, h) {
           f.pulse -= h;
           if (f.pulse > 0) return;
           f.pulse = 0.12;
+          { const sa2 = rnd(0, 6.283); spark(P.x + Math.cos(sa2) * R, P.y + Math.sin(sa2) * R, WEAPON_COLOR.whirl, 4, 140); }
           enemies.forEach((e) => {
             const dx = e.x - P.x, dy = e.y - P.y, dd = Math.hypot(dx, dy) || 1;
             if (e.hp > 0 && dd < R + e.r) strike(e, d, (dx / dd) * 60, (dy / dd) * 60, "slash");
@@ -125,7 +129,8 @@ Object.assign(WEAPONS, {
         },
         onEnd(f) {
           if (!w.legend) return;
-          waves.push({ x: P.x, y: P.y, r: 0, max: R * 1.6, life: 0.3, t: 0.3 });
+          ringFx(P.x, P.y, WEAPON_COLOR.whirl, R * 1.6, 0.3);
+          flashFx(P.x, P.y, WEAPON_COLOR.whirl, R);
           enemies.forEach((e) => {
             const dx = e.x - P.x, dy = e.y - P.y, dd = Math.hypot(dx, dy) || 1;
             if (e.hp > 0 && dd < R * 1.6 + e.r) damage(e, d * 0.5, false, (dx / dd) * (e.type === "boss" ? 120 : 520), (dy / dd) * (e.type === "boss" ? 120 : 520), "blast");
