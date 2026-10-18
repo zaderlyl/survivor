@@ -223,6 +223,53 @@ const render = () => {
       // la grenade collée : elle clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
+    } else if (f.k === "swordring" || f.k === "swordwall") {
+      // un cercle ou un mur d'épées géantes
+      (f.sw || []).forEach((s) => drawSword(s.x, s.y, s.a, col, 1.3));
+    } else if (f.k === "spectre") {
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 10) & 1, Math.cos(f.a) < 0, false, 0.55, heroLook());
+    } else if (f.k === "dragon") {
+      // un dragon d'acier : une file d'épées qui suivent la tête, de plus en plus petites
+      for (let i = f.segs.length - 1; i >= 0; i--) {
+        const sg = f.segs[i], nx = f.segs[Math.max(0, i - 1)];
+        drawSword(sg[0], sg[1], Math.atan2(nx[1] - sg[1], nx[0] - sg[0]) || 0, col, i === 0 ? 2.4 : Math.max(0.9, 1.9 - i * 0.025));
+      }
+      if (f.segs[0]) { g.fillStyle = "#ffffff"; g.fillRect(f.segs[0][0] - 3, f.segs[0][1] - 3, 3, 3); g.fillRect(f.segs[0][0] + 1, f.segs[0][1] - 3, 3, 3); }
+    } else if (f.k === "multibeam") {
+      // plusieurs rayons qui tournent autour de toi
+      for (let b = 0; b < f.n; b++) {
+        const a = f.ang + (b / f.n) * 6.283, ca = Math.cos(a), sa = Math.sin(a), x0 = P.x + ca * (f.r0 || 0), y0 = P.y + sa * (f.r0 || 0);
+        g.globalCompositeOperation = "lighter";
+        g.lineWidth = f.bw || 9;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        g.lineTo(P.x + ca * f.L, P.y + sa * f.L);
+        g.stroke();
+        g.globalCompositeOperation = "source-over";
+        g.strokeStyle = "#ffffff";
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        g.lineTo(P.x + ca * f.L, P.y + sa * f.L);
+        g.stroke();
+        g.strokeStyle = col;
+      }
+    } else if (f.k === "hturret") {
+      // une tourelle lourde : un gros socle et un gros canon
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 11, f.y - 5, 22, 10);
+      g.fillRect(f.x - 7, f.y - 10, 14, 6);
+      g.lineWidth = 6;
+      g.beginPath();
+      g.moveTo(f.x, f.y - 7);
+      g.lineTo(f.x + Math.cos(f.a || 0) * 20, f.y - 7 + Math.sin(f.a || 0) * 20);
+      g.stroke();
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.3;
+      g.beginPath();
+      g.arc(f.x, f.y - 6, 16, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
     } else if (f.k === "worm") {
       // un ver de code : une file de carrés qui s'estompent
       for (let i = f.segs.length - 1; i >= 0; i--) {

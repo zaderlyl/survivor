@@ -37,6 +37,9 @@ const WEAPON_COLOR = {
   railorbital: "#b0e8ff", refractor: "#a0f0ff", lasersentinel: "#7ad6ff", focalbeam: "#9bffd8", laserrain: "#7ad6ff",
   shellrain: "#ff9a3c", fusiongrenade: "#c46bff", reactivearmor: "#ffb02e", timebomb: "#ff5a2e", flamethrower: "#ff6a1f",
   ballightning: "#b0f0ff", staticstorm: "#9fd8ff", longchain: "#6fd0ff", mobilecoil: "#b8f0ff", arcvolt: "#9fe9ff",
+  // les armes rares et légendaires : Chrome et Rig
+  swordring: "#ff7ab8", quake: "#ff9ccf", swordwall: "#ffb3d9", spectreknights: "#ff9ccf", steeldragon: "#ff3d7f", judgment: "#ffe0ee",
+  prismrays: "#ff9f2e", columnsalvo: "#ffd23f", heavyturret: "#ff8a1f", particlefield: "#ffc95c", destroyer: "#ff5f2e", lightwall: "#fff0b0",
 };
 const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 
@@ -86,4 +89,24 @@ const chargeFx = (x, y, color) => {
   if (calm || parts.length >= MAX_PARTS) return;
   const a = Math.random() * 6.283, r = 30;
   parts.push({ x: x + Math.cos(a) * r, y: y + Math.sin(a) * r, vx: -Math.cos(a) * r / 0.22, vy: -Math.sin(a) * r / 0.22, life: 0.22, max: 0.22, color, size: 3, glow: true });
+};
+// une épée dessinée en (x, y), pointée vers l'angle a, à l'échelle s
+const drawSword = (x, y, a, col, s) => {
+  g.save();
+  g.translate(x, y);
+  g.rotate(a + Math.PI / 2);
+  g.globalCompositeOperation = "lighter";
+  g.globalAlpha = 0.35;
+  g.fillStyle = col;
+  g.beginPath();
+  g.arc(0, 0, 10 * s, 0, 6.283);
+  g.fill();
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = 0.95;
+  g.fillRect(-2 * s, -13 * s, 4 * s, 20 * s);
+  g.fillStyle = "#ffffff";
+  g.fillRect(-1 * s, -12 * s, 2 * s, 15 * s);
+  g.fillRect(-5 * s, 5 * s, 10 * s, 2 * s);
+  g.restore();
+  g.globalAlpha = 1;
 };

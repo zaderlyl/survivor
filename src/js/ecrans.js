@@ -234,9 +234,9 @@ const showLevelUp = () => {
   show("niveau " + level, (b) => {
     const cards = el("div", "cards");
     picks.forEach((p, i) => {
-      const c = el("button", "card r" + (p.r === 2 ? 3 : p.r)); // la classe r3 est le style légendaire, r4 celui des évolutions
+      const c = el("button", "card r" + (p.r === 2 ? 3 : p.r) + (p.u.tier ? " tier-" + p.u.tier : "")); // la classe r3 est le style légendaire, r4 celui des évolutions ; tier-* celui d'une arme rare ou légendaire
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
+      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "rare" ? "arme rare" : p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
