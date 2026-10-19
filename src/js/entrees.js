@@ -135,6 +135,7 @@ const dash = () => {
       e.ky += (dy / d) * 380;
     }
   });
+  mutOnDash();
   P.inv = Math.max(P.inv, DASH_TIME + 0.12);
   // certaines armes réagissent au dash (les lames cachées jaillissent)
   P.weapons.forEach((w) => {

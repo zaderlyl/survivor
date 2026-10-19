@@ -393,7 +393,7 @@ const render = () => {
       g.moveTo(f.x, f.y - 2);
       g.lineTo(f.x + Math.cos(f.a || 0) * 12, f.y - 2 + Math.sin(f.a || 0) * 12);
       g.stroke();
-    } else if (f.k === "bhaz") {
+    } else if (f.k === "bhaz" || f.k === "custom") { // un effet qui se dessine lui-même (pièges de boss, murs, etc.)
       g.globalAlpha = 1;
       f.draw(f, g);
     } else if (f.k === "screenflash") {
@@ -809,6 +809,26 @@ const render = () => {
     if (e.poison > 0 && !calm) { // du poison qui goutte
       g.fillStyle = WEAPON_COLOR.poisondarts;
       g.fillRect(Math.round(e.x + rnd(-e.r, e.r)), Math.round(e.y + rnd(0, e.r + 3)), 2, 3);
+    }
+    if (e.corrupt) {
+      // corrompu : des tranches d'image qui glissent de côté (un bug visuel) et un anneau brisé qui tourne
+      const col = WEAPON_COLOR.corrupt;
+      g.fillStyle = col;
+      for (let k = 0; k < 3; k++) {
+        const decalage = Math.sin(t * 31 + e.seed * 2.3 + k * 1.9) * (e.r * 0.7);
+        g.globalAlpha = calm ? 0.35 : 0.3 + 0.3 * Math.abs(Math.sin(t * 17 + k * 2.6 + e.seed));
+        g.fillRect(Math.round(e.x - e.r + decalage), Math.round(e.y - e.r + ((k * 5 + e.seed * 3 + t * 20) % (e.r * 2))), Math.round(e.r * 2), 2);
+      }
+      g.strokeStyle = col;
+      g.lineWidth = 2;
+      g.globalAlpha = 0.85;
+      for (let k = 0; k < 3; k++) {
+        const a0 = t * 4 + k * 2.09;
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 5, a0, a0 + 1.1);
+        g.stroke();
+      }
+      g.globalAlpha = 1;
     }
     if (e.hacked > 0) {
       g.strokeStyle = WEAPON_COLOR.hack;

@@ -20,6 +20,9 @@ const WEAPON_COLOR = {
   satellite: "#ff5fb0", rotbeam: "#35c8ff", cross: "#7ad6ff",
   sticky: "#ffb02e", napalm: "#ff6a1f", bombard: "#ff8a1f",
   thunder: "#7ad6ff", field: "#6fb8ff", tesla: "#b8e6ff",
+  // les armes à mécanique nouvelle
+  mobilewall: "#5dffb0", corrupt: "#d36bff", twinblades: "#a8e6ff", thousandcuts: "#ff5c9a", hydrohammer: "#ffc14d", curvedlaser: "#6fffe0", lightprison: "#8fb8ff",
+  wreckingball: "#ff9a52", bouncegrenade: "#c7ff5a", elecnode: "#63b3ff", magstorm: "#a78bff",
   // les nouvelles armes uniques
   rainswords: "#ff9ccf", greatsword: "#ffd0e4", riposte: "#ff3d7f",
   cannon: "#ffd23f", raysalvo: "#ff9f2e", overload: "#ff5f2e",
@@ -50,7 +53,7 @@ const WEAPON_COLOR = {
   download: "#6fe8ff", perfectguard: "#ff9ccf", elecshield: "#8fd8ff", hiddenblades: "#cfe8dc", blackpowder: "#ffb02e",
   tractor: "#ffd28a", grapple: "#9ad8b0", silence: "#a8b0d8", ghostshot: "#9bffe0", livingbattery: "#ffe27a",
 };
-const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
+const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", corrupt: "#d36bff", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
 const spark = (x, y, color, n, speed) => {

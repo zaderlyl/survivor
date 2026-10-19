@@ -238,6 +238,12 @@ const weaponPool = () => {
       out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.12 : d.tier === "epic" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === R_LEGEND ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === R_LEGEND) weapon(id).legend = lg(weapon(id)) + 1; } });
       return;
     }
+    // une mutation est due (5, 15 et 30 points sur l'arme) : la seule carte de cette arme est celle de la mutation
+    const possedee = weapon(id);
+    if (mutationDue(possedee) > 0 && mutationChoices(possedee).length) {
+      out.push({ id: id + ".mut", weapon: id, isMut: true, weight: 8, name: d.name, max: 99, vals: [0, 0, 0, 0], text: () => "choisis une mutation parmi trois", apply: () => {} });
+      return;
+    }
     d.variants.forEach((va) => out.push({
       id: id + "." + va.id, weapon: id, weight: d.char ? 2 : 0.7, name: d.name, max: va.max, vals: epicVals(va.vals),
       text: (v, r) => va.text(v) + (r === R_LEGEND && (!weapon(id).legend || d.legendStacks) ? (weapon(id).legend ? " — et encore : " : " — ") + d.legendText : ""), // l'effet légendaire ne s'ajoute qu'une fois : inutile de l'annoncer de nouveau

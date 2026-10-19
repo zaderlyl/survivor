@@ -19,6 +19,25 @@ Le tirage de la rareté d'une carte dépend du niveau : jusqu'au niveau 9 il n'y
 
 L'effet légendaire d'une arme ne se cumule pas, sauf pour 10 armes dont l'effet est un retour ou un sens inverse (spirale, pluie de lasers, faisceau rotatif, danse des lames, fouet plasma, anneau d'épées, chevaliers spectres, champ de particules, destructeur, mur de lumière) : chaque reprise en ajoute un exemplaire.
 
+## Les mutations
+
+Quand une arme atteint **5, 15 puis 30 points** (les cartes prises pour elle), la carte suivante de cette arme devient une **carte de mutation** (turquoise) : on choisit une mutation parmi trois tirées au hasard. Chaque arme peut avoir jusqu'à 3 mutations. Une mutation donne un vrai bonus, mesuré à environ +30 à +50 % d'efficacité dans son cas favorable.
+
+| Mutation | Effet |
+|---|---|
+| Écho | chaque coup se répète 1 s plus tard, à moitié de puissance |
+| Surcharge | un coup sur quatre vaut triple |
+| Gigantisme | zones 60 % plus grandes, coups 30 % plus lourds, recharge 20 % plus lente |
+| Givre | les ennemis touchés ralentissent de 35 % et subissent 30 % de dégâts en plus pendant 3 s |
+| Contagion | 35 % des dégâts sautent sur l'ennemi voisin |
+| Fission | un ennemi tué par l'arme lâche cinq éclats en étoile |
+| Aimant | chaque impact attire les ennemis autour ; +15 % de dégâts |
+| Brasier | les ennemis touchés brûlent 3 s (10 % du coup toutes les 0,5 s) |
+| Sangsue | une part des dégâts te soigne |
+| Élan | chaque dash raccourcit de 1 s la recharge de l'arme (armes à recharge) |
+| Riposte | chaque coup reçu raccourcit de 1 s la recharge (armes à recharge) |
+| Rebond | les tirs rebondissent sur un ennemi de plus (armes à projectiles) |
+
 ## Boosts (tous les personnages)
 
 Une carte de boost en contient **deux**, de même rareté. Valeurs : commun / rare / épique / légendaire.

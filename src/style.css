@@ -687,3 +687,14 @@ main {
 .card.tier-legend .lv {
   color: var(--legend);
 }
+
+/* une carte de mutation : turquoise, à part de l'échelle des raretés */
+.card.mut {
+  border: 2px solid #4dffd0;
+  background: #06130f;
+  box-shadow: 0 0 14px rgba(77, 255, 208, 0.25);
+}
+
+.card.mut .lv {
+  color: #4dffd0;
+}

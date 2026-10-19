@@ -220,7 +220,7 @@ const showLevelUp = () => {
     const u = pool.splice(at, 1)[0];
     if (u.weapon && usedWeapons.has(u.weapon)) continue; // une seule carte par arme dans un tirage
     if (u.weapon) usedWeapons.add(u.weapon);
-    picks.push({ u, r: rollRarity() });
+    picks.push({ u, r: u.isMut ? 0 : rollRarity() }); // une carte de mutation n'a pas de rareté
   }
   while (picks.length < 3) picks.push({ u: HEAL, r: 0 });
   // une carte de boost en contient deux, de la même rareté
@@ -240,9 +240,9 @@ const showLevelUp = () => {
   show("niveau " + level, (b) => {
     const cards = el("div", "cards");
     picks.forEach((p, i) => {
-      const c = el("button", "card r" + p.r + (p.u.tier ? " tier-" + p.u.tier : "")); // r1 rare, r2 épique, r3 légendaire, r4 évolution ; tier-* : le style d'une arme rare ou légendaire
+      const c = el("button", "card r" + p.r + (p.u.tier ? " tier-" + p.u.tier : "") + (p.u.isMut ? " mut" : "")); // r1 rare, r2 épique, r3 légendaire, r4 évolution ; tier-* : le style d'une arme rare ou légendaire
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "epic" ? "arme épique" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
+      const tag = el("span", "lv", p.evo ? "évolution" : p.mut ? "mutation" : p.u.isMut ? "mutation" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "epic" ? "arme épique" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
@@ -260,6 +260,17 @@ const showLevelUp = () => {
 };
 const choose = (p) => {
   if (mode !== "levelup") return;
+  if (p.mut) { // le choix d'une mutation : on la donne à l'arme et on termine le niveau
+    applyMutation(weapon(p.weaponId), p.mut);
+    banner("mutation : " + MUTATIONS[p.mut].name);
+    SFX.pick();
+    finishLevelUp();
+    return;
+  }
+  if (p.u && p.u.isMut) { // la carte de mutation d'une arme : on propose trois mutations
+    showMutationChoice(p.u.weapon);
+    return;
+  }
   if (p.evo) {
     p.u.apply();
     lv[p.u.id] = 1;
@@ -271,11 +282,41 @@ const choose = (p) => {
     if (p.u2) { p.u2.apply(p.u2.vals[p.r], p.r); lv[p.u2.id] = (lv[p.u2.id] || 0) + p.r + 1; }
       if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }
+  finishLevelUp();
+};
+
+// la fin d'un niveau : s'il en reste d'autres à choisir on les enchaîne, sinon le jeu reprend
+const finishLevelUp = () => {
   drawChips();
   if (pending > 0) { pending--; levelUpNext(); return; }
   hidePanel();
   mode = "play";
   last = performance.now();
+};
+
+// l'écran de choix d'une mutation : trois cartes, une par mutation proposée
+const showMutationChoice = (weaponId) => {
+  const w = weapon(weaponId);
+  const choix = mutationChoices(w);
+  const picks = choix.map((id) => ({ mut: id, weaponId, u: null, r: 0 }));
+  show("mutation : " + WEAPONS[weaponId].name, (b) => {
+    const cards = el("div", "cards");
+    picks.forEach((p, i) => {
+      const c = el("button", "card mut");
+      c.type = "button";
+      c.appendChild(el("span", "lv", "mutation"));
+      const name = el("b", "");
+      name.appendChild(el("kbd", "", String(i + 1)));
+      name.appendChild(document.createTextNode(MUTATIONS[p.mut].name));
+      c.appendChild(name);
+      c.appendChild(el("span", "", MUTATIONS[p.mut].text));
+      c.addEventListener("click", () => choose(p));
+      cards.appendChild(c);
+    });
+    b.appendChild(cards);
+    b.appendChild(el("p", "small", "Z S ↑ ↓ puis Entrée, ou touches 1 2 3"));
+  }, false, true);
+  pBody._picks = picks;
 };
 const levelUpNext = () => {
   level++;
@@ -289,7 +330,7 @@ const drawChips = () => {
   const box = $("#chips");
   box.textContent = "";
   UPGRADES.forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
-  P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1))); });
+  P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1) + (w.muts && w.muts.length ? " ✦" + w.muts.length : ""))); });
   EVOS.forEach((e) => { if (lv[e.id]) box.appendChild(el("span", "evo", e.name)); });
 };
 
