@@ -78,6 +78,7 @@ const best = {
   world: 0,
   diff: "normal", // difficulté choisie
   sound: true,
+  board: [], // le tableau des scores : les meilleures parties
 };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY)) || {};
@@ -93,6 +94,17 @@ const saveBest = () => {
   } catch (e) {
     /* tant pis */
   }
+};
+
+// ajoute une partie au tableau des scores (les 10 meilleures sont gardées) ; renvoie sa place (1 à 10), ou 0 si elle n'y entre pas
+const BOARD_SIZE = 10;
+const addScore = (entry) => {
+  if (!Array.isArray(best.board)) best.board = [];
+  best.board.push(entry);
+  best.board.sort((a, b) => b.score - a.score);
+  const place = best.board.indexOf(entry) + 1;
+  best.board.length = Math.min(best.board.length, BOARD_SIZE);
+  return place <= BOARD_SIZE ? place : 0;
 };
 
 // trois niveaux de difficulté : vitesse d'arrivée des ennemis (spawn), dégâts reçus (dmg), vie des ennemis (hp)

@@ -450,6 +450,29 @@ main {
   text-align: right;
 }
 
+/* le tableau des scores */
+.board {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 12px;
+  text-align: right;
+}
+
+.board th {
+  color: var(--muted);
+  font-weight: normal;
+  padding: 2px 8px;
+}
+
+.board td {
+  color: var(--text);
+  padding: 2px 8px;
+}
+
+.board tr.me td {
+  color: var(--pink, #ff4fa3);
+}
+
 /* les trois choix au niveau supérieur */
 .cards {
   display: grid;

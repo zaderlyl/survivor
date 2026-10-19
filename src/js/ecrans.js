@@ -156,6 +156,7 @@ const showMenu = () => {
     if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["meilleur monde", String(best.world || 1)], ["meilleur score", String(best.score)]]));
     const row = el("div", "row");
     row.appendChild(button("jouer", start, true));
+    row.appendChild(button("scores", () => showBoard(showMenu)));
     row.appendChild(button("comment jouer", () => showHow()));
     b.appendChild(row);
     b.appendChild(el("p", "small", "ZQSD ou flèches · Espace : dash · P : pause · au doigt : glisse n'importe où"));
@@ -364,6 +365,7 @@ const end = (won, giveUp) => {
   best.kills = Math.max(best.kills, kills);
   best.level = Math.max(best.level, level);
   best.world = Math.max(best.world || 0, world + 1);
+  const place = score > 0 ? addScore({ score, t, world: world + 1, level, kills, diff: best.diff, char: best.char, won, date: Date.now() }) : 0;
   saveBest();
   $("#pause").hidden = true;
   $("#dashBtn").hidden = true;
@@ -371,7 +373,7 @@ const end = (won, giveUp) => {
   $("#play").classList.remove("low");
   live(won ? "Tu as tenu 5 minutes" : "Perdu");
   if (won) SFX.win(); else if (!giveUp) SFX.lose();
-  show(won ? "tenu" : giveUp ? "abandon" : "perdu", (b) => {
+  const showEnd = () => show(won ? "tenu" : giveUp ? "abandon" : "perdu", (b) => {
     b.appendChild(el("p", "big", won ? "Cinq minutes, tenues." : "Tu as tenu " + fmt(t) + "."));
     b.appendChild(statsList([
       ["score", score + (recScore ? " (record)" : "")],
@@ -380,9 +382,34 @@ const end = (won, giveUp) => {
       ["niveau atteint", String(level)],
       ["meilleur temps (" + dm.name + ")", fmt(best.t[best.diff]) + (record && !won ? " (nouveau)" : "")],
     ]));
+    if (place) b.appendChild(el("p", "small", "Tu entres au tableau des scores, à la place " + place + "."));
     const row = el("div", "row");
     row.appendChild(button("rejouer", start, true));
+    row.appendChild(button("scores", () => showBoard(showEnd, place)));
     row.appendChild(button("menu", showMenu));
     b.appendChild(row);
   });
+  showEnd();
+};
+
+// le tableau des scores ; back : où revenir ; place : la ligne de la partie qui vient de finir (mise en valeur), 0 si aucune
+const showBoard = (back, place) => {
+  show("scores", (b) => {
+    const list = Array.isArray(best.board) ? best.board : [];
+    if (!list.length) {
+      b.appendChild(el("p", "big", "Aucune partie pour l'instant."));
+    } else {
+      const table = el("table", "board");
+      const head = el("tr");
+      ["#", "score", "temps", "monde", "niveau", "mode"].forEach((h) => head.appendChild(el("th", "", h)));
+      table.appendChild(head);
+      list.forEach((e, i) => {
+        const tr = el("tr", i + 1 === place ? "me" : "");
+        [i + 1, e.score, fmt(e.t), e.world, e.level, (DIFFS[e.diff] ? DIFFS[e.diff].name : "") + (e.won ? " ★" : "")].forEach((v) => tr.appendChild(el("td", "", String(v))));
+        table.appendChild(tr);
+      });
+      b.appendChild(table);
+    }
+    b.appendChild(button("retour", back, true));
+  }, true);
 };
