@@ -5,13 +5,26 @@
   Une carte de boost a :
     id     son identifiant                    name   son nom affiché
     max    combien de fois on peut la prendre (99 = pratiquement sans limite)
-    vals   sa valeur selon la rareté : [commun, rare, légendaire]
-    text   (v, r) => la phrase affichée sur la carte ; v = la valeur, r = la rareté (0 commun, 1 rare, 2 légendaire)
+    vals   sa valeur selon la rareté : on écrit [commun, rare, légendaire] ; l'épique est calculée (voir epicVals)
+    text   (v, r) => la phrase affichée sur la carte ; v = la valeur, r = la rareté (0 commun, 1 rare, 2 épique, 3 légendaire)
     apply  (v, r) => ce que la carte fait quand on la prend
     only   (facultatif) la carte n'apparaît que si l'on possède cette arme
-  Les raretés : une carte « légendaire » a une valeur plus forte ET parfois un effet en plus (r === 2).
+  Les raretés : une carte « légendaire » a une valeur plus forte ET parfois un effet en plus (r === 3). L'épique n'a qu'une valeur intermédiaire.
 */
-const RARITY = ["commun", "rare", "légendaire"];
+const RARITY = ["commun", "rare", "épique", "légendaire"];
+const R_COMMON = 0, R_RARE = 1, R_EPIC = 2, R_LEGEND = 3; // les numéros de rareté
+
+// Passe [commun, rare, légendaire] à [commun, rare, épique, légendaire].
+// L'épique vaut à peu près 60 % du chemin entre la rare et la légendaire : arrondie à l'entier si ce sont des nombres entiers
+// (des lames, des projectiles, des pixels), sinon à deux décimales (des pourcentages, des secondes).
+const epicVals = (vals) => {
+  if (vals.length !== 3) return vals; // déjà à 4 valeurs
+  const [commun, rare, legendaire] = vals;
+  const brut = rare + (legendaire - rare) * 0.6;
+  const entiers = Number.isInteger(commun) && Number.isInteger(rare) && Number.isInteger(legendaire);
+  const epique = entiers ? Math.round(brut) : Math.round(brut * 100) / 100;
+  return [commun, rare, epique, legendaire];
+};
 
 // 0.25 -> "25 %"
 const pct = (v) => Math.round(v * 100) + " %";
@@ -31,10 +44,10 @@ const UPGRADES = [
   // +dégâts ; légendaire : les ennemis tués explosent
   {
     id: "dmg", name: "Puissance", max: 99, vals: [0.1, 0.2, 0.4],
-    text: (v, r) => "+" + pct(v) + " de dégâts" + (r === 2 && !st.deathBlast ? ", les ennemis tués explosent" : ""),
+    text: (v, r) => "+" + pct(v) + " de dégâts" + (r === R_LEGEND && !st.deathBlast ? ", les ennemis tués explosent" : ""),
     apply: (v, r) => {
       st.dmg *= 1 + v;
-      if (r === 2) st.deathBlast = true;
+      if (r === R_LEGEND) st.deathBlast = true;
     },
   },
   // moins de délai entre deux tirs
@@ -56,19 +69,19 @@ const UPGRADES = [
   // ramasse les cristaux de plus loin ; légendaire : ils viennent seuls
   {
     id: "magnet", name: "Aimant", max: 99, vals: [40, 80, 200],
-    text: (v, r) => "ramasse de +" + v + " px plus loin" + (r === 2 && !st.autoPull ? ", les cristaux viennent seuls" : ""),
+    text: (v, r) => "ramasse de +" + v + " px plus loin" + (r === R_LEGEND && !st.autoPull ? ", les cristaux viennent seuls" : ""),
     apply: (v, r) => {
       st.magnet += v;
-      if (r === 2) st.autoPull = true;
+      if (r === R_LEGEND) st.autoPull = true;
     },
   },
   // chances de coup critique (au-delà de 100 %, tout est critique) ; légendaire : critiques x3
   {
     id: "crit", name: "Critique", max: 99, vals: [0.08, 0.15, 0.3],
-    text: (v, r) => "+" + pct(v) + " de chances de coup critique" + (r === 2 && st.critMul < 3 ? ", critiques x3" : ""),
+    text: (v, r) => "+" + pct(v) + " de chances de coup critique" + (r === R_LEGEND && st.critMul < 3 ? ", critiques x3" : ""),
     apply: (v, r) => {
       st.crit += v;
-      if (r === 2) st.critMul = 3;
+      if (r === R_LEGEND) st.critMul = 3;
     },
   },
   {
@@ -155,3 +168,7 @@ const HEAL = {
   text: (v) => "rend " + v + " PV",
   apply: (v) => (P.hp = Math.min(st.maxHp, P.hp + v)),
 };
+
+// toutes les cartes de boost ont maintenant leurs 4 valeurs
+UPGRADES.forEach((carte) => { carte.vals = epicVals(carte.vals); });
+HEAL.vals = epicVals(HEAL.vals);

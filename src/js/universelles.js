@@ -233,13 +233,13 @@ const weaponPool = () => {
       // une arme rare n'apparaît qu'à partir du niveau 6, une légendaire du niveau 12, et une seule par partie
       if (d.tier === "rare" && level < 6) return;
       if (d.tier === "legend" && (level < 12 || P.weapons.some((o) => WEAPONS[o.id].tier === "legend"))) return;
-      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === 2 ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === 2) weapon(id).legend = lg(weapon(id)) + 1; } });
+      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === R_LEGEND ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === R_LEGEND) weapon(id).legend = lg(weapon(id)) + 1; } });
       return;
     }
     d.variants.forEach((va) => out.push({
-      id: id + "." + va.id, weapon: id, weight: d.char ? 2 : 0.7, name: d.name, max: va.max, vals: va.vals,
-      text: (v, r) => va.text(v) + (r === 2 && (!weapon(id).legend || d.legendStacks) ? (weapon(id).legend ? " — et encore : " : " — ") + d.legendText : ""), // l'effet légendaire ne s'ajoute qu'une fois : inutile de l'annoncer de nouveau
-      apply: (v, r) => { va.apply(weapon(id), v); if (r === 2) weapon(id).legend = lg(weapon(id)) + 1; },
+      id: id + "." + va.id, weapon: id, weight: d.char ? 2 : 0.7, name: d.name, max: va.max, vals: epicVals(va.vals),
+      text: (v, r) => va.text(v) + (r === R_LEGEND && (!weapon(id).legend || d.legendStacks) ? (weapon(id).legend ? " — et encore : " : " — ") + d.legendText : ""), // l'effet légendaire ne s'ajoute qu'une fois : inutile de l'annoncer de nouveau
+      apply: (v, r) => { va.apply(weapon(id), v); if (r === R_LEGEND) weapon(id).legend = lg(weapon(id)) + 1; },
     }));
   });
   return out;

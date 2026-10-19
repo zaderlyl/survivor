@@ -190,14 +190,20 @@ const showHow = (back) => {
   }, true);
 };
 
-// la rareté se tire selon le niveau : les légendaires arrivent à partir du niveau 6
+// La rareté se tire selon le niveau : au début surtout des communes et des rares.
+// Les épiques arrivent à partir du niveau 10, les légendaires à partir du niveau 20.
 const rollRarity = () => {
   const L = level;
-  const w = [Math.max(20, 62 - L * 1.6), 36 + L * 1.1, L >= 6 ? 1.5 + L * 0.4 : 0];
-  let r = Math.random() * (w[0] + w[1] + w[2]);
-  for (let i = 0; i < 3; i++) {
-    if (r < w[i]) return i;
-    r -= w[i];
+  const poids = [
+    Math.max(20, 62 - L * 1.6), // commun
+    36 + L * 1.1, // rare
+    L >= 10 ? 2 + (L - 10) * 0.5 : 0, // épique
+    L >= 20 ? 1 + (L - 20) * 0.25 : 0, // légendaire
+  ];
+  let tirage = Math.random() * (poids[0] + poids[1] + poids[2] + poids[3]);
+  for (let i = 0; i < 4; i++) {
+    if (tirage < poids[i]) return i;
+    tirage -= poids[i];
   }
   return 0;
 };
@@ -234,9 +240,9 @@ const showLevelUp = () => {
   show("niveau " + level, (b) => {
     const cards = el("div", "cards");
     picks.forEach((p, i) => {
-      const c = el("button", "card r" + (p.r === 2 ? 3 : p.r) + (p.u.tier ? " tier-" + p.u.tier : "")); // la classe r3 est le style légendaire, r4 celui des évolutions ; tier-* celui d'une arme rare ou légendaire
+      const c = el("button", "card r" + p.r + (p.u.tier ? " tier-" + p.u.tier : "")); // r1 rare, r2 épique, r3 légendaire, r4 évolution ; tier-* : le style d'une arme rare ou légendaire
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "rare" ? "arme rare" : p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
+      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
@@ -261,7 +267,7 @@ const choose = (p) => {
   } else {
     p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
-    if (p.r === 2 && p.u !== HEAL) st.legends++; // chaque carte légendaire ajoute un anneau d'aura
+    if (p.r === R_LEGEND && p.u !== HEAL) st.legends++; // chaque carte légendaire ajoute un anneau d'aura
     if (p.u2) { p.u2.apply(p.u2.vals[p.r], p.r); lv[p.u2.id] = (lv[p.u2.id] || 0) + p.r + 1; }
       if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }
