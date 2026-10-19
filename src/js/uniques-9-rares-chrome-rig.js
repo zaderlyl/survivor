@@ -1,7 +1,7 @@
 "use strict";
 
 /* ---------- Les armes rares et légendaires : Chrome (épées) et Rig (gros rayons) ---------- */
-// tier : "rare" (à partir du niveau 6) ou "legend" (à partir du niveau 12, une seule par partie)
+// tier : "rare" (à partir du niveau 6), "epic" (à partir du niveau 10, une seule par partie) ou "legend" (à partir du niveau 20, une seule par partie)
 
 // l'arme la plus puissante de chaque héros passe en rare
 WEAPONS.greatsword.tier = "rare";
@@ -220,7 +220,7 @@ Object.assign(WEAPONS, {
   // Dragon d'acier : un dragon fait d'épées surgit et fonce à travers l'écran
   steeldragon: {
     char: "chrome",
-    tier: "legend",
+    tier: "epic",
     name: "Dragon d'acier",
     intro: "un dragon fait d'épées surgit et fonce à travers l'écran en tranchant tout",
     legendText: "le dragon crache des épées devant lui",
@@ -262,7 +262,7 @@ Object.assign(WEAPONS, {
   // Lame du jugement : une épée colossale tombe sur la plus grosse concentration d'ennemis
   judgment: {
     char: "chrome",
-    tier: "legend",
+    tier: "epic",
     name: "Lame du jugement",
     intro: "une épée colossale tombe sur la plus grosse concentration d'ennemis et fend l'arène",
     legendText: "elle frappe trois fois d'affilée",
@@ -427,7 +427,7 @@ Object.assign(WEAPONS, {
   // Rayon destructeur : un faisceau gigantesque qui balaie tout à 360°
   destroyer: {
     char: "rig",
-    tier: "legend",
+    tier: "epic",
     name: "Rayon destructeur",
     intro: "un faisceau gigantesque balaie tout autour de toi, deux tours complets",
     legendText: "un second faisceau tourne à l'opposé",
@@ -470,7 +470,7 @@ Object.assign(WEAPONS, {
   // Mur de lumière : un mur de lumière immense traverse tout l'écran
   lightwall: {
     char: "rig",
-    tier: "legend",
+    tier: "epic",
     name: "Mur de lumière",
     intro: "un mur de lumière immense traverse tout l'écran et balaie les ennemis devant lui",
     legendText: "le mur revient sur ses pas",

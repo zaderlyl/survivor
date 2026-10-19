@@ -230,10 +230,12 @@ const weaponPool = () => {
     const d = WEAPONS[id];
     if (!d.variants || (d.char && d.char !== best.char)) return; // les armes uniques ne sortent qu'avec leur personnage
     if (!weapon(id)) {
-      // une arme rare n'apparaît qu'à partir du niveau 6, une légendaire du niveau 12, et une seule par partie
+      // Une arme rare n'apparaît qu'à partir du niveau 6.
+      // Une arme épique du niveau 10, une légendaire du niveau 20 : une seule de chaque par partie.
       if (d.tier === "rare" && level < 6) return;
-      if (d.tier === "legend" && (level < 12 || P.weapons.some((o) => WEAPONS[o.id].tier === "legend"))) return;
-      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === R_LEGEND ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === R_LEGEND) weapon(id).legend = lg(weapon(id)) + 1; } });
+      if (d.tier === "epic" && (level < 10 || P.weapons.some((o) => WEAPONS[o.id].tier === "epic"))) return;
+      if (d.tier === "legend" && (level < 20 || P.weapons.some((o) => WEAPONS[o.id].tier === "legend"))) return;
+      out.push({ id, tier: d.tier, weight: d.tier === "legend" ? 0.12 : d.tier === "epic" ? 0.25 : d.tier === "rare" ? 0.6 : d.char ? 2 : 0.7, name: d.name, max: 99, vals: [0, 0, 0, 0], isNew: true, text: (v, r) => d.intro + (r === R_LEGEND ? " — " + d.legendText : ""), apply: (v, r) => { addWeapon(id, 1); if (r === R_LEGEND) weapon(id).legend = lg(weapon(id)) + 1; } });
       return;
     }
     d.variants.forEach((va) => out.push({

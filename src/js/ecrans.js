@@ -242,7 +242,7 @@ const showLevelUp = () => {
     picks.forEach((p, i) => {
       const c = el("button", "card r" + p.r + (p.u.tier ? " tier-" + p.u.tier : "")); // r1 rare, r2 épique, r3 légendaire, r4 évolution ; tier-* : le style d'une arme rare ou légendaire
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
+      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "epic" ? "arme épique" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
