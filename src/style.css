@@ -516,10 +516,17 @@ main {
 }
 
 /* les bordures de rareté (définies plus bas) écrasent la bordure rose : le contour, lui, se voit sur toutes les cartes */
-.card:hover,
 .card:focus-visible {
   outline: 1px solid var(--pink);
   outline-offset: 2px;
+}
+
+/* au survol seulement avec une vraie souris : au doigt, :hover reste collé après un tap */
+@media (hover: hover) {
+  .card:hover {
+    outline: 1px solid var(--pink);
+    outline-offset: 2px;
+  }
 }
 
 /* les cartes apparaissent en fondu plutôt que d'un coup (coupé par prefers-reduced-motion plus bas) */

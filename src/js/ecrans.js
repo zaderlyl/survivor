@@ -33,7 +33,8 @@ const show = (title, build, clear, noFocus) => {
 const hidePanel = () => { panel.hidden = true; };
 
 // Aux cartes de niveau on ne met pas le focus tout de suite (une touche encore enfoncée validerait la première carte).
-// Au bout d'un instant on le pose sur la première, pour que la sélection au clavier se voie ; ce délai laisse le temps de lâcher la touche.
+// Au bout d'un instant on le pose sur la première, pour que la sélection au clavier se voie ; ce délai laisse le temps de lâcher une touche de déplacement
+// (il ne protège pas d'Entrée maintenue plus longtemps : sa répétition validerait la carte).
 const focusFirstCard = (picks) => {
   setTimeout(() => {
     const first = pBody.querySelector(".card");
@@ -358,10 +359,14 @@ const showPause = () => {
   show("pause", (b) => {
     b.appendChild(statsList([["temps", fmt(t)], ["monde", String(world + 1)], ["niveau", String(level)], ["ennemis tués", String(kills)]]));
     // abandonner demande une seconde pression dans les 3 secondes : un clic de travers ne fait pas perdre la partie
+    let armedAt = 0;
     const giveUp = button("abandonner", () => {
-      if (giveUp.dataset.sure) { end(false, true); return; }
+      // un double-clic involontaire ne doit pas confirmer : on ignore le clic qui suit de trop près
+      if (giveUp.dataset.sure) { if (performance.now() - armedAt > 400) end(false, true); return; }
+      armedAt = performance.now();
       giveUp.dataset.sure = "1";
       giveUp.textContent = "confirmer ?";
+      live("Appuie encore pour abandonner");
       setTimeout(() => { delete giveUp.dataset.sure; giveUp.textContent = "abandonner"; }, 3000);
     });
     b.appendChild(button("reprendre", resume, true));
