@@ -13,6 +13,9 @@ const drawHud = () => {
   if (hpt !== hud.hpt) { hud.hpt = hpt; $("#hpTxt").textContent = hpt; }
   const sc = liveScore() + " pts";
   if (sc !== hud.sc) { hud.sc = sc; $("#scoreTxt").textContent = sc; }
+  // les PV bruts (pas le pourcentage : gagner des PV max ne doit pas passer pour un coup reçu) : une baisse = un éclat sur le cadre
+  if (hud.hpRaw !== undefined && P.hp < hud.hpRaw - 0.5 && mode === "play") flash($("#play"), "hit", 400);
+  hud.hpRaw = P.hp;
   if (hp !== hud.hp) {
     hud.hp = hp;
     $("#hpFill").style.width = hp + "%";

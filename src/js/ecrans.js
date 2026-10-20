@@ -32,6 +32,14 @@ const show = (title, build, clear, noFocus) => {
 };
 const hidePanel = () => { panel.hidden = true; };
 
+// un éclat bref sur un élément : on ajoute une classe (qui lance l'animation CSS) puis on la retire.
+// Tant que la classe est là, un nouvel appel est ignoré : au plus deux éclats par seconde, pour ne pas clignoter. Rien si `calm`.
+const flash = (box, cls, ms) => {
+  if (calm || box.classList.contains(cls)) return;
+  box.classList.add(cls);
+  setTimeout(() => box.classList.remove(cls), ms);
+};
+
 // Aux cartes de niveau on ne met pas le focus tout de suite (une touche encore enfoncée validerait la première carte).
 // Au bout d'un instant on le pose sur la première, pour que la sélection au clavier se voie ; ce délai laisse le temps de lâcher une touche de déplacement
 // (il ne protège pas d'Entrée maintenue plus longtemps : sa répétition validerait la carte).
@@ -310,6 +318,7 @@ const finishLevelUp = () => {
   hidePanel();
   mode = "play";
   last = performance.now();
+  flash($("#xpBar"), "flash", 500); // la jauge d'XP, repartie de zéro, s'épaissit un instant : le panneau la cachait pendant le choix
 };
 
 // l'écran de choix d'une mutation : trois cartes, une par mutation proposée
@@ -350,7 +359,13 @@ const drawChips = () => {
   box.textContent = "";
   UPGRADES.forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
   P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1) + (w.muts && w.muts.length ? " ✦" + w.muts.length : ""))); });
-  EVOS.forEach((e) => { if (lv[e.id]) box.appendChild(el("span", "evo", e.name)); });
+  EVOS.forEach((e) => {
+    if (lv[e.id]) { box.appendChild(el("span", "evo", e.name)); return; }
+    // une évolution à portée : au moins une des améliorations requises est prise ; « 1/2 » = combien sont au niveau 3
+    if (!e.need.some((id) => lv[id])) return;
+    const pretes = e.need.filter((id) => (lv[id] || 0) >= 3).length;
+    box.appendChild(el("span", "near", "évolution " + e.name + " " + pretes + "/" + e.need.length));
+  });
 };
 
 const showPause = () => {

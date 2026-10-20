@@ -345,6 +345,33 @@ main {
   pointer-events: none;
 }
 
+/* un coup reçu : le cadre s'allume et s'éteint en 0,3 s (voir flash() dans ecrans.js) */
+.play.hit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 6px solid var(--pink);
+  pointer-events: none;
+  animation: hit 0.3s ease-out forwards;
+}
+
+@keyframes hit {
+  to {
+    opacity: 0;
+  }
+}
+
+/* le passage de niveau : la jauge d'XP, épaissie un instant */
+.bar.xp.flash {
+  animation: xp-flash 0.5s ease-out;
+}
+
+@keyframes xp-flash {
+  from {
+    height: 9px;
+  }
+}
+
 .banner {
   position: absolute;
   top: 44px;
@@ -594,6 +621,11 @@ main {
 
 .card.r4 b {
   color: var(--pink);
+}
+
+/* une évolution à portée, pas encore prise : bordure en pointillés */
+.chips span.near {
+  border-style: dashed;
 }
 
 .chips span.evo {
