@@ -32,6 +32,15 @@ const show = (title, build, clear, noFocus) => {
 };
 const hidePanel = () => { panel.hidden = true; };
 
+// Aux cartes de niveau on ne met pas le focus tout de suite (une touche encore enfoncée validerait la première carte).
+// Au bout d'un instant on le pose sur la première, pour que la sélection au clavier se voie ; ce délai laisse le temps de lâcher la touche.
+const focusFirstCard = (picks) => {
+  setTimeout(() => {
+    const first = pBody.querySelector(".card");
+    if (first && !panel.hidden && pBody._picks === picks && document.activeElement === panel) first.focus({ preventScroll: true });
+  }, 400);
+};
+
 const statsList = (rows) => {
   const dl = el("dl", "stats");
   rows.forEach((r) => { dl.appendChild(el("dt", "", r[0])); dl.appendChild(el("dd", "", r[1])); });
@@ -133,6 +142,9 @@ const showMenu = () => {
     b.appendChild(logo());
     b.appendChild(el("p", "big", "Tiens le plus longtemps possible."));
     b.appendChild(el("p", "", "Tu te déplaces, ça tire tout seul. Chaque monstre tué lâche de l'XP : à chaque niveau, tu choisis tes améliorations. Tue le boss et tout ce qui reste pour passer au monde suivant."));
+    const lab0 = el("p", "label", "difficulté");
+    lab0.setAttribute("aria-hidden", "true"); // le groupe a déjà son aria-label
+    b.appendChild(lab0);
     const row0 = el("div", "row diff");
     row0.setAttribute("role", "group");
     row0.setAttribute("aria-label", "Difficulté");
@@ -142,6 +154,9 @@ const showMenu = () => {
       row0.appendChild(d);
     });
     b.appendChild(row0);
+    const labC = el("p", "label", "personnage");
+    labC.setAttribute("aria-hidden", "true");
+    b.appendChild(labC);
     const rowC = el("div", "row diff");
     rowC.setAttribute("role", "group");
     rowC.setAttribute("aria-label", "Personnage");
@@ -154,8 +169,8 @@ const showMenu = () => {
     b.appendChild(heroPreview());
     b.appendChild(el("p", "small", CHARS[best.char].text));
     if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["meilleur monde", String(best.world || 1)], ["meilleur score", String(best.score)]]));
+    b.appendChild(button("jouer", start, true));
     const row = el("div", "row");
-    row.appendChild(button("jouer", start, true));
     row.appendChild(button("scores", () => showBoard(showMenu)));
     row.appendChild(button("comment jouer", () => showHow()));
     b.appendChild(row);
@@ -174,7 +189,7 @@ const HOW = [
   ["Bouger", "ZQSD, WASD ou les flèches. Au doigt ou à la souris : glisse n'importe où, un joystick apparaît."],
   ["Tirer", "Automatique, sur l'ennemi le plus proche."],
   ["Dash", "Espace, ou le bouton rond sur téléphone. Il te protège un instant, il revient en 2,4 s."],
-  ["Grandir", "Les cristaux blancs remplissent la barre rose : à chaque niveau, trois cartes de rareté variable (commun, rare, légendaire), chacune une arme, une variante ou deux boosts. Deux améliorations montées ensemble débloquent une évolution."],
+  ["Grandir", "Les cristaux blancs remplissent la barre rose : à chaque niveau, trois cartes de rareté variable (commun, rare, épique dès le niveau 10, légendaire dès le niveau 20), chacune une arme, une variante ou deux boosts. Deux améliorations montées ensemble débloquent une évolution."],
   ["Danger", "Tout ce qui est rose te blesse : tirs ennemis, ligne de charge, zones au sol qui se remplissent. Tes tirs sont blancs. Le blindé encaisse mal les tirs : utilise lames, onde et explosions."],
   ["Tenir", "Le plus longtemps possible. Chaque monde dure environ 5 minutes : des vagues, puis un boss. Tue-le, ainsi que tout ce qui reste, pour passer au monde suivant, de plus en plus dur. P : pause."],
 ];
@@ -258,6 +273,7 @@ const showLevelUp = () => {
     b.appendChild(el("p", "small", "Z S ↑ ↓ puis Entrée, ou touches 1 2 3"));
   }, false, true);
   pBody._picks = picks;
+  focusFirstCard(picks);
 };
 const choose = (p) => {
   if (mode !== "levelup") return;
@@ -318,6 +334,7 @@ const showMutationChoice = (weaponId) => {
     b.appendChild(el("p", "small", "Z S ↑ ↓ puis Entrée, ou touches 1 2 3"));
   }, false, true);
   pBody._picks = picks;
+  focusFirstCard(picks);
 };
 const levelUpNext = () => {
   level++;
@@ -340,10 +357,19 @@ const showPause = () => {
   mode = "pause";
   show("pause", (b) => {
     b.appendChild(statsList([["temps", fmt(t)], ["monde", String(world + 1)], ["niveau", String(level)], ["ennemis tués", String(kills)]]));
+    // abandonner demande une seconde pression dans les 3 secondes : un clic de travers ne fait pas perdre la partie
+    const giveUp = button("abandonner", () => {
+      if (giveUp.dataset.sure) { end(false, true); return; }
+      giveUp.dataset.sure = "1";
+      giveUp.textContent = "confirmer ?";
+      setTimeout(() => { delete giveUp.dataset.sure; giveUp.textContent = "abandonner"; }, 3000);
+    });
+    b.appendChild(button("reprendre", resume, true));
     const row = el("div", "row");
-    row.appendChild(button("reprendre", resume, true));
-    row.appendChild(button("abandonner", () => end(false, true)));
+    row.appendChild(button("comment jouer", () => showHow(() => { mode = "play"; showPause(); })));
+    row.appendChild(giveUp);
     b.appendChild(row);
+    b.appendChild(el("p", "small", "ZQSD ou flèches · Espace : dash · P ou Échap : reprendre"));
   });
 };
 const resume = () => {
@@ -401,11 +427,12 @@ const showBoard = (back, place) => {
     } else {
       const table = el("table", "board");
       const head = el("tr");
-      ["#", "score", "temps", "monde", "niveau", "mode"].forEach((h) => head.appendChild(el("th", "", h)));
+      // monde et niveau (cellules « opt ») disparaissent sur un écran étroit
+      ["#", "score", "temps", "monde", "niveau", "mode"].forEach((h, k) => head.appendChild(el("th", k === 3 || k === 4 ? "opt" : "", h)));
       table.appendChild(head);
       list.forEach((e, i) => {
         const tr = el("tr", i + 1 === place ? "me" : "");
-        [i + 1, e.score, fmt(e.t), e.world, e.level, (DIFFS[e.diff] ? DIFFS[e.diff].name : "") + (e.won ? " ★" : "")].forEach((v) => tr.appendChild(el("td", "", String(v))));
+        [i + 1, e.score, fmt(e.t), e.world, e.level, (DIFFS[e.diff] ? DIFFS[e.diff].name : "") + (e.won ? " ★" : "")].forEach((v, k) => tr.appendChild(el("td", k === 3 || k === 4 ? "opt" : "", String(v))));
         table.appendChild(tr);
       });
       b.appendChild(table);

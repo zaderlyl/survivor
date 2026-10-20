@@ -8,7 +8,7 @@
   --surface: #111111;
   --text: #e0e0e0;
   --muted: #8c8c8c;
-  --dim: #5a5a5a;
+  --dim: #808080; /* environ 4,9:1 sur le fond : lisible, tout en restant plus discret que --muted */
   --line: #1f1f1f;
   --line-strong: #333333;
   --pink: #ff0055;
@@ -233,7 +233,7 @@ main {
   top: 10px;
   left: calc(14px + min(220px, 50vw) + 8px);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -242,7 +242,7 @@ main {
   top: 10px;
   right: 14px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -250,7 +250,7 @@ main {
   top: 28px;
   left: 14px;
   width: min(220px, 50vw);
-  height: 3px;
+  height: 5px;
 }
 
 .bar.dash i {
@@ -304,8 +304,8 @@ main {
   border: 1px solid var(--line-strong);
   background: var(--bg);
   color: var(--muted);
-  font-size: 11px;
-  line-height: 18px;
+  font-size: 12px;
+  line-height: 20px;
 }
 
 /* le bouton dash, utile au doigt */
@@ -425,6 +425,20 @@ main {
   color: var(--pink);
 }
 
+/* le bouton principal d'un écran domine les autres */
+.panel .btn.go {
+  min-height: 44px;
+  padding: 6px 36px;
+  font-size: 16px;
+}
+
+/* le libellé visible d'un groupe de choix (difficulté, personnage) */
+#pBody p.label {
+  margin-bottom: -6px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
 .logo-px {
   display: block;
   max-width: 100%;
@@ -473,6 +487,13 @@ main {
   color: var(--pink, #ff4fa3);
 }
 
+/* sur un écran étroit, le tableau garde l'essentiel : rang, score, temps, mode */
+@media (max-width: 420px) {
+  .board .opt {
+    display: none;
+  }
+}
+
 /* les trois choix au niveau supérieur */
 .cards {
   display: grid;
@@ -492,6 +513,24 @@ main {
 .card:hover,
 .card:focus-visible {
   border-color: var(--pink);
+}
+
+/* les bordures de rareté (définies plus bas) écrasent la bordure rose : le contour, lui, se voit sur toutes les cartes */
+.card:hover,
+.card:focus-visible {
+  outline: 1px solid var(--pink);
+  outline-offset: 2px;
+}
+
+/* les cartes apparaissent en fondu plutôt que d'un coup (coupé par prefers-reduced-motion plus bas) */
+.card {
+  animation: card-in 0.12s ease-out;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .card b {
