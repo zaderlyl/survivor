@@ -43,38 +43,6 @@ const hash = (i, j) => {
   return (h ^ (h >>> 16)) >>> 0;
 };
 
-// une lame : un losange allongé, tourné dans le sens du mouvement, avec un petit fil gris au centre
-const blade = (cx, cy, a, alpha, size) => {
-  g.save();
-  const oR = orbRadius(weapon("orb")); // le rayon du cercle suit les variantes
-  g.translate(cx + Math.cos(a) * oR, cy + Math.sin(a) * oR);
-  g.rotate(a + Math.PI / 2);
-  g.globalAlpha = alpha;
-  if (alpha === 1) { // un halo cyan autour de la lame
-    g.globalCompositeOperation = "lighter";
-    g.globalAlpha = 0.35;
-    g.fillStyle = WEAPON_COLOR.orb;
-    g.beginPath();
-    g.arc(0, 0, 11, 0, 6.283);
-    g.fill();
-    g.globalCompositeOperation = "source-over";
-    g.globalAlpha = 1;
-  }
-  g.fillStyle = alpha === 1 ? "#e6fbff" : WEAPON_COLOR.orb;
-  g.beginPath();
-  g.moveTo(0, -11 * size);
-  g.lineTo(4.5 * size, 0);
-  g.lineTo(0, 11 * size);
-  g.lineTo(-4.5 * size, 0);
-  g.closePath();
-  g.fill();
-  if (alpha === 1) {
-    g.fillStyle = GREY;
-    g.fillRect(-1, -6, 2, 12);
-  }
-  g.restore();
-};
-
 // le damier des bords : un motif dense, puis un motif clairsemé, chacun de pixels de 2 px
 let vigA = null, vigB = null;
 const dither = (cells) => {
@@ -617,23 +585,7 @@ const render = () => {
       g.globalAlpha = 1;
       g.fillRect(f.tx - 2, f.ty - 2 - 140 * al, 4, 4);
     } else if (f.k === "mine") {
-      const mc = f.color || WEAPON_COLOR.mine;
-      // une mine : un carré jaune, qui clignote une fois armée, avec un halo
-      g.strokeStyle = mc;
-      const on = f.arm > 0 ? 0.4 : (calm ? 1 : 0.6 + 0.4 * Math.sin(t * 8));
-      g.globalAlpha = on;
-      g.lineWidth = 2;
-      g.strokeRect(f.x - 4, f.y - 4, 8, 8);
-      if (f.arm <= 0) {
-        g.fillStyle = mc;
-        g.fillRect(f.x - 1.5, f.y - 1.5, 3, 3);
-        g.globalCompositeOperation = "lighter";
-        g.globalAlpha = on * 0.3;
-        g.beginPath();
-        g.arc(f.x, f.y, 9, 0, 6.283);
-        g.fill();
-        g.globalCompositeOperation = "source-over";
-      }
+      drawMine(f, f.color || WEAPON_COLOR.mine);
     } else if (f.k === "nade") {
       g.globalAlpha = 1;
       g.fillRect(f.x - 3, f.y - 3, 6, 6);
@@ -870,45 +822,11 @@ const render = () => {
     g.fill();
   }
   const orbW = weapon("orb");
-  if (orbW) {
-    // l'anneau que suivent les lames, puis chaque lame avec sa traînée
-    g.strokeStyle = "#2a2a2a";
-    g.lineWidth = 1;
-    g.setLineDash([3, 7]);
-    g.beginPath();
-    g.arc(P.x, P.y, orbRadius(orbW), 0, 6.283);
-    g.stroke();
-    g.setLineDash([]);
-    const orbN = orbCount(orbW);
-    for (let o = 0; o < orbN; o++) {
-      const a = orbW.angle + (o / orbN) * 6.283;
-      if (!calm) for (let k = 3; k >= 1; k--) blade(P.x, P.y, a - k * 0.16, 0.5 / k, 0.7);
-      blade(P.x, P.y, a, 1, 1);
-    }
-  }
+  if (orbW) drawBlades(orbW); // des épées qui tournent, avec un arc de coupe
 
-  // le champ de feu : un cercle en pointillés autour de toi
+  // le champ de feu : un sol qui rougeoie et des flammes tout autour
   const flameW = weapon("flame");
-  if (flameW) {
-    // la zone de feu : un disque rougeoyant et un anneau de braises
-    const fr = flameRadius(flameW);
-    g.globalCompositeOperation = "lighter";
-    g.fillStyle = WEAPON_COLOR.flame;
-    g.globalAlpha = calm ? 0.07 : 0.05 + 0.025 * Math.sin(t * 6);
-    g.beginPath();
-    g.arc(P.x, P.y, fr, 0, 6.283);
-    g.fill();
-    g.globalCompositeOperation = "source-over";
-    g.strokeStyle = WEAPON_COLOR.flame;
-    g.globalAlpha = 0.6;
-    g.lineWidth = 2;
-    g.setLineDash([2, 6]);
-    g.beginPath();
-    g.arc(P.x, P.y, fr, 0, 6.283);
-    g.stroke();
-    g.setLineDash([]);
-    g.globalAlpha = 1;
-  }
+  if (flameW) drawFlameField(flameW);
   // l'épée spectrale : une lame fantôme qui tourne autour de toi et se jette sur les ennemis
   const specW = weapon("spectral");
   if (specW && specW.sw) {
@@ -956,26 +874,9 @@ const render = () => {
       g.globalAlpha = 1;
     });
   }
-  // les drones : de petits carrés qui tournent autour de toi
+  // les drones : de petites machines à rotors qui tournent autour de toi
   const droneW = weapon("drone");
-  if (droneW) {
-    const droneN = droneCount(droneW);
-    for (let o = 0; o < droneN; o++) {
-      const a = droneW.angle + (o / droneN) * 6.283, dx = P.x + Math.cos(a) * 38, dy = P.y + Math.sin(a) * 38;
-      g.globalCompositeOperation = "lighter"; // un halo bleu
-      g.globalAlpha = 0.4;
-      g.fillStyle = WEAPON_COLOR.drone;
-      g.beginPath();
-      g.arc(dx, dy, 8, 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 1;
-      g.fillStyle = "#cfe3ff";
-      g.fillRect(dx - 3, dy - 3, 6, 6);
-      g.fillStyle = WEAPON_COLOR.drone;
-      g.fillRect(dx - 1, dy - 1, 2, 2);
-    }
-  }
+  if (droneW) drawDrones(droneW);
 
   // les éclats
   // deux passes : les éclats ordinaires, puis ceux qui brillent, en addition de lumière

@@ -41,7 +41,7 @@ Object.assign(WEAPONS, {
               const e = enemies[c[k]];
               if (!e || e.orbCd > 0) continue;
               const dx = e.x - ox, dy = e.y - oy;
-              if (dx * dx + dy * dy < (e.r + 6) * (e.r + 6)) { damage(e, Math.max(1, st.dmg * st.orbDmg * (1 + (w.dm || 0))), false, (dx / (Math.hypot(dx, dy) || 1)) * 120, (dy / (Math.hypot(dx, dy) || 1)) * 120, "orb"); e.orbCd = 0.3; }
+              if (dx * dx + dy * dy < (e.r + 6) * (e.r + 6)) { damage(e, Math.max(1, st.dmg * st.orbDmg * (1 + (w.dm || 0))), false, (dx / (Math.hypot(dx, dy) || 1)) * 120, (dy / (Math.hypot(dx, dy) || 1)) * 120, "orb"); e.orbCd = 0.3; slashFx(e.x, e.y, a, w.legend ? "#ffd86b" : WEAPON_COLOR.orb); }
             }
           }
         }
@@ -67,10 +67,8 @@ Object.assign(WEAPONS, {
       w.cd = Math.max(1.2, slow(w, 5.2) * st.waveMul);
       const R = 82 * (1 + (w.size || 0)), kn = 1 + (w.knock || 0);
       SFX.wave();
-      ringFx(P.x, P.y, WEAPON_COLOR.wave, R, 0.35);
-      ringFx(P.x, P.y, "#e6d6ff", R * 0.7, 0.3);
-      flashFx(P.x, P.y, WEAPON_COLOR.wave, R * 0.55);
-      spark(P.x, P.y, WEAPON_COLOR.wave, 16, R * 2.4);
+      shockwaveFx(P.x, P.y, R, w.legend ? "#8fe0ff" : WEAPON_COLOR.wave, Math.min(8, Math.round((w.knock || 0) * 4)), !!w.legend);
+      flashFx(P.x, P.y, WEAPON_COLOR.wave, R * 0.2);
       enemies.forEach((e) => {
         const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
         if (d < R + e.r) {
@@ -114,7 +112,8 @@ Object.assign(WEAPONS, {
           onEnd(f) {
             if (!f.hit) return;
             boom(f.x, f.y, R, d, WEAPON_COLOR.mine);
-            if (w.legend) [-1, 1].forEach((s) => fx.push({ k: "flash", x: f.x + s * 38, y: f.y, life: 0.25, t: 0.25, onEnd: (q) => boom(q.x, q.y, R * 0.7, d * 0.6, WEAPON_COLOR.mine) }));
+            mineBlastFx(f.x, f.y, R, WEAPON_COLOR.mine);
+            if (w.legend) [-1, 1].forEach((s) => fx.push({ k: "flash", x: f.x + s * 38, y: f.y, life: 0.25, t: 0.25, onEnd: (q) => { boom(q.x, q.y, R * 0.7, d * 0.6, WEAPON_COLOR.mine); mineBlastFx(q.x, q.y, R * 0.7, WEAPON_COLOR.mine); } }));
           } });
       }
     },
@@ -145,7 +144,7 @@ Object.assign(WEAPONS, {
         w.cds[o] = slow(w, 0.9) * cdMul();
         const ta = Math.atan2(tgt.y - y, tgt.x - x);
         fire(ta, 520, 0.6 * (1 + (w.rng || 0)), { x, y, dmg: st.dmg * 0.6 * (1 + (w.dm || 0)), color: WEAPON_COLOR.drone });
-        spark(x, y, WEAPON_COLOR.drone, 2, 80);
+        droneShotFx(x, y, tgt, WEAPON_COLOR.drone);
         if (w.legend && w.mis <= 0) { w.mis = 2.5; fire(ta, 260, 2.5, { x, y, dmg: st.dmg * 2, home: true, blast: 45, size: 1.6, color: "#ff8a1f" }); }
       }
     },
@@ -206,7 +205,9 @@ Object.assign(WEAPONS, {
           pts.push([cur.x, cur.y]);
           strike(cur, st.dmg * 4 * (1 + (w.dm || 0)), 0, 0, "storm");
           flashFx(cur.x, cur.y, WEAPON_COLOR.storm, 22);
-          if (w.blast) splash(cur, w.blast, st.dmg * 1.5);
+          scorchFx(cur.x, cur.y, 12 + (w.blast || 0) * 0.4);
+          spark(cur.x, cur.y, WEAPON_COLOR.storm, 6, 160);
+          if (w.blast) { splash(cur, w.blast, st.dmg * 1.5); ringFx(cur.x, cur.y, WEAPON_COLOR.storm, w.blast, 0.25); }
           done.push(cur);
           let nx = null, nd = 150 * 150;
           for (let i = 0; i < enemies.length; i++) {
@@ -217,7 +218,7 @@ Object.assign(WEAPONS, {
           }
           cur = nx;
         }
-        fx.push({ k: "bolt", pts, life: 0.18, t: 0.18, color: WEAPON_COLOR.storm });
+        boltFx(pts, WEAPON_COLOR.storm);
       }
     },
   },
