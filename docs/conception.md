@@ -6,7 +6,9 @@ Survivor-like cyberpunk en navigateur : tenir le plus longtemps possible face à
 - On choisit un personnage au départ. Il a une **attaque de base simple** qui définit son style.
 - À chaque niveau, **3 cartes** sont tirées au hasard parmi **toutes** les améliorations disponibles (par exemple 2 armes et 1 boost). Les armes du personnage sortent plus souvent.
 - **Pas de limite** d'armes en même temps ; chaque arme a un niveau maximum.
-- **3 raretés** : commun, rare, légendaire. Une carte plus rare est toujours plus puissante, soit par un effet amélioré, soit par un effet changé (surtout au légendaire).
+- **4 raretés** : commun, rare, épique, légendaire (plus la carte d'évolution, rose, qui n'est pas tirée au sort). Une carte plus rare est toujours plus puissante, soit par un effet amélioré, soit par un effet changé (surtout au légendaire).
+
+> État du document : ce fichier décrit les principes. La liste à jour des armes (146) et des boosts est dans [armes-et-boosts.md](armes-et-boosts.md) ; les tableaux d'armes ci-dessous ne montrent que les armes d'origine.
 
 ## Personnages (attaque de base)
 | Perso | Attaque de base | Sensation |
@@ -21,7 +23,7 @@ Survivor-like cyberpunk en navigateur : tenir le plus longtemps possible face à
 
 Les pouvoirs actifs et passifs des persos restent à définir.
 
-## Boosts (commun / rare / légendaire)
+## Boosts (commun / rare / légendaire ; l'épique est calculé entre rare et légendaire)
 | Boost | Effet | Commun | Rare | Légendaire |
 |---|---|---|---|---|
 | Vie | PV max, soigne autant | +20 | +40 | +80 |
@@ -64,6 +66,6 @@ Chaque boost a un niveau maximum de 6 à 10.
 2. Découpage de `script.js` en modules (fait).
 3. Système d'armes : plusieurs armes, niveaux, tirs automatiques.
 4. Personnages et attaques de base.
-5. Boosts avec 3 raretés.
+5. Boosts avec 4 raretés (fait ; l'épique est ajouté après les trois premières).
 6. Armes universelles, puis armes uniques.
 7. Équilibrage et retours visuels.
