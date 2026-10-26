@@ -156,6 +156,7 @@ const showMenu = () => {
     if (best.games) b.appendChild(statsList([["meilleur temps", fmt(best.t[best.diff] || 0)], ["meilleur monde", String(best.world || 1)], ["meilleur score", String(best.score)]]));
     const row = el("div", "row");
     row.appendChild(button("jouer", start, true));
+    row.appendChild(button("scores", () => showBoard(showMenu)));
     row.appendChild(button("comment jouer", () => showHow()));
     b.appendChild(row);
     b.appendChild(el("p", "small", "ZQSD ou flèches · Espace : dash · P : pause · au doigt : glisse n'importe où"));
@@ -190,14 +191,20 @@ const showHow = (back) => {
   }, true);
 };
 
-// la rareté se tire selon le niveau : les légendaires arrivent à partir du niveau 6
+// La rareté se tire selon le niveau : au début surtout des communes et des rares.
+// Les épiques arrivent à partir du niveau 10, les légendaires à partir du niveau 20.
 const rollRarity = () => {
   const L = level;
-  const w = [Math.max(20, 62 - L * 1.6), 36 + L * 1.1, L >= 6 ? 1.5 + L * 0.4 : 0];
-  let r = Math.random() * (w[0] + w[1] + w[2]);
-  for (let i = 0; i < 3; i++) {
-    if (r < w[i]) return i;
-    r -= w[i];
+  const poids = [
+    Math.max(20, 62 - L * 1.6), // commun
+    36 + L * 1.1, // rare
+    L >= 10 ? 2 + (L - 10) * 0.5 : 0, // épique
+    L >= 20 ? 1 + (L - 20) * 0.25 : 0, // légendaire
+  ];
+  let tirage = Math.random() * (poids[0] + poids[1] + poids[2] + poids[3]);
+  for (let i = 0; i < 4; i++) {
+    if (tirage < poids[i]) return i;
+    tirage -= poids[i];
   }
   return 0;
 };
@@ -214,7 +221,7 @@ const showLevelUp = () => {
     const u = pool.splice(at, 1)[0];
     if (u.weapon && usedWeapons.has(u.weapon)) continue; // une seule carte par arme dans un tirage
     if (u.weapon) usedWeapons.add(u.weapon);
-    picks.push({ u, r: rollRarity() });
+    picks.push({ u, r: u.isMut ? 0 : rollRarity() }); // une carte de mutation n'a pas de rareté
   }
   while (picks.length < 3) picks.push({ u: HEAL, r: 0 });
   // une carte de boost en contient deux, de la même rareté
@@ -234,9 +241,9 @@ const showLevelUp = () => {
   show("niveau " + level, (b) => {
     const cards = el("div", "cards");
     picks.forEach((p, i) => {
-      const c = el("button", "card r" + (p.r === 2 ? 3 : p.r) + (p.u.tier ? " tier-" + p.u.tier : "")); // la classe r3 est le style légendaire, r4 celui des évolutions ; tier-* celui d'une arme rare ou légendaire
+      const c = el("button", "card r" + p.r + (p.u.tier ? " tier-" + p.u.tier : "") + (p.u.isMut ? " mut" : "")); // r1 rare, r2 épique, r3 légendaire, r4 évolution ; tier-* : le style d'une arme rare ou légendaire
       c.type = "button";
-      const tag = el("span", "lv", p.evo ? "évolution" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "rare" ? "arme rare" : p.r === 2 ? "nouvelle arme · " + RARITY[2] : "nouvelle arme") : RARITY[p.r]));
+      const tag = el("span", "lv", p.evo ? "évolution" : p.mut ? "mutation" : p.u.isMut ? "mutation" : p.u === HEAL ? "" : (p.u.isNew ? (p.u.tier === "legend" ? "arme légendaire" : p.u.tier === "epic" ? "arme épique" : p.u.tier === "rare" ? "arme rare" : p.r >= R_EPIC ? "nouvelle arme · " + RARITY[p.r] : "nouvelle arme") : RARITY[p.r]));
       const name = el("b", "");
       name.appendChild(el("kbd", "", String(i + 1)));
       name.appendChild(document.createTextNode(p.u.name + (p.u2 ? " + " + p.u2.name : "")));
@@ -254,6 +261,17 @@ const showLevelUp = () => {
 };
 const choose = (p) => {
   if (mode !== "levelup") return;
+  if (p.mut) { // le choix d'une mutation : on la donne à l'arme et on termine le niveau
+    applyMutation(weapon(p.weaponId), p.mut);
+    banner("mutation : " + MUTATIONS[p.mut].name);
+    SFX.pick();
+    finishLevelUp();
+    return;
+  }
+  if (p.u && p.u.isMut) { // la carte de mutation d'une arme : on propose trois mutations
+    showMutationChoice(p.u.weapon);
+    return;
+  }
   if (p.evo) {
     p.u.apply();
     lv[p.u.id] = 1;
@@ -261,15 +279,45 @@ const choose = (p) => {
   } else {
     p.u.apply(p.u.vals[p.r], p.r);
     lv[p.u.id] = (lv[p.u.id] || 0) + p.r + 1;
-    if (p.r === 2 && p.u !== HEAL) st.legends++; // chaque carte légendaire ajoute un anneau d'aura
+    if (p.r === R_LEGEND && p.u !== HEAL) st.legends++; // chaque carte légendaire ajoute un anneau d'aura
     if (p.u2) { p.u2.apply(p.u2.vals[p.r], p.r); lv[p.u2.id] = (lv[p.u2.id] || 0) + p.r + 1; }
       if (p.u.weapon) lv[p.u.weapon] = (lv[p.u.weapon] || 0) + p.r + 1; // le total de l'arme compte pour les évolutions
   }
+  finishLevelUp();
+};
+
+// la fin d'un niveau : s'il en reste d'autres à choisir on les enchaîne, sinon le jeu reprend
+const finishLevelUp = () => {
   drawChips();
   if (pending > 0) { pending--; levelUpNext(); return; }
   hidePanel();
   mode = "play";
   last = performance.now();
+};
+
+// l'écran de choix d'une mutation : trois cartes, une par mutation proposée
+const showMutationChoice = (weaponId) => {
+  const w = weapon(weaponId);
+  const choix = mutationChoices(w);
+  const picks = choix.map((id) => ({ mut: id, weaponId, u: null, r: 0 }));
+  show("mutation : " + WEAPONS[weaponId].name, (b) => {
+    const cards = el("div", "cards");
+    picks.forEach((p, i) => {
+      const c = el("button", "card mut");
+      c.type = "button";
+      c.appendChild(el("span", "lv", "mutation"));
+      const name = el("b", "");
+      name.appendChild(el("kbd", "", String(i + 1)));
+      name.appendChild(document.createTextNode(MUTATIONS[p.mut].name));
+      c.appendChild(name);
+      c.appendChild(el("span", "", MUTATIONS[p.mut].text));
+      c.addEventListener("click", () => choose(p));
+      cards.appendChild(c);
+    });
+    b.appendChild(cards);
+    b.appendChild(el("p", "small", "Z S ↑ ↓ puis Entrée, ou touches 1 2 3"));
+  }, false, true);
+  pBody._picks = picks;
 };
 const levelUpNext = () => {
   level++;
@@ -283,7 +331,7 @@ const drawChips = () => {
   const box = $("#chips");
   box.textContent = "";
   UPGRADES.forEach((u) => { if (lv[u.id]) box.appendChild(el("span", "", u.name + " " + lv[u.id])); });
-  P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1))); });
+  P.weapons.forEach((w) => { if (WEAPONS[w.id].variants) box.appendChild(el("span", "", WEAPONS[w.id].name + " " + (lv[w.id] || 1) + (w.muts && w.muts.length ? " ✦" + w.muts.length : ""))); });
   EVOS.forEach((e) => { if (lv[e.id]) box.appendChild(el("span", "evo", e.name)); });
 };
 
@@ -317,6 +365,7 @@ const end = (won, giveUp) => {
   best.kills = Math.max(best.kills, kills);
   best.level = Math.max(best.level, level);
   best.world = Math.max(best.world || 0, world + 1);
+  const place = score > 0 ? addScore({ score, t, world: world + 1, level, kills, diff: best.diff, char: best.char, won, date: Date.now() }) : 0;
   saveBest();
   $("#pause").hidden = true;
   $("#dashBtn").hidden = true;
@@ -324,7 +373,7 @@ const end = (won, giveUp) => {
   $("#play").classList.remove("low");
   live(won ? "Tu as tenu 5 minutes" : "Perdu");
   if (won) SFX.win(); else if (!giveUp) SFX.lose();
-  show(won ? "tenu" : giveUp ? "abandon" : "perdu", (b) => {
+  const showEnd = () => show(won ? "tenu" : giveUp ? "abandon" : "perdu", (b) => {
     b.appendChild(el("p", "big", won ? "Cinq minutes, tenues." : "Tu as tenu " + fmt(t) + "."));
     b.appendChild(statsList([
       ["score", score + (recScore ? " (record)" : "")],
@@ -333,9 +382,34 @@ const end = (won, giveUp) => {
       ["niveau atteint", String(level)],
       ["meilleur temps (" + dm.name + ")", fmt(best.t[best.diff]) + (record && !won ? " (nouveau)" : "")],
     ]));
+    if (place) b.appendChild(el("p", "small", "Tu entres au tableau des scores, à la place " + place + "."));
     const row = el("div", "row");
     row.appendChild(button("rejouer", start, true));
+    row.appendChild(button("scores", () => showBoard(showEnd, place)));
     row.appendChild(button("menu", showMenu));
     b.appendChild(row);
   });
+  showEnd();
+};
+
+// le tableau des scores ; back : où revenir ; place : la ligne de la partie qui vient de finir (mise en valeur), 0 si aucune
+const showBoard = (back, place) => {
+  show("scores", (b) => {
+    const list = Array.isArray(best.board) ? best.board : [];
+    if (!list.length) {
+      b.appendChild(el("p", "big", "Aucune partie pour l'instant."));
+    } else {
+      const table = el("table", "board");
+      const head = el("tr");
+      ["#", "score", "temps", "monde", "niveau", "mode"].forEach((h) => head.appendChild(el("th", "", h)));
+      table.appendChild(head);
+      list.forEach((e, i) => {
+        const tr = el("tr", i + 1 === place ? "me" : "");
+        [i + 1, e.score, fmt(e.t), e.world, e.level, (DIFFS[e.diff] ? DIFFS[e.diff].name : "") + (e.won ? " ★" : "")].forEach((v) => tr.appendChild(el("td", "", String(v))));
+        table.appendChild(tr);
+      });
+      b.appendChild(table);
+    }
+    b.appendChild(button("retour", back, true));
+  }, true);
 };

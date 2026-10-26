@@ -20,6 +20,9 @@ const WEAPON_COLOR = {
   satellite: "#ff5fb0", rotbeam: "#35c8ff", cross: "#7ad6ff",
   sticky: "#ffb02e", napalm: "#ff6a1f", bombard: "#ff8a1f",
   thunder: "#7ad6ff", field: "#6fb8ff", tesla: "#b8e6ff",
+  // les armes à mécanique nouvelle
+  mobilewall: "#5dffb0", corrupt: "#d36bff", twinblades: "#a8e6ff", thousandcuts: "#ff5c9a", hydrohammer: "#ffc14d", curvedlaser: "#6fffe0", lightprison: "#8fb8ff",
+  wreckingball: "#ff9a52", bouncegrenade: "#c7ff5a", elecnode: "#63b3ff", magstorm: "#a78bff",
   // les nouvelles armes uniques
   rainswords: "#ff9ccf", greatsword: "#ffd0e4", riposte: "#ff3d7f",
   cannon: "#ffd23f", raysalvo: "#ff9f2e", overload: "#ff5f2e",
@@ -50,7 +53,7 @@ const WEAPON_COLOR = {
   download: "#6fe8ff", perfectguard: "#ff9ccf", elecshield: "#8fd8ff", hiddenblades: "#cfe8dc", blackpowder: "#ffb02e",
   tractor: "#ffd28a", grapple: "#9ad8b0", silence: "#a8b0d8", ghostshot: "#9bffe0", livingbattery: "#ffe27a",
 };
-const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
+const hitColor = (src) => ({ slash: "#ffffff", beam: "#ffffff", bolt: "#9fe9ff", blast: "#ffb02e", burn: "#ff8a1f", orb: WEAPON_COLOR.orb, wave: WEAPON_COLOR.wave, storm: WEAPON_COLOR.storm, virus: "#6dff9a", hack: "#ff3dd0", corrupt: "#d36bff", smoke: "#9aa0c8", poison: "#a8ff7a" })[src] || heroColor();
 
 // des étincelles qui jaillissent et ralentissent
 const spark = (x, y, color, n, speed) => {
@@ -79,6 +82,7 @@ const explodeFx = (x, y, color, r) => {
   ringFx(x, y, color, r);
   flashFx(x, y, color, r * 0.7);
   spark(x, y, color, Math.min(14, 6 + (r / 12) | 0), 90 + r * 2);
+  if (r >= 28) blastFx(x, y, r, color); // la boule de feu
   if (r >= 45) smokeFx(x, y, 3);
 };
 // de la fumée grise qui monte et s'étale, après une explosion
@@ -104,18 +108,15 @@ const drawSword = (x, y, a, col, s) => {
   g.save();
   g.translate(x, y);
   g.rotate(a + Math.PI / 2);
-  g.globalCompositeOperation = "lighter";
-  g.globalAlpha = 0.35;
-  g.fillStyle = col;
-  g.beginPath();
-  g.arc(0, 0, 10 * s, 0, 6.283);
-  g.fill();
-  g.globalCompositeOperation = "source-over";
-  g.globalAlpha = 0.95;
-  g.fillRect(-2 * s, -13 * s, 4 * s, 20 * s);
-  g.fillStyle = "#ffffff";
-  g.fillRect(-1 * s, -12 * s, 2 * s, 15 * s);
-  g.fillRect(-5 * s, 5 * s, 10 * s, 2 * s);
+  lueur(() => {
+    g.globalAlpha = 0.3;
+    g.fillStyle = col;
+    g.beginPath();
+    g.arc(0, 0, 9 * s, 0, 6.283);
+    g.fill();
+  });
+  g.globalAlpha = 1;
+  dessinerEpee(0.55 * s, col, false);
   g.restore();
   g.globalAlpha = 1;
 };

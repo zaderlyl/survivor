@@ -1,24 +1,61 @@
 # Boosts et armes
 
-Liste complète, générée à partir du code. Chaque arme a **4 variantes** à 3 raretés (commun, rare, légendaire) ; la rareté légendaire d'une carte active en plus l'effet « légendaire » indiqué.
+Liste complète, mise à jour à partir du code. Chaque arme a **4 variantes** et 4 raretés (commun, rare, épique, légendaire) ; la rareté légendaire d'une carte active en plus l'effet « légendaire » indiqué.
+
+## Les raretés
+
+Une seule échelle, pour les cartes de boost **et** pour les armes :
+
+| Rareté | Couleur | Cartes de boost | Armes |
+|---|---|---|---|
+| Commun | gris | valeur de base | armes communes |
+| Rare | bleu | valeur plus forte | 35 armes rares (dès le niveau 6) |
+| Épique | violet | valeur intermédiaire, calculée (≈ 60 % du chemin entre rare et légendaire) | 14 armes épiques (dès le niveau 10, une seule par partie) |
+| Légendaire | or | valeur maximale **et** effet bonus | aucune pour l'instant (à créer ; dès le niveau 20, une seule par partie) |
+
+Le tirage de la rareté d'une carte dépend du niveau : jusqu'au niveau 9 il n'y a que du commun et du rare ; l'épique arrive au niveau 10, le légendaire au niveau 20. Au niveau 50 : environ 14 % de commun, 65 % de rare, 15 % d'épique, 6 % de légendaire.
+
+**Aucune limite** : on peut reprendre un boost autant de fois qu'on veut. Les réductions (Armure, Garde parfaite, recharges) se multiplient, donc elles tendent vers 100 % sans l'atteindre. Seule limite technique : une arme ne se lance pas plus de 16 fois par seconde.
+
+L'effet légendaire d'une arme ne se cumule pas, sauf pour 10 armes dont l'effet est un retour ou un sens inverse (spirale, pluie de lasers, faisceau rotatif, danse des lames, fouet plasma, anneau d'épées, chevaliers spectres, champ de particules, destructeur, mur de lumière) : chaque reprise en ajoute un exemplaire.
+
+## Les mutations
+
+Quand une arme atteint **5, 15 puis 30 points** (les cartes prises pour elle), la carte suivante de cette arme devient une **carte de mutation** (turquoise) : on choisit une mutation parmi trois tirées au hasard. Chaque arme peut avoir jusqu'à 3 mutations. Une mutation donne un vrai bonus, mesuré à environ +30 à +50 % d'efficacité dans son cas favorable.
+
+| Mutation | Effet |
+|---|---|
+| Écho | chaque coup se répète 1 s plus tard, à moitié de puissance |
+| Surcharge | un coup sur quatre vaut triple |
+| Gigantisme | zones 60 % plus grandes, coups 30 % plus lourds, recharge 20 % plus lente |
+| Givre | les ennemis touchés ralentissent de 35 % et subissent 30 % de dégâts en plus pendant 3 s |
+| Contagion | 35 % des dégâts sautent sur l'ennemi voisin |
+| Fission | un ennemi tué par l'arme lâche cinq éclats en étoile |
+| Aimant | chaque impact attire les ennemis autour ; +15 % de dégâts |
+| Brasier | les ennemis touchés brûlent 3 s (10 % du coup toutes les 0,5 s) |
+| Sangsue | une part des dégâts te soigne |
+| Élan | chaque dash raccourcit de 1 s la recharge de l'arme (armes à recharge) |
+| Riposte | chaque coup reçu raccourcit de 1 s la recharge (armes à recharge) |
+| Rebond | les tirs rebondissent sur un ennemi de plus (armes à projectiles) |
 
 ## Boosts (tous les personnages)
 
-Une carte de boost en contient **deux**, de même rareté. Valeurs : commun / rare / légendaire.
+Une carte de boost en contient **deux**, de même rareté. Valeurs : commun / rare / épique / légendaire.
 
-| Boost | Effet | Commun | Rare | Légendaire |
-|---|---|---|---|---|
-| Vie | PV max, et soigne autant | +20 | +40 | +80 |
-| Puissance | Dégâts de toutes les armes | +10 % | +20 % | +40 %, les ennemis tués explosent |
-| Cadence | Vitesse d'attaque | +8 % | +15 % | +30 % |
-| Portée | Portée des attaques | +10 % | +20 % | +40 % |
-| Vitesse | Déplacement | +6 % | +12 % | +25 % |
-| Aimant | Rayon de ramassage de l'XP | +40 px | +80 px | +200 px, les cristaux viennent seuls |
-| Critique | Chances de coup critique | +8 % | +15 % | +30 %, critiques ×3 |
-| Régénération | PV par seconde | +0,5 | +1,5 | +3 |
-| Armure | Dégâts reçus | −6 % | −12 % | −25 % |
-| Vol de vie | PV rendus par ennemi tué | +0,4 | +1 | +2,5 |
-| Glissade | Recharge du dash | −10 % | −20 % | −35 % |
+| Boost | Effet | Commun | Rare | Épique | Légendaire |
+|---|---|---|---|---|---|
+| Vie | PV max, et soigne autant | +20 | +40 | +64 | +80 |
+| Puissance | Dégâts de toutes les armes | +10 % | +20 % | +32 % | +40 %, les ennemis tués explosent |
+| Cadence | Vitesse d'attaque | +8 % | +15 % | +24 % | +30 % |
+| Portée | Portée des attaques | +10 % | +20 % | +32 % | +40 % |
+| Vitesse | Déplacement | +6 % | +12 % | +20 % | +25 % |
+| Aimant | Rayon de ramassage de l'XP | +40 px | +80 px | +152 px | +200 px, les cristaux viennent seuls |
+| Critique | Chances de coup critique (au-delà de 100 %, tout est critique) | +8 % | +15 % | +24 % | +30 %, critiques ×3 |
+| Régénération | PV par seconde | +0,5 | +1,5 | +2,4 | +3 |
+| Armure | Dégâts reçus (les réductions se multiplient) | −6 % | −12 % | −20 % | −25 % |
+| Vol de vie | PV rendus par ennemi tué | +0,4 | +1 | +1,9 | +2,5 |
+| Savoir | Expérience gagnée | +10 % | +25 % | +46 % | +60 % |
+| Glissade | Recharge du dash | −10 % | −20 % | −29 % | −35 % |
 
 En plus, **pour Volt seulement** : Salve (+projectiles), Perforant (le tir traverse) et Éclat (tirs explosifs), qui améliorent son tir de base.
 
@@ -35,7 +72,7 @@ Les paliers visuels du personnage évoluent avec ces boosts : armure (Vie, Armur
 
 ## Armes par héros
 
-Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** (dès le niveau 6) et 2 **légendaires** (dès le niveau 12, une seule par partie). Les armes du héros sortent 2 fois plus souvent que les universelles.
+Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** (dès le niveau 6) et 2 **épiques** (dès le niveau 10, une seule par partie). Les armes du héros sortent 2 fois plus souvent que les universelles.
 
 ### Volt, le hacker
 
@@ -62,7 +99,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Point de restauration** — pose un point de sauvegarde : quelques secondes plus tard, tu y reviens et tu récupères de la vie. *Légendaire :* se déclenche aussi tout seul quand tu tombes sous 20 % de vie.
 - **Écran bleu** — tous les ennemis de l'écran se figent un instant. *Légendaire :* le gel dure deux fois plus longtemps.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Kernel panic** — pendant quelques secondes, l'écran plante : de nombreux ennemis sont supprimés d'un coup. *Légendaire :* même les boss perdent une grosse part de leur vie.
 - **Intelligence artificielle** — une IA géante flotte au-dessus de toi et tire des lasers sur plusieurs ennemis à la fois. *Légendaire :* elle tire sur deux fois plus de cibles.
@@ -92,7 +129,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Mur d'épées** — un arc d'épées se dresse devant toi, repousse les ennemis, puis part en volée. *Légendaire :* le mur tourne autour de toi.
 - **Ronde des spectres** — des spectres de toi chargent en ligne droite à travers les ennemis. *Légendaire :* ils reviennent en sens inverse.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Dragon d'acier** — un dragon fait d'épées surgit et fonce à travers l'écran en tranchant tout. *Légendaire :* le dragon crache des épées devant lui.
 - **Lame du jugement** — une épée colossale tombe sur la plus grosse concentration d'ennemis et fend l'arène. *Légendaire :* elle frappe trois fois d'affilée.
@@ -122,7 +159,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Tourelle lourde** — une grosse tourelle posée au sol tire de gros rayons en rafale. *Légendaire :* la tourelle tire deux fois plus vite.
 - **Champ de particules** — un anneau de rayons courts tourne autour de toi et brûle tout ce qui s'approche. *Légendaire :* un second anneau tourne en sens inverse.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Rayon destructeur** — un faisceau gigantesque balaie tout autour de toi, deux tours complets. *Légendaire :* un second faisceau tourne à l'opposé.
 - **Mur de lumière** — un mur de lumière immense traverse tout l'écran et balaie les ennemis devant lui. *Légendaire :* le mur revient sur ses pas.
@@ -152,7 +189,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Cimetière** — des pierres tombales se dressent autour de toi et envoient des crânes à la poursuite des ennemis. *Légendaire :* les tombes explosent à la fin.
 - **Marque mortelle** — marque l'ennemi le plus costaud : il subit plus de dégâts, puis explose. *Légendaire :* la marque saute sur le voisin quand elle détone.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Faucheuse** — une faux géante balaie un grand cercle autour de toi et exécute les ennemis affaiblis. *Légendaire :* un troisième coup de faux suit.
 - **Éclipse** — l'écran s'assombrit : les ennemis perdent la tête, ralentissent et souffrent, et chaque coup te soigne un peu. *Légendaire :* tu es invulnérable pendant l'éclipse.
@@ -182,7 +219,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Canon à ions** — une longue charge, puis un seul tir gigantesque qui détruit tout sur sa ligne. *Légendaire :* deux tirs successifs.
 - **Rail orbital** — une longue ligne de lumière tombe du ciel sur un ennemi, après une alerte. *Légendaire :* une seconde ligne la croise à angle droit.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Soleil** — un soleil grandit au-dessus d'un groupe d'ennemis, brûle tout, puis explose. *Légendaire :* un second soleil apparaît sur un autre groupe.
 - **Tempête de lasers** — des lasers géants croisent tout l'écran dans tous les sens pendant plusieurs secondes. *Légendaire :* deux fois plus de lasers.
@@ -212,7 +249,7 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Tir de barrage** — une rafale rapide d'obus explosifs part en éventail. *Légendaire :* chaque obus se divise en trois à l'impact.
 - **Bombe à retardement** — une grosse bombe plantée explose après un compte à rebours. *Légendaire :* l'explosion se répète en trois vagues.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Cataclysme** — une pluie de météores s'abat sur tout l'écran et laisse des cratères de feu. *Légendaire :* deux fois plus de météores.
 - **Fusion du réacteur** — tu deviens un réacteur instable : des explosions éclatent sans cesse autour de toi, et tu es invulnérable. *Légendaire :* les ennemis qui te touchent brûlent.
@@ -242,12 +279,12 @@ Chaque héros a : 1 attaque de base, 10 armes uniques **communes**, 5 **rares** 
 - **Déluge** — une pluie d'éclairs s'abat sur une grande zone autour de toi. *Légendaire :* deux fois plus d'impacts.
 - **Coup de tonnerre** — après une courte charge, une onde électrique étourdit tout autour de toi. *Légendaire :* une seconde onde, plus grande, suit.
 
-**Légendaires (2)**
+**Épiques (2)**
 
 - **Colère du ciel** — un éclair gigantesque tombe sur l'ennemi le plus costaud, puis saute sur une douzaine d'autres. *Légendaire :* il frappe aussi les deux ennemis suivants les plus costauds.
 - **Dieu de l'orage** — tu deviens l'orage : des éclairs s'abattent sans cesse sur tout l'écran pendant plusieurs secondes. *Légendaire :* tu es invulnérable pendant la transformation.
 
 ## Totaux
 
-- 7 attaques de base, 6 armes universelles, 11 boosts.
-- 70 armes uniques communes, 35 rares, 14 légendaires.
+- 7 attaques de base, 6 armes universelles, 12 boosts.
+- 70 armes uniques communes, 35 rares, 14 épiques (et 0 légendaire, à créer).

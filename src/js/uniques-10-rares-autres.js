@@ -182,7 +182,7 @@ Object.assign(WEAPONS, {
 
   // Kernel panic (légendaire) : l'écran plante, des ennemis sont supprimés d'un coup
   kernelpanic: {
-    char: "volt", tier: "legend", name: "Kernel panic",
+    char: "volt", tier: "epic", name: "Kernel panic",
     intro: "pendant quelques secondes, l'écran plante : de nombreux ennemis sont supprimés d'un coup",
     legendText: "même les boss perdent une grosse part de leur vie",
     cd0: 4,
@@ -217,7 +217,7 @@ Object.assign(WEAPONS, {
 
   // Intelligence artificielle (légendaire) : une IA géante tire sur plusieurs ennemis à la fois
   aiassistant: {
-    char: "volt", tier: "legend", name: "Intelligence artificielle",
+    char: "volt", tier: "epic", name: "Intelligence artificielle",
     intro: "une IA géante flotte au-dessus de toi et tire des lasers sur plusieurs ennemis à la fois",
     legendText: "elle tire sur deux fois plus de cibles",
     cd0: 4,
@@ -384,7 +384,7 @@ Object.assign(WEAPONS, {
 
   // Faucheuse (légendaire) : une faux géante balaie un grand cercle et exécute les ennemis affaiblis
   reaper: {
-    char: "ghost", tier: "legend", name: "Faucheuse",
+    char: "ghost", tier: "epic", name: "Faucheuse",
     intro: "une faux géante balaie un grand cercle autour de toi et exécute les ennemis affaiblis",
     legendText: "un troisième coup de faux suit",
     cd0: 4,
@@ -424,7 +424,7 @@ Object.assign(WEAPONS, {
 
   // Éclipse (légendaire) : l'écran s'assombrit, les ennemis perdent la tête et souffrent
   eclipse: {
-    char: "ghost", tier: "legend", name: "Éclipse",
+    char: "ghost", tier: "epic", name: "Éclipse",
     intro: "l'écran s'assombrit : les ennemis perdent la tête, ralentissent et souffrent, et chaque coup te soigne un peu",
     legendText: "tu es invulnérable pendant l'éclipse",
     cd0: 4,
@@ -589,7 +589,7 @@ Object.assign(WEAPONS, {
 
   // Soleil (légendaire) : un soleil grandit sur la cible et brûle tout, puis explose
   sun: {
-    char: "arc", tier: "legend", name: "Soleil",
+    char: "arc", tier: "epic", name: "Soleil",
     intro: "un soleil grandit au-dessus d'un groupe d'ennemis, brûle tout, puis explose",
     legendText: "un second soleil apparaît sur un autre groupe",
     cd0: 4,
@@ -628,7 +628,7 @@ Object.assign(WEAPONS, {
 
   // Tempête de lasers (légendaire) : des lasers géants croisent l'écran dans tous les sens
   laserstorm: {
-    char: "arc", tier: "legend", name: "Tempête de lasers",
+    char: "arc", tier: "epic", name: "Tempête de lasers",
     intro: "des lasers géants croisent tout l'écran dans tous les sens pendant plusieurs secondes",
     legendText: "deux fois plus de lasers",
     cd0: 4,
@@ -796,7 +796,7 @@ Object.assign(WEAPONS, {
 
   // Cataclysme (légendaire) : une pluie de météores s'abat sur tout l'écran
   cataclysm: {
-    char: "pulse", tier: "legend", name: "Cataclysme",
+    char: "pulse", tier: "epic", name: "Cataclysme",
     intro: "une pluie de météores s'abat sur tout l'écran et laisse des cratères de feu",
     legendText: "deux fois plus de météores",
     cd0: 4,
@@ -830,7 +830,7 @@ Object.assign(WEAPONS, {
 
   // Fusion du réacteur (légendaire) : il devient un réacteur instable qui explose tout autour de lui
   meltdown: {
-    char: "pulse", tier: "legend", name: "Fusion du réacteur",
+    char: "pulse", tier: "epic", name: "Fusion du réacteur",
     intro: "tu deviens un réacteur instable : des explosions éclatent sans cesse autour de toi, et tu es invulnérable",
     legendText: "les ennemis qui te touchent brûlent",
     cd0: 4,
@@ -997,7 +997,7 @@ Object.assign(WEAPONS, {
 
   // Colère du ciel (légendaire) : un éclair gigantesque tombe sur l'ennemi le plus costaud
   skywrath: {
-    char: "zap", tier: "legend", name: "Colère du ciel",
+    char: "zap", tier: "epic", name: "Colère du ciel",
     intro: "un éclair gigantesque tombe sur l'ennemi le plus costaud, puis saute sur une douzaine d'autres",
     legendText: "il frappe aussi les deux ennemis suivants les plus costauds",
     cd0: 4,
@@ -1032,7 +1032,7 @@ Object.assign(WEAPONS, {
 
   // Dieu de l'orage (légendaire) : il devient l'orage lui-même
   stormgod: {
-    char: "zap", tier: "legend", name: "Dieu de l'orage",
+    char: "zap", tier: "epic", name: "Dieu de l'orage",
     intro: "tu deviens l'orage : des éclairs s'abattent sans cesse sur tout l'écran pendant plusieurs secondes",
     legendText: "tu es invulnérable pendant la transformation",
     cd0: 4,

@@ -12,6 +12,10 @@
   --line: #1f1f1f;
   --line-strong: #333333;
   --pink: #ff0055;
+  /* les couleurs des raretés : commun gris, rare bleu, épique violet, légendaire or */
+  --rare: #4aa8ff;
+  --epic: #b46cff;
+  --legend: #ffc83a;
   --font: "Courier New", Courier, monospace;
 }
 
@@ -446,6 +450,29 @@ main {
   text-align: right;
 }
 
+/* le tableau des scores */
+.board {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 12px;
+  text-align: right;
+}
+
+.board th {
+  color: var(--muted);
+  font-weight: normal;
+  padding: 2px 8px;
+}
+
+.board td {
+  color: var(--text);
+  padding: 2px 8px;
+}
+
+.board tr.me td {
+  color: var(--pink, #ff4fa3);
+}
+
 /* les trois choix au niveau supérieur */
 .cards {
   display: grid;
@@ -481,29 +508,42 @@ main {
   color: var(--dim);
 }
 
-/* la rareté se lit à la bordure : grise, claire, rose en pointillé, rose pleine avec fond teinté */
+/* La rareté se lit à la bordure :
+   r0 commun (grise) · r1 rare (bleue) · r2 épique (violette) · r3 légendaire (or, avec lueur) · r4 évolution (rose) */
 .card.r1 {
-  border-color: var(--text);
+  border-color: var(--rare);
 }
 
 .card.r1 .lv {
-  color: var(--text);
+  color: var(--rare);
 }
 
 .card.r2 {
-  border: 1px dashed var(--pink);
+  border-color: var(--epic);
+  background: #0f0a16;
 }
 
-.card.r2 .lv,
-.card.r3 .lv,
-.card.r4 .lv {
-  color: var(--pink);
+.card.r2 .lv {
+  color: var(--epic);
 }
 
-.card.r3,
+.card.r3 {
+  border: 2px solid var(--legend);
+  background: #1a1405;
+  box-shadow: 0 0 14px rgba(255, 200, 58, 0.35);
+}
+
+.card.r3 .lv {
+  color: var(--legend);
+}
+
 .card.r4 {
   border: 2px solid var(--pink);
   background: #16080d;
+}
+
+.card.r4 .lv {
+  color: var(--pink);
 }
 
 .card.r4 b {
@@ -640,22 +680,44 @@ main {
   gap: 6px;
 }
 
-/* une arme rare (bleu) ou légendaire (or) : une carte à part */
+/* Le type d'une arme : une carte à part, plus marquée que la rareté du tirage.
+   rare (bleu) · épique (violet, avec lueur) · légendaire (or, avec lueur) */
 .card.tier-rare {
-  border: 2px solid #4aa8ff;
+  border: 2px solid var(--rare);
   background: #07121e;
 }
 
 .card.tier-rare .lv {
-  color: #4aa8ff;
+  color: var(--rare);
+}
+
+.card.tier-epic {
+  border: 2px solid var(--epic);
+  background: #110a1c;
+  box-shadow: 0 0 14px rgba(180, 108, 255, 0.35);
+}
+
+.card.tier-epic .lv {
+  color: var(--epic);
 }
 
 .card.tier-legend {
-  border: 2px solid #ffc83a;
+  border: 2px solid var(--legend);
   background: #1a1405;
   box-shadow: 0 0 14px rgba(255, 200, 58, 0.35);
 }
 
 .card.tier-legend .lv {
-  color: #ffc83a;
+  color: var(--legend);
+}
+
+/* une carte de mutation : turquoise, à part de l'échelle des raretés */
+.card.mut {
+  border: 2px solid #4dffd0;
+  background: #06130f;
+  box-shadow: 0 0 14px rgba(77, 255, 208, 0.25);
+}
+
+.card.mut .lv {
+  color: #4dffd0;
 }

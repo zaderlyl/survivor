@@ -61,6 +61,7 @@ const gainXp = (v) => {
 
 const kill = (i) => {
   const e = enemies[i];
+  if (e.lastMw && e.lastMw.mset && e.lastMw.mset.fission) fissionBurst(e); // Fission : l'ennemi tué par l'arme lâche des éclats
   kills++;
   combo++;
   comboT = 2;
@@ -103,6 +104,7 @@ const hurt = (dmg) => {
   if (dmg < 0.5) { P.inv = 0.4; P.flash = 0.1; return; } // tout est absorbé
   P.hp -= dmg;
   P.weapons.forEach((w) => { const od = WEAPONS[w.id].onHurt; if (od) od(w, dmg); }); // les armes qui réagissent aux coups reçus
+  mutOnHurt();
   P.inv = 0.8;
   P.flash = 0.2;
   shake = Math.max(shake, 6);
@@ -121,6 +123,9 @@ const damage = (e, d, crit, kx, ky, src) => {
     if (e.shield <= 0) { e.shield = 0; e.mode = "busy"; e.mt = 1.8; e.spiral = 0; e.vuln = 1.8; e.vuln2 = 1.6; ringFx(e.x, e.y, "#35f2ff", 140, 0.5); burst(e.x, e.y, 24, "#35f2ff", 300); floatText(e.x, e.y - e.r - 16, "bouclier brisé", "#35f2ff", 14); }
     return;
   }
+  const mw = CUR_W && !MUT_BUSY ? CUR_W : null; // l'arme à mutations qui frappe
+  if (CUR_W) e.lastMw = CUR_W; // pour savoir qui l'a tué
+  if (mw) d *= mutMul(mw, e);
   if (e.vuln > 0) d *= e.vuln2 || 1.5; // un ennemi vulnérable subit plus
   if (e.marked) d *= 1.5; // une marque mortelle rend plus vulnérable
   if (e.type === "tank" && src === "bullet") d *= 0.5; // le blindé encaisse mal les tirs, mieux les lames, l'onde et les explosions
@@ -133,8 +138,11 @@ const damage = (e, d, crit, kx, ky, src) => {
   const hc = hitColor(src);
   spark(e.x, e.y, hc, crit ? 12 : 6, crit ? 260 : 180); // une gerbe à la couleur du coup
   flashFx(e.x, e.y, hc, crit ? 16 : 10);
+  hitFx(e, src, hc); // un petit éclat propre au type de coup
   if (crit) ringFx(e.x, e.y, "#ffffff", 22, 0.2);
   SFX.hit();
+  e.lastHit = d;
+  if (mw) mutAfter(mw, e, d, src); // les effets des mutations
 };
 
 // l'explosion d'un tir : des dégâts de zone autour de l'ennemi touché
@@ -333,6 +341,7 @@ const update = (dt) => {
       }
     }
     if (e.frozen > 0) { e.frozen -= dt; sp = 0; }
+    if (e.gelT > 0) { e.gelT -= dt; sp *= 1 - e.gelV; } // Givre : ralenti
     if (e.vuln > 0) e.vuln -= dt;
     if (e.blind > 0) { e.blind -= dt; mx = Math.cos(e.ba); my = Math.sin(e.ba); } // aveuglé par la fumée : il erre
     if (e.hacked > 0) {
@@ -354,6 +363,56 @@ const update = (dt) => {
       } else { mx = 0; my = 0; }
       if (e.hacked <= 0 && e.hackEnd) { const fn = e.hackEnd; e.hackEnd = null; fn(e); }
     }
+    if (e.corrupt) {
+      // Corrompu : il perd le contrôle, fonce au hasard sur l'un des alliés proches et le blesse au contact.
+      // (Un ennemi piraté, lui, vise toujours le plus proche : le corrompu hésite, zigzague et change d'avis.)
+      const co = e.corrupt;
+      co.t -= dt;
+      co.tourne -= dt;
+      co.touche -= dt;
+      e.fire = 5; // il ne tire plus sur toi
+      if (co.tourne <= 0) {
+        co.tourne = rnd(0.35, 0.7);
+        // sa nouvelle cible : l'un des trois alliés les plus proches
+        const proches = [];
+        for (let q = 0; q < enemies.length; q++) {
+          const o = enemies[q];
+          if (o === e || o.hp <= 0) continue;
+          const ddx = o.x - e.x, ddy = o.y - e.y, dd = ddx * ddx + ddy * ddy;
+          if (dd < 340 * 340) proches.push({ o, dd });
+        }
+        proches.sort((a, b) => a.dd - b.dd);
+        co.cible = proches.length ? proches[Math.floor(Math.random() * Math.min(3, proches.length))].o : null;
+        co.errance = rnd(0, 6.283);
+      }
+      const tg = co.cible && co.cible.hp > 0 ? co.cible : null;
+      if (tg) {
+        const ddx = tg.x - e.x, ddy = tg.y - e.y, dl = Math.hypot(ddx, ddy) || 1;
+        const zigzag = Math.sin(t * 14 + e.seed) * 0.6; // il titube de côté
+        mx = ddx / dl - (ddy / dl) * zigzag;
+        my = ddy / dl + (ddx / dl) * zigzag;
+        sp = e.sp * 1.8;
+        if (dl < e.r + tg.r + 6 && co.touche <= 0) {
+          co.touche = 0.4;
+          damage(tg, co.degats, false, (ddx / dl) * 140, (ddy / dl) * 140, "corrupt");
+          spark(tg.x, tg.y, WEAPON_COLOR.corrupt, 6, 190);
+          // légendaire : la corruption passe à sa victime
+          if (tg.hp > 0 && tg.type !== "boss" && !tg.corrupt && co.generation < co.maxGeneration) {
+            corruptEnemy(tg, { duree: co.duree * 0.85, degats: co.degats, generation: co.generation + 1, maxGeneration: co.maxGeneration });
+            fx.push({ k: "bolt", color: WEAPON_COLOR.corrupt, pts: [[e.x, e.y], [tg.x, tg.y]], life: 0.2, t: 0.2 });
+          }
+        }
+      } else {
+        mx = Math.cos(co.errance); // personne à attaquer : il erre
+        my = Math.sin(co.errance);
+        sp = e.sp;
+      }
+      if (co.t <= 0) {
+        e.corrupt = null;
+        e.fire = rnd(0.5, 2);
+        spark(e.x, e.y, WEAPON_COLOR.corrupt, 8, 160);
+      }
+    }
     e.x = clamp(e.x + mx * sp * dt + px * 10 * dt + e.kx * dt, e.r, ARENA_W - e.r);
     e.y = clamp(e.y + my * sp * dt + py * 10 * dt + e.ky * dt, e.r, ARENA_H - e.r);
     e.kx *= Math.max(0, 1 - 9 * dt);
@@ -363,7 +422,7 @@ const update = (dt) => {
     if (e.burn > 0) {
       e.burn -= dt;
       e.burnT -= dt;
-      if (e.burnT <= 0) { e.burnT = 0.5; damage(e, st.dmg * 0.4, false, 0, 0, "burn"); }
+      if (e.burnT <= 0) { e.burnT = 0.5; damage(e, e.bd || st.dmg * 0.4, false, 0, 0, "burn"); }
     }
     if (e.virus > 0) {
       e.virus -= dt;
@@ -384,7 +443,7 @@ const update = (dt) => {
       if (e.poisonT <= 0) { e.poisonT = 0.4; damage(e, e.pd, false, 0, 0, "poison"); if (e.pspread) poisonSpread(e); }
     }
     if (e.marked) { e.marked.t -= dt; if (e.marked.t <= 0) { const mk = e.marked; e.marked = null; detonateMark(e, mk, true); } }
-    if (d < e.r + P.r && e.age > 0.25 && !(e.hacked > 0)) hurt(e.dmg);
+    if (d < e.r + P.r && e.age > 0.25 && !(e.hacked > 0) && !e.corrupt) hurt(e.dmg);
   }
   if (mode !== "play") return;
 
@@ -407,11 +466,12 @@ const update = (dt) => {
   if (mode !== "play") return;
 
   // chaque arme se met à jour seule (tir, onde...)
-  P.weapons.forEach((w) => WEAPONS[w.id].update(w, dt));
+  P.weapons.forEach((w) => runWeapon(w, dt)); // (les mutations de chaque arme sont dans mutations.js)
 
   // les tirs touchent : trois petits pas par image, pour qu'un tir rapide ne traverse pas un ennemi sans le toucher
   for (let b = bullets.length - 1; b >= 0; b--) {
     const bl = bullets[b];
+    CUR_W = bl.mw || null; // le tir vient-il d'une arme à mutations ?
     let gone = false;
     if (bl.home) {
       const n = nearest(400, bl.x, bl.y);
@@ -471,6 +531,7 @@ const update = (dt) => {
         }
       }
     }
+    CUR_W = null;
     if (gone) { bullets[b] = bullets[bullets.length - 1]; bullets.pop(); }
   }
 
@@ -478,6 +539,9 @@ const update = (dt) => {
   for (let i = fx.length - 1; i >= 0; i--) {
     const f = fx[i];
     f.life -= dt;
+    const nf0 = fx.length;
+    const nb0 = bullets.length;
+    if (f.mw) CUR_W = f.mw; // l'effet vient d'une arme à mutations : ses coups lui sont attribués
     if (f.tick) f.tick(f, dt);
     // ambiance d'un effet : des braises qui montent (emb), des étincelles qui crépitent (spk)
     if (f.emb && Math.random() < 0.5) { const aa = rnd(0, 6.283), rr = Math.sqrt(Math.random()) * (f.R || 20); emberFx(f.x + Math.cos(aa) * rr, f.y + Math.sin(aa) * rr, f.emb); }
@@ -487,7 +551,13 @@ const update = (dt) => {
       f.x = f.x0 + (f.tx - f.x0) * u;
       f.y = f.y0 + (f.ty - f.y0) * u;
     }
-    if (f.life <= 0) { if (f.onEnd) f.onEnd(f); fx.splice(i, 1); }
+    if (f.life <= 0 && f.onEnd) f.onEnd(f);
+    if (f.mw) { // on marque ce que cet effet vient de créer
+      for (let j = nf0; j < fx.length; j++) if (!fx[j].mw) fx[j].mw = f.mw;
+      for (let j = nb0; j < bullets.length; j++) if (!bullets[j].mw) bullets[j].mw = f.mw;
+      CUR_W = null;
+    }
+    if (f.life <= 0) fx.splice(i, 1);
   }
 
   // les ennemis morts
