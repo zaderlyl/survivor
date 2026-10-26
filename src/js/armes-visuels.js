@@ -13,6 +13,11 @@ const lueur = (dessiner) => {
   dessiner();
   g.globalCompositeOperation = "source-over";
 };
+// éclaircit (k > 0) ou assombrit (k < 0) une couleur « #rrggbb »
+const teinte = (hex, k) => {
+  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255];
+  return "rgb(" + c.map((v) => Math.round(k < 0 ? v * (1 + k) : v + (255 - v) * k)).join(",") + ")";
+};
 // 0 → 1 → 1, mais qui ralentit en arrivant (pour une onde qui s'élargit vite puis s'apaise)
 const ralenti = (p) => 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 3);
 
@@ -61,35 +66,21 @@ const dessinerEpee = (k, couleur, doree) => {
   g.fillRect(-2.2 * k, 12.6 * k, 4.4 * k, 2.4 * k);
 };
 
-// l'arc de coupe laissé derrière une épée : de plus en plus fin et pâle en s'éloignant
+// l'arc de coupe laissé derrière une épée : trois croissants pleins, du plus long (sombre) au plus court (clair)
 const drawSwish = (a, R, longueur, couleur, k) => {
-  const morceaux = 10;
-  lueur(() => {
-    g.lineCap = "round";
-    for (let i = 0; i < morceaux; i++) {
-      const p = (i + 1) / morceaux; // 0 : queue de la traînée, 1 : contre l'épée
-      g.globalAlpha = 0.8 * p;
-      g.strokeStyle = couleur;
-      g.lineWidth = 1 + 11 * k * p;
-      g.beginPath();
-      g.arc(P.x, P.y, R, a - longueur * (1 - i / morceaux), a - longueur * (1 - p));
-      g.stroke();
-    }
-    g.lineCap = "butt";
+  const paliers = [[1, 0.45, 6], [0.62, 0.8, 5], [0.3, 1, 3]];
+  paliers.forEach((p, i) => {
+    g.globalAlpha = 1;
+    g.fillStyle = i === 2 ? "#ffffff" : teinte(couleur, i === 0 ? -0.3 : 0);
+    croissant(P.x, P.y, R, a - longueur * p[0], a, p[2] * k, 12);
+    g.fill();
   });
-  g.globalAlpha = 0.7;
-  g.strokeStyle = "#ffffff";
-  g.lineWidth = 1.5 * k;
-  g.beginPath();
-  g.arc(P.x, P.y, R, a - longueur * 0.55, a);
-  g.stroke();
-  g.globalAlpha = 1;
 };
 
 const drawBlades = (w) => {
   const R = orbRadius(w), n = orbCount(w), legende = !!w.legend;
   const k = 1 + Math.min(0.5, (w.dm || 0) * 0.15); // plus de dégâts : des épées plus grandes
-  const longueur = 0.7 + Math.min(1.2, (w.spin || 0) * 0.5); // plus de vitesse : une traînée plus longue
+  const longueur = 0.4 + Math.min(0.5, (w.spin || 0) * 0.25); // plus de vitesse : une traînée plus longue
   const couleur = legende ? "#ffd86b" : WEAPON_COLOR.orb;
   // le cercle que suivent les épées : un sillon discret
   g.strokeStyle = "#2a2a2a";
@@ -99,19 +90,13 @@ const drawBlades = (w) => {
   g.arc(P.x, P.y, R, 0, 6.283);
   g.stroke();
   g.setLineDash([]);
+  // d'abord toutes les traînées, puis toutes les épées par-dessus
+  for (let o = 0; o < n; o++) drawSwish(w.angle + (o / n) * 6.283, R, longueur, couleur, k);
   for (let o = 0; o < n; o++) {
     const a = w.angle + (o / n) * 6.283;
-    drawSwish(a, R, longueur, couleur, k);
     g.save();
     g.translate(P.x + Math.cos(a) * R, P.y + Math.sin(a) * R);
     g.rotate(a + Math.PI); // la pointe va dans le sens du mouvement
-    lueur(() => {
-      g.globalAlpha = legende ? 0.22 : 0.12;
-      g.fillStyle = couleur;
-      g.beginPath();
-      g.arc(0, 0, 11 * k, 0, 6.283);
-      g.fill();
-    });
     g.globalAlpha = 1;
     dessinerEpee(k, couleur, legende);
     g.restore();
@@ -162,15 +147,6 @@ const shockwaveFx = (x, y, R, couleur, fissures, glace) => {
   fx.push({ k: "custom", x, y, life: 0.9, t: 0.9,
     draw(f, c) {
       const p = 1 - f.life / f.t, front = R * ralenti(p * 2.2), fondu = 1 - p;
-      // la lueur du sol sous l'onde
-      const gr = c.createRadialGradient(f.x, f.y, 0, f.x, f.y, Math.max(1, front));
-      gr.addColorStop(0, "rgba(255,255,255,0)");
-      gr.addColorStop(1, couleur);
-      c.globalAlpha = fondu * 0.18;
-      c.fillStyle = gr;
-      c.beginPath();
-      c.arc(f.x, f.y, front, 0, 6.283);
-      c.fill();
       // les fissures apparaissent là où le front est déjà passé
       c.lineJoin = "round";
       cracks.forEach((pts) => {
@@ -244,35 +220,8 @@ const drawMine = (f, couleur) => {
   }
 };
 
-// la boule de feu, la fumée et le cratère d'une mine qui explose (les dégâts sont dans boom)
-const mineBlastFx = (x, y, R, couleur) => {
-  const fumee = [];
-  for (let i = 0; i < 5; i++) fumee.push({ a: rnd(0, 6.283), d: rnd(0.2, 0.7), r: rnd(0.25, 0.45) });
-  spark(x, y, "#ffffff", 6, 240);
-  fx.push({ k: "custom", x, y, life: 0.55, t: 0.55,
-    draw(f, c) {
-      const p = 1 - f.life / f.t, r = R * (0.35 + 0.65 * ralenti(p * 1.6)), fondu = 1 - p;
-      const gr = c.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
-      gr.addColorStop(0, "#ffffff");
-      gr.addColorStop(0.35, couleur);
-      gr.addColorStop(1, "rgba(255,90,0,0)");
-      lueur(() => {
-        c.globalAlpha = fondu;
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(f.x, f.y, r, 0, 6.283);
-        c.fill();
-      });
-      // la fumée grise monte et s'étale
-      fumee.forEach((s) => {
-        c.globalAlpha = Math.max(0, fondu - 0.25) * 0.5;
-        c.fillStyle = "#3a3640";
-        c.beginPath();
-        c.arc(f.x + Math.cos(s.a) * R * s.d, f.y + Math.sin(s.a) * R * s.d - 20 * p, R * s.r * (0.5 + p), 0, 6.283);
-        c.fill();
-      });
-      c.globalAlpha = 1;
-    } });
+// le cratère noirci que laisse une mine qui explose (la boule de feu vient d'explodeFx, via boom)
+const mineBlastFx = (x, y, R) => {
   // le cratère noirci reste un moment au sol
   fx.push({ k: "custom", x, y, life: 2, t: 2,
     draw(f, c) {
@@ -365,19 +314,12 @@ const drawFlameField = (w) => {
   const R = flameRadius(w), tt = calm ? 0 : t, vit = 7 + (w.rate || 0) * 6;
   const chaleur = Math.min(1, (w.dm || 0) / 2); // plus la brûlure est forte, plus le cœur des flammes est blanc
   const coeur = chaleur > 0.6 || w.legend ? "#fff6c8" : "#ffd84a";
-  // le sol qui rougeoie : plus clair au centre, éteint au bord
-  const gr = g.createRadialGradient(P.x, P.y, 0, P.x, P.y, R);
-  gr.addColorStop(0, "rgba(255,170,60,0.34)");
-  gr.addColorStop(0.75, "rgba(255,100,20,0.22)");
-  gr.addColorStop(1, "rgba(255,60,0,0)");
-  lueur(() => {
-    g.globalAlpha = calm ? 1 : 0.85 + 0.15 * Math.sin(tt * 5);
-    g.fillStyle = gr;
-    g.beginPath();
-    g.arc(P.x, P.y, R, 0, 6.283);
-    g.fill();
-  });
+  // le sol qui rougeoie : un disque en damier
   g.globalAlpha = 1;
+  g.fillStyle = "rgba(255,110,30,0.4)";
+  g.beginPath();
+  g.arc(P.x, P.y, R, 0, 6.283);
+  g.fill();
   // le bord : un cercle noirci, puis des langues de feu tout autour
   g.strokeStyle = "rgba(40,8,0,0.55)";
   g.lineWidth = 3;
@@ -497,4 +439,466 @@ const scorchFx = (x, y, rayon) => {
       });
       c.globalAlpha = 1;
     } });
+};
+
+/* ---------- Les formes partagées : tout ce que les autres armes dessinent ---------- */
+/*
+  rendu.js appelle ces fonctions pour les coups de toutes les armes : croissants de coupe, lasers, éclairs, tirs,
+  explosions, tourelles, bobines, pièges, grenades, étoiles, piliers de lumière, murs de flammes.
+*/
+
+// le contour d'un croissant (un arc qui s'amincit aux deux bouts), prêt à être rempli
+const croissant = (cx, cy, r, a0, a1, epaisseur, n) => {
+  const dehors = [], dedans = [];
+  for (let i = 0; i <= n; i++) {
+    const u = i / n, a = a0 + (a1 - a0) * u, e = epaisseur * Math.pow(Math.sin(Math.PI * u), 0.7);
+    dehors.push([cx + Math.cos(a) * (r + e * 0.5), cy + Math.sin(a) * (r + e * 0.5)]);
+    dedans.push([cx + Math.cos(a) * (r - e * 0.5), cy + Math.sin(a) * (r - e * 0.5)]);
+  }
+  g.beginPath();
+  dehors.forEach((p, i) => { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
+  for (let i = dedans.length - 1; i >= 0; i--) g.lineTo(dedans[i][0], dedans[i][1]);
+  g.closePath();
+};
+
+// un coup tranchant : un croissant lumineux qui balaie l'arc, avec un cœur blanc
+const drawSlash = (f, col, al) => {
+  const ep = 9 * (f.big || 1) * (0.4 + 0.6 * al), tete = Math.min(1, 0.3 + (1 - al) * 3.5);
+  const a0 = f.a - f.spread, a1 = a0 + 2 * f.spread * tete;
+  g.globalCompositeOperation = "lighter";
+  g.globalAlpha = al * 0.85;
+  g.fillStyle = col;
+  croissant(f.x, f.y, f.r, a0, a1, ep * 1.6, 18);
+  g.fill();
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = al;
+  g.fillStyle = "#ffffff";
+  croissant(f.x, f.y, f.r, a0, a1, ep * 0.6, 18);
+  g.fill();
+};
+
+// un laser : une bande de couleur, un cœur blanc, un rond de lumière aux deux bouts
+const drawLaser = (f, col, al) => {
+  const x2 = f.x + Math.cos(f.a) * f.len, y2 = f.y + Math.sin(f.a) * f.len;
+  const w = f.w * al + 2;
+  const trait = (largeur, couleur) => {
+    g.globalAlpha = 1;
+    g.strokeStyle = couleur;
+    g.lineWidth = largeur;
+    g.beginPath();
+    g.moveTo(f.x, f.y);
+    g.lineTo(x2, y2);
+    g.stroke();
+  };
+  trait(w * 2.2, col);
+  g.fillStyle = col;
+  g.beginPath();
+  g.arc(x2, y2, w * 1.7, 0, 6.283);
+  g.fill();
+  g.beginPath();
+  g.arc(f.x, f.y, w * 1.4, 0, 6.283);
+  g.fill();
+  trait(Math.max(2, w * 0.7), "#ffffff");
+  g.globalAlpha = 1;
+};
+
+// un éclair : un zigzag fixé à la première image, avec des branches, qui vacille
+const drawBolt = (f, col) => {
+  if (!f.jag) {
+    f.jag = [];
+    f.br = [];
+    for (let i = 1; i < f.pts.length; i++) {
+      const seg = zigzag(f.pts[i - 1], f.pts[i], 6);
+      f.jag = f.jag.concat(i === 1 ? seg : seg.slice(1));
+    }
+    for (let i = 2; i < f.jag.length - 2; i++) {
+      if (Math.random() > 0.2) continue;
+      const a = Math.atan2(f.jag[i + 1][1] - f.jag[i - 1][1], f.jag[i + 1][0] - f.jag[i - 1][0]) + rnd(-1, 1) * 0.9, l = rnd(14, 30);
+      f.br.push(zigzag(f.jag[i], [f.jag[i][0] + Math.cos(a) * l, f.jag[i][1] + Math.sin(a) * l], 3));
+    }
+  }
+  const trace = (liste) => { g.beginPath(); liste.forEach((p, i) => { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); }); g.stroke(); };
+  const al = g.globalAlpha, vacille = calm ? 1 : 0.7 + 0.3 * Math.random();
+  g.lineJoin = "round";
+  g.globalCompositeOperation = "lighter";
+  g.strokeStyle = col;
+  g.globalAlpha = al * 0.25 * vacille;
+  g.lineWidth = 5;
+  trace(f.jag);
+  g.globalAlpha = al * 0.6 * vacille;
+  g.lineWidth = 2.5;
+  trace(f.jag);
+  g.lineWidth = 1.8;
+  f.br.forEach(trace);
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = al;
+  g.strokeStyle = "#ffffff";
+  g.lineWidth = 1.5;
+  trace(f.jag);
+  g.lineWidth = 0.8;
+  f.br.forEach(trace);
+};
+
+// un tir : une comète avec une longue queue, un halo, un corps coloré et un cœur blanc
+const drawBullet = (b, couleurHeros) => {
+  const col = b.color || couleurHeros, sz = b.size || 1, a = Math.atan2(b.vy, b.vx);
+  g.save();
+  g.translate(b.x, b.y);
+  if (b.star) { // un shuriken : une étoile qui tourne
+    g.rotate(t * 20);
+    g.fillStyle = col;
+    g.fillRect(-6, -1.5, 12, 3);
+    g.fillRect(-1.5, -6, 3, 12);
+    g.fillStyle = "#ffffff";
+    g.fillRect(-2, -0.7, 4, 1.4);
+    g.restore();
+    return;
+  }
+  g.rotate(a);
+  g.globalCompositeOperation = "lighter";
+  g.fillStyle = col;
+  g.globalAlpha = 0.3;
+  g.beginPath();
+  g.moveTo(-20 * sz, 0);
+  g.lineTo(-3 * sz, -2.4 * sz);
+  g.lineTo(-3 * sz, 2.4 * sz);
+  g.closePath();
+  g.fill();
+  g.globalAlpha = 0.35;
+  g.beginPath();
+  g.arc(0, 0, 5 * sz, 0, 6.283);
+  g.fill();
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = 1;
+  g.beginPath();
+  g.ellipse(0, 0, 6 * sz, 2.2 * sz, 0, 0, 6.283);
+  g.fill();
+  g.fillStyle = "#ffffff";
+  g.beginPath();
+  g.ellipse(sz, 0, 3.6 * sz, 0.9 * sz, 0, 0, 6.283);
+  g.fill();
+  g.restore();
+};
+
+// une explosion : trois disques pleins (couleur, clair, blanc) qui gonflent puis s'éteignent, et de la fumée
+const blastFx = (x, y, R, col) => {
+  if (calm || fx.length > 90) return;
+  const fumee = [];
+  for (let i = 0; i < 4; i++) fumee.push({ a: rnd(0, 6.283), d: rnd(0.2, 0.6), r: rnd(0.25, 0.4) });
+  fx.push({ k: "custom", x, y, life: 0.42, t: 0.42,
+    draw(f, c) {
+      const p = 1 - f.life / f.t, r = R * (0.3 + 0.7 * ralenti(p * 1.7)), reste = Math.max(0, 1 - p * 1.25);
+      fumee.forEach((s) => {
+        c.globalAlpha = Math.max(0, 0.9 - p) * 0.7;
+        c.fillStyle = "#3a3640";
+        c.beginPath();
+        c.arc(f.x + Math.cos(s.a) * R * s.d, f.y + Math.sin(s.a) * R * s.d - 14 * p, R * s.r * (0.5 + p), 0, 6.283);
+        c.fill();
+      });
+      c.globalAlpha = 1;
+      [[1, col], [0.62, teinte(col, 0.5)], [0.3, "#ffffff"]].forEach((d) => {
+        c.fillStyle = d[1];
+        c.beginPath();
+        c.arc(f.x, f.y, Math.max(0, r * d[0] * reste), 0, 6.283);
+        c.fill();
+      });
+    } });
+};
+
+// une touche : un petit éclat propre à l'origine du coup (coupe, laser, éclair, explosion)
+const hitFx = (e, src, couleur) => {
+  if (calm || fx.length > 100) return;
+  if (src === "slash") slashFx(e.x, e.y, rnd(0, 6.283), "#ffffff");
+  else if (src === "beam") flashFx(e.x, e.y, couleur, 16);
+  else if (src === "blast") ringFx(e.x, e.y, couleur, e.r + 14, 0.18);
+};
+
+// un marteau : une tête d'acier à bandes colorées au bout d'un manche, qui tourne
+const drawHammer = (f, col) => {
+  g.save();
+  g.translate(f.x, f.y);
+  g.rotate(f.spin || 0);
+  lueur(() => {
+    g.globalAlpha = 0.3;
+    g.fillStyle = col;
+    g.beginPath();
+    g.arc(0, 0, 15, 0, 6.283);
+    g.fill();
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = "#5a3a2a";
+  g.fillRect(-1.5, 2, 3, 16);
+  g.fillStyle = "#cfd6e6";
+  g.fillRect(-10, -7, 20, 10);
+  g.fillStyle = "#8a93aa";
+  g.fillRect(-10, -1, 20, 4);
+  g.fillStyle = col;
+  g.fillRect(-10, -7, 3, 10);
+  g.fillRect(7, -7, 3, 10);
+  g.fillStyle = "#ffffff";
+  g.fillRect(-6, -6, 10, 2);
+  g.restore();
+};
+
+// une tourelle : un socle, un dôme et un canon tourné vers la cible ; s : l'échelle
+const drawTurret = (x, y, a, col, s) => {
+  g.fillStyle = "#171c2a";
+  g.fillRect(x - 7 * s, y - 1 * s, 14 * s, 5 * s);
+  g.fillStyle = "#2c3550";
+  g.fillRect(x - 5 * s, y - 4 * s, 10 * s, 4 * s);
+  g.save();
+  g.translate(x, y - 3 * s);
+  g.rotate(a);
+  g.fillStyle = "#46506e";
+  g.fillRect(0, -1.8 * s, 13 * s, 3.6 * s);
+  g.fillStyle = col;
+  g.fillRect(11 * s, -2.2 * s, 3 * s, 4.4 * s);
+  g.restore();
+  g.fillStyle = "#46506e";
+  g.beginPath();
+  g.arc(x, y - 3 * s, 4 * s, Math.PI, 0);
+  g.fill();
+  g.fillStyle = col;
+  g.fillRect(x - 1 * s, y - 5.5 * s, 2 * s, 1.6 * s);
+  lueur(() => {
+    g.globalAlpha = 0.25;
+    g.beginPath();
+    g.arc(x + Math.cos(a) * 14 * s, y - 3 * s + Math.sin(a) * 14 * s, 4 * s, 0, 6.283);
+    g.fill();
+  });
+};
+
+// une bobine électrique : des anneaux empilés et un globe qui crépite au sommet
+const drawCoil = (x, y, col, s) => {
+  g.fillStyle = "#171c2a";
+  g.fillRect(x - 6 * s, y, 12 * s, 3 * s);
+  g.fillStyle = "#46506e";
+  [[5, 0], [4, -4], [3, -8]].forEach((r) => g.fillRect(x - r[0] * s, y + r[1] * s - 3 * s, r[0] * 2 * s, 3 * s));
+  g.fillStyle = col;
+  g.fillRect(x - 1.5 * s, y - 14 * s, 3 * s, 3 * s);
+  lueur(() => {
+    g.globalAlpha = calm ? 0.5 : 0.4 + 0.2 * Math.sin(t * 16);
+    g.fillStyle = col;
+    g.beginPath();
+    g.arc(x, y - 15 * s, 5 * s, 0, 6.283);
+    g.fill();
+  });
+};
+
+// un piège à ours : une plaque, des dents tout autour
+const drawTrap = (f, col) => {
+  g.fillStyle = "#2a2a22";
+  g.beginPath();
+  g.ellipse(f.x, f.y + 1, 8, 4, 0, 0, 6.283);
+  g.fill();
+  g.fillStyle = col;
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * 6.283;
+    g.beginPath();
+    g.moveTo(f.x + Math.cos(a) * 8, f.y + 1 + Math.sin(a) * 4);
+    g.lineTo(f.x + Math.cos(a + 0.25) * 5, f.y + 1 + Math.sin(a + 0.25) * 2.5);
+    g.lineTo(f.x + Math.cos(a) * 3, f.y - 3 + Math.sin(a) * 1.5);
+    g.closePath();
+    g.fill();
+  }
+  g.fillStyle = "#ffffff";
+  g.fillRect(f.x - 1, f.y - 0.5, 2, 2);
+};
+
+// une grenade : un corps sombre, une bande colorée, une goupille ; led : un voyant qui clignote
+const drawGrenade = (x, y, col, r, led) => {
+  g.fillStyle = "#1c2028";
+  g.beginPath();
+  g.arc(x, y, r, 0, 6.283);
+  g.fill();
+  g.fillStyle = col;
+  g.fillRect(x - r, y - 1, r * 2, 2);
+  g.fillStyle = "#6b7288";
+  g.fillRect(x - 1, y - r - 2, 2, 3);
+  g.fillRect(x + 1, y - r - 2, 3, 1);
+  g.fillStyle = "#ffffff";
+  g.fillRect(x - r * 0.5, y - r * 0.6, 1.5, 1.5);
+  if (led) {
+    g.fillStyle = "#ff4040";
+    g.fillRect(x - 1, y + 1.5, 2, 2);
+    lueur(() => { g.globalAlpha = 0.5; g.beginPath(); g.arc(x, y + 2.5, 4, 0, 6.283); g.fill(); });
+  }
+};
+
+// une étoile de lame, qui tourne : quatre pointes d'acier et un bord coloré
+const drawStar = (f, col) => {
+  g.save();
+  g.translate(f.x, f.y);
+  g.rotate(f.spin || 0);
+  g.fillStyle = "#dfe8f0";
+  g.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * 6.283, r = i % 2 ? 3 : 9;
+    g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  g.closePath();
+  g.fill();
+  g.strokeStyle = col;
+  g.lineWidth = 1;
+  g.stroke();
+  g.fillStyle = "#0a0a0a";
+  g.fillRect(-1, -1, 2, 2);
+  g.restore();
+};
+
+// un mur de flammes en anneau
+const drawFireRing = (f, col) => {
+  g.globalAlpha = 1;
+  g.fillStyle = "rgba(255,100,20,0.32)";
+  g.beginPath();
+  g.arc(f.x, f.y, f.R, 0, 6.283);
+  g.fill();
+  const tt = calm ? 0 : t, n = Math.min(44, Math.max(12, Math.round(f.R / 5)));
+  const fondu = f.life < 0.6 && !calm ? 0.5 + 0.4 * Math.sin(tt * 20) : 1;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 6.283 + tt * 0.4, bx = f.x + Math.cos(a) * f.R, by = f.y + Math.sin(a) * f.R;
+    const h = 12 + 8 * (0.5 + 0.5 * Math.sin(tt * 8 + i * 1.7));
+    g.globalAlpha = 0.85 * fondu;
+    flamme(bx, by, h, 4.5, Math.sin(tt * 4 + i) * 2, col);
+    g.globalAlpha = 0.9 * fondu;
+    flamme(bx, by, h * 0.55, 2.4, 0, "#ffd84a");
+  }
+  g.globalAlpha = 1;
+};
+
+// un nuage de gaz : des bouffées qui dérivent
+const drawGas = (f, col) => {
+  const tt = calm ? 0 : t;
+  g.fillStyle = col;
+  for (let i = 0; i < 9; i++) {
+    const a = i * 2.399 + tt * 0.25, d = f.R * (0.25 + 0.55 * ((i * 0.37) % 1));
+    g.globalAlpha = 0.1 + 0.05 * Math.sin(tt * 2 + i);
+    g.beginPath();
+    g.arc(f.x + Math.cos(a) * d, f.y + Math.sin(a) * d, f.R * (0.28 + 0.1 * Math.sin(tt + i)), 0, 6.283);
+    g.fill();
+  }
+  g.globalAlpha = 0.4;
+  g.strokeStyle = col;
+  g.lineWidth = 1;
+  g.setLineDash([3, 6]);
+  g.beginPath();
+  g.arc(f.x, f.y, f.R, 0, 6.283);
+  g.stroke();
+  g.setLineDash([]);
+  g.globalAlpha = 1;
+};
+
+// un globe d'énergie : un halo, un cœur blanc, trois étincelles qui tournent autour
+const drawGlobe = (f, col, taille) => {
+  const r = taille || 6, tt = calm ? 0 : t;
+  lueur(() => {
+    g.fillStyle = col;
+    g.globalAlpha = 0.4;
+    g.beginPath();
+    g.arc(f.x, f.y, r * 2, 0, 6.283);
+    g.fill();
+    g.globalAlpha = 0.6;
+    g.strokeStyle = col;
+    g.lineWidth = 1.5;
+    for (let k = 0; k < 3; k++) {
+      const a = tt * 9 + k * 2.09;
+      g.beginPath();
+      g.arc(f.x, f.y, r * 1.5, a, a + 0.9);
+      g.stroke();
+    }
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = "#ffffff";
+  g.beginPath();
+  g.arc(f.x, f.y, r * 0.6, 0, 6.283);
+  g.fill();
+};
+
+// un pilier de lumière qui tombe du ciel
+const drawPillar = (f, col) => {
+  const fondu = Math.min(1, f.life / 0.4), haut = f.y - 320;
+  g.globalAlpha = fondu;
+  g.fillStyle = teinte(col, -0.2);
+  g.fillRect(f.x - f.R * 0.3, haut, f.R * 0.6, 320);
+  g.fillStyle = "rgba(255,255,255,0.4)";
+  g.beginPath();
+  g.ellipse(f.x, f.y, f.R, f.R * 0.45, 0, 0, 6.283);
+  g.fill();
+  g.globalAlpha = fondu;
+  g.fillStyle = "#ffffff";
+  g.fillRect(f.x - 2, haut, 4, 320);
+  g.strokeStyle = col;
+  g.lineWidth = 3;
+  g.beginPath();
+  g.ellipse(f.x, f.y, f.R, f.R * 0.45, 0, 0, 6.283);
+  g.stroke();
+  g.globalAlpha = 1;
+};
+
+// un obus de mortier qui tombe : le cercle de visée, l'obus et sa queue de feu
+const drawShell = (f, col, al) => {
+  g.globalAlpha = 0.5;
+  g.strokeStyle = col;
+  g.lineWidth = 2;
+  g.setLineDash([3, 5]);
+  g.beginPath();
+  g.arc(f.tx, f.ty, f.R * (0.4 + 0.6 * (1 - al)), 0, 6.283);
+  g.stroke();
+  g.setLineDash([]);
+  const hy = f.ty - 140 * al;
+  lueur(() => {
+    g.globalAlpha = 0.5;
+    g.fillStyle = col;
+    g.beginPath();
+    g.moveTo(f.tx - 3, hy - 14);
+    g.lineTo(f.tx + 3, hy - 14);
+    g.lineTo(f.tx, hy - 2);
+    g.closePath();
+    g.fill();
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = "#2c3140";
+  g.fillRect(f.tx - 2.5, hy - 5, 5, 9);
+  g.fillStyle = col;
+  g.fillRect(f.tx - 2.5, hy - 2, 5, 1.5);
+  g.fillStyle = "#cfd6e6";
+  g.fillRect(f.tx - 1, hy + 4, 2, 2);
+};
+
+/* ---------- La couche pixel : tout ce qui est dessiné par les armes reste en gros pixels ---------- */
+/*
+  Les effets sont dessinés sur une petite image (un pixel = 2 px du monde, comme les sprites), puis agrandie sans lissage :
+  les arcs, les lasers et les lueurs deviennent des blocs nets, comme tout le reste du jeu.
+*/
+const PIX = 2;
+let mainG = g; // le vrai pinceau, pendant que g désigne la petite image
+const pixelLayer = document.createElement("canvas");
+const pixelCtx = pixelLayer.getContext("2d");
+let pxX0 = 0, pxY0 = 0, pxW = 0, pxH = 0;
+
+// à appeler avant de dessiner : g dessine désormais sur la petite image, avec les mêmes coordonnées du monde
+const pixelBegin = (cx, cy, vw, vh) => {
+  pxX0 = Math.floor((cx - vw / 2) / PIX) * PIX - PIX * 3;
+  pxY0 = Math.floor((cy - vh / 2) / PIX) * PIX - PIX * 3;
+  pxW = Math.ceil(vw / PIX) + 8;
+  pxH = Math.ceil(vh / PIX) + 8;
+  if (pixelLayer.width !== pxW || pixelLayer.height !== pxH) { pixelLayer.width = pxW; pixelLayer.height = pxH; }
+  pixelCtx.setTransform(1, 0, 0, 1, 0, 0);
+  pixelCtx.clearRect(0, 0, pxW, pxH);
+  pixelCtx.setTransform(1 / PIX, 0, 0, 1 / PIX, -pxX0 / PIX, -pxY0 / PIX);
+  pixelCtx.imageSmoothingEnabled = false;
+  mainG = g;
+  g = pixelCtx;
+};
+
+// à appeler après : durcit les bords (on repose l'image sur elle-même : une transparence moyenne devient presque pleine),
+// puis pose la petite image sur le canevas, agrandie sans lissage
+const pixelEnd = () => {
+  pixelCtx.setTransform(1, 0, 0, 1, 0, 0);
+  for (let i = 0; i < 4; i++) pixelCtx.drawImage(pixelLayer, 0, 0);
+  g = mainG;
+  g.globalAlpha = 1;
+  g.globalCompositeOperation = "source-over";
+  g.imageSmoothingEnabled = false;
+  g.drawImage(pixelLayer, pxX0, pxY0, pxW * PIX, pxH * PIX);
 };

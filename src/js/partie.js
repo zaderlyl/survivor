@@ -138,6 +138,7 @@ const damage = (e, d, crit, kx, ky, src) => {
   const hc = hitColor(src);
   spark(e.x, e.y, hc, crit ? 12 : 6, crit ? 260 : 180); // une gerbe à la couleur du coup
   flashFx(e.x, e.y, hc, crit ? 16 : 10);
+  hitFx(e, src, hc); // un petit éclat propre au type de coup
   if (crit) ringFx(e.x, e.y, "#ffffff", 22, 0.2);
   SFX.hit();
   e.lastHit = d;

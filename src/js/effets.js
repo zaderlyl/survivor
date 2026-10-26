@@ -82,6 +82,7 @@ const explodeFx = (x, y, color, r) => {
   ringFx(x, y, color, r);
   flashFx(x, y, color, r * 0.7);
   spark(x, y, color, Math.min(14, 6 + (r / 12) | 0), 90 + r * 2);
+  if (r >= 28) blastFx(x, y, r, color); // la boule de feu
   if (r >= 45) smokeFx(x, y, 3);
 };
 // de la fumée grise qui monte et s'étale, après une explosion
@@ -107,18 +108,15 @@ const drawSword = (x, y, a, col, s) => {
   g.save();
   g.translate(x, y);
   g.rotate(a + Math.PI / 2);
-  g.globalCompositeOperation = "lighter";
-  g.globalAlpha = 0.35;
-  g.fillStyle = col;
-  g.beginPath();
-  g.arc(0, 0, 10 * s, 0, 6.283);
-  g.fill();
-  g.globalCompositeOperation = "source-over";
-  g.globalAlpha = 0.95;
-  g.fillRect(-2 * s, -13 * s, 4 * s, 20 * s);
-  g.fillStyle = "#ffffff";
-  g.fillRect(-1 * s, -12 * s, 2 * s, 15 * s);
-  g.fillRect(-5 * s, 5 * s, 10 * s, 2 * s);
+  lueur(() => {
+    g.globalAlpha = 0.3;
+    g.fillStyle = col;
+    g.beginPath();
+    g.arc(0, 0, 9 * s, 0, 6.283);
+    g.fill();
+  });
+  g.globalAlpha = 1;
+  dessinerEpee(0.55 * s, col, false);
   g.restore();
   g.globalAlpha = 1;
 };

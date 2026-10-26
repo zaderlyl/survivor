@@ -47,7 +47,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 
 /* ---------- Le canevas ---------- */
 const cv = $("#cv"); // l'élément <canvas> de la page
-const g = cv.getContext("2d"); // le « pinceau » avec lequel tout est dessiné
+let g = cv.getContext("2d"); // le « pinceau » avec lequel tout est dessiné (la couche pixel le remplace un instant, voir armes-visuels.js)
 let cssW = 0; // largeur du canevas à l'écran
 let cssH = 0; // hauteur
 let dpr = 1; // densité de pixels de l'écran (2 sur écran Retina)

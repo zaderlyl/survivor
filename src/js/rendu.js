@@ -110,7 +110,8 @@ const render = () => {
 
   const inView = (x, y, m) => x > cx - vw / 2 - m && x < cx + vw / 2 + m && y > cy - vh / 2 - m && y < cy + vh / 2 + m;
 
-  // les ondes
+  // les ondes et les coups des armes : tout passe par la couche pixel (voir armes-visuels.js)
+  pixelBegin(cx, cy, vw, vh);
   waves.forEach((w) => {
     g.strokeStyle = w.color || LIGHT;
     g.lineWidth = w.color ? 4 : 3;
@@ -130,67 +131,21 @@ const render = () => {
     g.strokeStyle = col;
     g.fillStyle = col;
     if (f.k === "arc") {
-      // un arc de couleur qui brille, avec un cœur blanc
-      g.globalCompositeOperation = "lighter";
-      g.lineWidth = 9 * (f.big || 1);
-      g.beginPath();
-      g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
-      g.stroke();
-      g.globalCompositeOperation = "source-over";
-      g.strokeStyle = "#ffffff";
-      g.lineWidth = 3 * (f.big || 1);
-      g.beginPath();
-      g.arc(f.x, f.y, f.r, f.a - f.spread, f.a + f.spread);
-      g.stroke();
+      drawSlash(f, col, al);
     } else if (f.k === "beam" || f.k === "cbeam") {
-      g.globalCompositeOperation = "lighter";
-      g.lineWidth = (f.w * al + 2) * 1.8;
-      g.beginPath();
-      g.moveTo(f.x, f.y);
-      g.lineTo(f.x + Math.cos(f.a) * f.len, f.y + Math.sin(f.a) * f.len);
-      g.stroke();
-      g.globalCompositeOperation = "source-over";
-      g.strokeStyle = "#ffffff";
-      g.lineWidth = Math.max(1, (f.w * al + 2) * 0.4);
-      g.beginPath();
-      g.moveTo(f.x, f.y);
-      g.lineTo(f.x + Math.cos(f.a) * f.len, f.y + Math.sin(f.a) * f.len);
-      g.stroke();
+      drawLaser(f, col, al);
     } else if (f.k === "bolt") {
-      const pts = f.pts.map((p, i) => [p[0] + (i && !calm ? rnd(-3, 3) : 0), p[1] + (i && !calm ? rnd(-3, 3) : 0)]);
-      [["lighter", col, 5], ["source-over", "#ffffff", 1.5]].forEach((m) => {
-        g.globalCompositeOperation = m[0];
-        g.strokeStyle = m[1];
-        g.lineWidth = m[2];
-        g.beginPath();
-        pts.forEach((p, i) => { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
-        g.stroke();
-      });
-      g.globalCompositeOperation = "source-over";
+      drawBolt(f, col);
     } else if (f.k === "thunder") {
-      // l'orbe : un disque entouré d'un anneau qui pulse
       g.globalAlpha = 1;
-      g.beginPath();
-      g.arc(f.x, f.y, 5, 0, 6.283);
-      g.fill();
-      g.globalAlpha = 0.5;
-      g.lineWidth = 2;
-      g.beginPath();
-      g.arc(f.x, f.y, calm ? 9 : 8 + 3 * Math.sin(t * 14), 0, 6.283);
-      g.stroke();
+      drawGlobe(f, col, 5);
     } else if (f.k === "tesla") {
-      // la bobine : un petit carré surmonté d'un trait
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
-      g.fillRect(f.x - 3, f.y - 2, 6, 6);
-      g.lineWidth = 2;
-      g.beginPath();
-      g.moveTo(f.x, f.y - 2);
-      g.lineTo(f.x, f.y - 9);
-      g.stroke();
+      drawCoil(f.x, f.y + 3, col, 0.8);
     } else if (f.k === "stick") {
-      // la grenade collée : elle clignote de plus en plus vite avant d'exploser
+      // la grenade collée : son voyant clignote de plus en plus vite avant d'exploser
       g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
-      g.fillRect(f.x - 3, f.y - 3, 6, 6);
+      drawGrenade(f.x, f.y, col, 4, true);
     } else if (f.k === "powder") {
       // une ligne de poudre : de petits grains sombres, quelques points qui brillent
       g.globalAlpha = Math.min(1, f.life / 0.5);
@@ -242,9 +197,9 @@ const render = () => {
       g.fillRect(f.x - 7, f.y + 6, 14, 2);
     } else if (f.k === "screendark") {
       // l'écran qui s'assombrit
-      g.fillStyle = "#000000";
-      g.globalAlpha = Math.min(0.5, f.life * 0.6, (f.t - f.life) * 3);
-      g.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+      mainG.fillStyle = "#000000";
+      mainG.globalAlpha = Math.min(0.5, f.life * 0.6, (f.t - f.life) * 3);
+      mainG.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
     } else if (f.k === "sun") {
       // un soleil : un grand disque de lumière et un cœur blanc
       const r = f.r || 10;
@@ -271,22 +226,7 @@ const render = () => {
       g.fillRect(f.x - 1, f.y - 8, 2, 8);
       g.fillRect(f.x - 3, f.y - 5, 6, 2);
     } else if (f.k === "hammer") {
-      // un marteau qui tourne : un bloc et un manche
-      g.save();
-      g.translate(f.x, f.y);
-      g.rotate(f.spin || 0);
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.4;
-      g.beginPath();
-      g.arc(0, 0, 14, 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 1;
-      g.fillRect(-9, -6, 18, 12);
-      g.fillStyle = "#ffffff";
-      g.fillRect(-1, 6, 2, 12);
-      g.fillRect(-7, -4, 14, 3);
-      g.restore();
+      drawHammer(f, col);
     } else if (f.k === "swordring" || f.k === "swordwall") {
       // un cercle ou un mur d'épées géantes
       (f.sw || []).forEach((s) => drawSword(s.x, s.y, s.a, col, 1.3));
@@ -319,21 +259,8 @@ const render = () => {
         g.strokeStyle = col;
       }
     } else if (f.k === "hturret") {
-      // une tourelle lourde : un gros socle et un gros canon
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
-      g.fillRect(f.x - 11, f.y - 5, 22, 10);
-      g.fillRect(f.x - 7, f.y - 10, 14, 6);
-      g.lineWidth = 6;
-      g.beginPath();
-      g.moveTo(f.x, f.y - 7);
-      g.lineTo(f.x + Math.cos(f.a || 0) * 20, f.y - 7 + Math.sin(f.a || 0) * 20);
-      g.stroke();
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.3;
-      g.beginPath();
-      g.arc(f.x, f.y - 6, 16, 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
+      drawTurret(f.x, f.y + 4, f.a || 0, col, 1.7);
     } else if (f.k === "worm") {
       // un ver de code : une file de carrés qui s'estompent
       for (let i = f.segs.length - 1; i >= 0; i--) {
@@ -353,28 +280,20 @@ const render = () => {
       g.stroke();
       g.setLineDash([]);
     } else if (f.k === "sentinel") {
-      // une sentinelle : un socle et un canon tourné vers la cible
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
-      g.fillRect(f.x - 6, f.y - 3, 12, 6);
-      g.lineWidth = 3;
-      g.beginPath();
-      g.moveTo(f.x, f.y - 2);
-      g.lineTo(f.x + Math.cos(f.a || 0) * 12, f.y - 2 + Math.sin(f.a || 0) * 12);
-      g.stroke();
+      drawTurret(f.x, f.y + 3, f.a || 0, col, 0.75);
     } else if (f.k === "bhaz" || f.k === "custom") { // un effet qui se dessine lui-même (pièges de boss, murs, etc.)
       g.globalAlpha = 1;
       f.draw(f, g);
     } else if (f.k === "screenflash") {
       // un éclair qui couvre tout l'écran
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = al * 0.4;
-      g.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
-      g.globalCompositeOperation = "source-over";
+      mainG.globalCompositeOperation = "lighter";
+      mainG.globalAlpha = al * 0.4;
+      mainG.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+      mainG.globalCompositeOperation = "source-over";
     } else if (f.k === "trap") {
-      // un piège à ours : un socle hérissé de dents
       g.globalAlpha = f.arm > 0 ? 0.4 : 1;
-      g.fillRect(f.x - 6, f.y - 1, 12, 3);
-      for (let i = 0; i < 4; i++) g.fillRect(f.x - 6 + i * 4, f.y - 4, 2, 3);
+      drawTrap(f, col);
     } else if (f.k === "clone") {
       blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.45 * Math.min(1, f.life / 0.4), heroLook());
     } else if (f.k === "singularity") {
@@ -395,9 +314,7 @@ const render = () => {
       // une bombe à retardement : un cube qui clignote, un anneau qui se resserre
       const k2 = f.life / f.t;
       g.globalAlpha = calm ? 1 : (Math.floor(f.life * (2 + 10 * (1 - k2))) % 2 ? 1 : 0.35);
-      g.fillRect(f.x - 5, f.y - 5, 10, 10);
-      g.fillStyle = "#ffffff";
-      g.fillRect(f.x - 2, f.y - 2, 4, 4);
+      drawGrenade(f.x, f.y, col, 6, true);
       g.globalAlpha = 0.5;
       g.lineWidth = 2;
       g.setLineDash([5, 5]);
@@ -406,18 +323,7 @@ const render = () => {
       g.stroke();
       g.setLineDash([]);
     } else if (f.k === "orb2") {
-      // un globe de foudre : un halo, un cœur blanc
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.45;
-      g.beginPath();
-      g.arc(f.x, f.y, (f.sz || 6) * 1.8, 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 1;
-      g.fillStyle = "#ffffff";
-      g.beginPath();
-      g.arc(f.x, f.y, (f.sz || 6) * 0.6, 0, 6.283);
-      g.fill();
+      drawGlobe(f, col, f.sz || 6);
     } else if (f.k === "pwave") {
       // une large bande de lumière qui avance
       const px = -Math.sin(f.a) * f.w, py = Math.cos(f.a) * f.w;
@@ -435,48 +341,12 @@ const render = () => {
       g.lineTo(f.x + px, f.y + py);
       g.stroke();
     } else if (f.k === "pillar") {
-      // une colonne de lumière qui tombe du ciel
-      const fade = Math.min(1, f.life / 0.4);
-      g.globalAlpha = 0.35 * fade;
-      g.globalCompositeOperation = "lighter";
-      g.fillRect(f.x - f.R * 0.45, f.y - 320, f.R * 0.9, 320);
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 0.9 * fade;
-      g.fillStyle = "#ffffff";
-      g.fillRect(f.x - 2, f.y - 320, 4, 320);
-      g.strokeStyle = col;
-      g.lineWidth = 3;
-      g.beginPath();
-      g.arc(f.x, f.y, f.R, 0, 6.283);
-      g.stroke();
+      drawPillar(f, col);
     } else if (f.k === "pylon") {
-      // un pylône : une colonne avec une lueur au sommet
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
-      g.fillRect(f.x - 3, f.y - 14, 6, 16);
-      g.fillRect(f.x - 6, f.y + 1, 12, 3);
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.5;
-      g.beginPath();
-      g.arc(f.x, f.y - 16, calm ? 6 : 5 + 2 * Math.sin(t * 12), 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
+      drawCoil(f.x, f.y + 2, col, 1.1);
     } else if (f.k === "firewall") {
-      // le pare-feu : un disque et un anneau de flammes qui tourne
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.09;
-      g.beginPath();
-      g.arc(f.x, f.y, f.R, 0, 6.283);
-      g.fill();
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = f.life < 0.6 && !calm ? 0.4 + 0.4 * Math.sin(t * 20) : 0.85;
-      g.lineWidth = 3;
-      g.setLineDash([8, 6]);
-      g.lineDashOffset = calm ? 0 : -t * 40;
-      g.beginPath();
-      g.arc(f.x, f.y, f.R, 0, 6.283);
-      g.stroke();
-      g.setLineDash([]);
-      g.lineDashOffset = 0;
+      drawFireRing(f, col);
     } else if (f.k === "nova") {
       g.globalAlpha = Math.max(0, f.life / f.t);
       g.globalCompositeOperation = "lighter";
@@ -494,42 +364,17 @@ const render = () => {
       // une épée qui tombe du ciel pointe en bas, puis reste plantée et s'efface
       const fall = f.landed ? 0 : Math.max(0, (f.life - 1.15) / 0.35), tip = f.y - 4 - 260 * fall;
       g.globalAlpha = f.landed ? Math.min(1, f.life / 0.5) : 1;
-      g.strokeStyle = col;
-      g.lineWidth = 4;
-      g.beginPath();
-      g.moveTo(f.x, tip - 24);
-      g.lineTo(f.x, tip);
-      g.stroke();
-      g.strokeStyle = "#ffffff";
-      g.lineWidth = 1.5;
-      g.beginPath();
-      g.moveTo(f.x, tip - 22);
-      g.lineTo(f.x, tip - 2);
-      g.stroke();
-      g.fillStyle = "#ffffff";
-      g.fillRect(f.x - 5, tip - 26, 10, 3);
+      g.save();
+      g.translate(f.x, tip - 16);
+      g.rotate(Math.PI);
+      dessinerEpee(0.95, col, false);
+      g.restore();
     } else if (f.k === "rotbeam") {
-      g.globalAlpha = 0.9;
-      g.lineWidth = 5;
-      for (let b = 0; b < f.n; b++) {
-        const a = f.ang + b * Math.PI;
-        g.beginPath();
-        g.moveTo(P.x, P.y);
-        g.lineTo(P.x + Math.cos(a) * f.L, P.y + Math.sin(a) * f.L);
-        g.stroke();
-      }
+      for (let b = 0; b < f.n; b++) drawLaser({ x: P.x, y: P.y, a: f.ang + b * Math.PI, len: f.L, w: 3 }, col, 1);
     } else if (f.k === "decoy") {
       blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5, heroLook());
     } else if (f.k === "cloud") {
-      g.globalAlpha = 0.12;
-      g.beginPath();
-      g.arc(f.x, f.y, f.R, 0, 6.283);
-      g.fill();
-      g.globalAlpha = f.life < 1 && !calm ? 0.3 + 0.3 * Math.sin(t * 20) : 0.45;
-      g.lineWidth = 2;
-      g.setLineDash([3, 6]);
-      g.stroke();
-      g.setLineDash([]);
+      drawGas(f, col);
     } else if (f.k === "aim") {
       // la ligne de visée du rail pendant sa charge
       g.globalAlpha = 0.5;
@@ -549,49 +394,32 @@ const render = () => {
       g.stroke();
     } else if (f.k === "blade") {
       g.globalAlpha = 1;
-      g.save();
-      g.translate(f.x, f.y);
-      g.rotate(f.spin);
-      g.fillRect(-7, -2, 14, 4);
-      g.fillRect(-2, -7, 4, 14);
-      g.restore();
+      drawStar(f, col);
     } else if (f.k === "spin") {
-      // deux arcs qui tournent autour de toi
-      g.globalAlpha = 0.9;
-      g.lineWidth = 5;
+      // deux croissants qui tournent autour de toi
       const a0 = t * 18;
-      for (let k = 0; k < 2; k++) {
-        g.beginPath();
-        g.arc(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.6);
-        g.stroke();
-      }
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.8;
+      for (let k = 0; k < 2; k++) { croissant(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.7, 11, 14); g.fill(); }
+      g.globalCompositeOperation = "source-over";
+      g.fillStyle = "#ffffff";
+      g.globalAlpha = 0.9;
+      for (let k = 0; k < 2; k++) { croissant(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.7, 4, 14); g.fill(); }
     } else if (f.k === "turret") {
       g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
-      g.fillRect(f.x - 4, f.y - 4, 8, 8);
-      g.lineWidth = 3;
-      g.beginPath();
-      g.moveTo(f.x, f.y);
-      g.lineTo(f.x + Math.cos(f.a || 0) * 9, f.y + Math.sin(f.a || 0) * 9);
-      g.stroke();
+      drawTurret(f.x, f.y + 1, f.a || 0, col, 0.9);
     } else if (f.k === "shell") {
-      // le cercle où l'obus va retomber, qui se referme
-      g.globalAlpha = 0.5;
-      g.lineWidth = 2;
-      g.setLineDash([3, 5]);
-      g.beginPath();
-      g.arc(f.tx, f.ty, f.R * (0.4 + 0.6 * (1 - al)), 0, 6.283);
-      g.stroke();
-      g.setLineDash([]);
-      g.globalAlpha = 1;
-      g.fillRect(f.tx - 2, f.ty - 2 - 140 * al, 4, 4);
+      drawShell(f, col, al);
     } else if (f.k === "mine") {
       drawMine(f, f.color || WEAPON_COLOR.mine);
     } else if (f.k === "nade") {
       g.globalAlpha = 1;
-      g.fillRect(f.x - 3, f.y - 3, 6, 6);
+      drawGrenade(f.x, f.y, col, 4, false);
     }
     g.globalAlpha = 1;
   });
+
+  pixelEnd();
 
   // les cristaux : de petits losanges qui scintillent
   for (let i = 0; i < gems.length; i++) {
@@ -795,24 +623,10 @@ const render = () => {
     }
   }
 
+  pixelBegin(cx, cy, vw, vh);
   // tes tirs sont blancs, ceux des ennemis roses : tout ce qui est rose te blesse
   const hc = heroColor();
-  for (let i = 0; i < bullets.length; i++) {
-    const b = bullets[i];
-    g.fillStyle = b.color || hc;
-    g.save();
-    g.translate(b.x, b.y);
-    g.rotate(Math.atan2(b.vy, b.vx));
-    const sz = b.size || 1;
-    if (b.star) { g.rotate(-Math.atan2(b.vy, b.vx) + t * 20); g.fillRect(-6, -1.5, 12, 3); g.fillRect(-1.5, -6, 3, 12); g.fillStyle = "#ffffff"; g.fillRect(-2, -0.7, 4, 1.4); g.restore(); continue; }
-    g.fillRect(-5 * sz, -1.5 * sz, 11 * sz, 3 * sz);
-    g.fillStyle = "#ffffff"; // le cœur du tir est blanc
-    g.fillRect(-3 * sz, -0.6 * sz, 7 * sz, 1.2 * sz);
-    g.fillStyle = b.color || hc;
-    g.globalAlpha = 0.4;
-    g.fillRect(-15 * sz, -1 * sz, 9 * sz, 2 * sz);
-    g.restore();
-  }
+  for (let i = 0; i < bullets.length; i++) drawBullet(bullets[i], hc);
   g.globalAlpha = 1;
   g.fillStyle = PINK;
   for (let i = 0; i < ebullets.length; i++) {
@@ -893,6 +707,7 @@ const render = () => {
   }
   g.globalCompositeOperation = "source-over";
   g.globalAlpha = 1;
+  pixelEnd();
 
   // la personne : des images rémanentes pendant le dash, une pose de marche, rose un instant quand elle est touchée
   ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45, heroLook()));
