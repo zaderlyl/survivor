@@ -1,0 +1,851 @@
+"use strict";
+
+/* ---------- Rendu ---------- */
+const hud = { time: "", world: "", level: "", kills: "", hp: -1, xp: -1, dash: -1, boss: -1 };
+const drawHud = () => {
+  const tm = fmt(t), lvl = "niv " + level, ks = kills + " tués", wl = "monde " + (world + 1) + " · " + THEMES[world % 5].name;
+  if (wl !== hud.world) { hud.world = wl; $("#sWorld").textContent = wl; }
+  if (tm !== hud.time) { hud.time = tm; $("#sTime").textContent = tm; }
+  if (lvl !== hud.level) { hud.level = lvl; $("#sLevel").textContent = lvl; }
+  if (ks !== hud.kills) { hud.kills = ks; $("#sKills").textContent = ks; }
+  const hp = Math.round((P.hp / st.maxHp) * 100), xpp = Math.round((xp / need) * 100), ds = Math.round((1 - P.dashCd / (P.dashMax || DASH_CD)) * 100);
+  const hpt = Math.ceil(P.hp) + " / " + st.maxHp;
+  if (hpt !== hud.hpt) { hud.hpt = hpt; $("#hpTxt").textContent = hpt; }
+  const sc = liveScore() + " pts";
+  if (sc !== hud.sc) { hud.sc = sc; $("#scoreTxt").textContent = sc; }
+  if (hp !== hud.hp) {
+    hud.hp = hp;
+    $("#hpFill").style.width = hp + "%";
+    $("#hpBar").classList.toggle("low", hp <= 30);
+    $("#play").classList.toggle("low", hp <= 30 && mode !== "over" && mode !== "win");
+  }
+  if (xpp !== hud.xp) { hud.xp = xpp; $("#xpFill").style.width = xpp + "%"; }
+  if (ds !== hud.dash) { hud.dash = ds; $("#dashFill").style.width = ds + "%"; $("#dashBtn").classList.toggle("ready", ds >= 100); }
+  const boss = enemies.find((e) => e.type === "boss");
+  const bp = boss ? Math.round((boss.hp / boss.max) * 100) : -1;
+  if (bp !== hud.boss) {
+    hud.boss = bp;
+    $("#bossBar").hidden = bp < 0;
+    if (bp >= 0) $("#bossFill").style.width = Math.max(0, bp) + "%";
+  }
+};
+
+const camPos = () => {
+  const vw = cssW / zoom, vh = cssH / zoom;
+  const x = vw >= ARENA_W ? ARENA_W / 2 : clamp(cam.x, vw / 2, ARENA_W - vw / 2);
+  const y = vh >= ARENA_H ? ARENA_H / 2 : clamp(cam.y, vh / 2, ARENA_H - vh / 2);
+  return [x, y, vw, vh];
+};
+
+const hash = (i, j) => {
+  let h = (Math.imul(i, 374761393) + Math.imul(j, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return (h ^ (h >>> 16)) >>> 0;
+};
+
+// le damier des bords : un motif dense, puis un motif clairsemé, chacun de pixels de 2 px
+let vigA = null, vigB = null;
+const dither = (cells) => {
+  const c = document.createElement("canvas");
+  c.width = c.height = 4;
+  const x = c.getContext("2d");
+  x.fillStyle = BG;
+  cells.forEach((p) => x.fillRect(p[0], p[1], 1, 1));
+  return g.createPattern(c, "repeat");
+};
+const vignette = () => {
+  if (!vigA) {
+    vigA = dither([[0, 0], [2, 0], [1, 1], [3, 1], [0, 2], [2, 2], [1, 3], [3, 3]]);
+    vigB = dither([[0, 0], [2, 2]]);
+  }
+  const m = new DOMMatrix().scale(2);
+  vigA.setTransform(m);
+  vigB.setTransform(m);
+  const bands = [[0, 26, vigA], [26, 26, vigB]];
+  bands.forEach((b) => {
+    g.fillStyle = b[2];
+    g.fillRect(b[0], b[0], cssW - b[0] * 2, b[1]);
+    g.fillRect(b[0], cssH - b[0] - b[1], cssW - b[0] * 2, b[1]);
+    g.fillRect(b[0], b[0] + b[1], b[1], cssH - (b[0] + b[1]) * 2);
+    g.fillRect(cssW - b[0] - b[1], b[0] + b[1], b[1], cssH - (b[0] + b[1]) * 2);
+  });
+};
+
+const render = () => {
+  const th = worldTheme();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = th.bg;
+  g.fillRect(0, 0, cv.width, cv.height);
+  let [cx, cy, vw, vh] = camPos();
+  if (mode === "menu") { cx = ARENA_W / 2; cy = ARENA_H / 2; }
+  const s = dpr * zoom;
+  const sx = shake > 0 && !calm ? rnd(-shake, shake) : 0, sy = shake > 0 && !calm ? rnd(-shake, shake) : 0;
+  g.setTransform(s, 0, 0, s, (cssW / 2 - cx * zoom + sx) * dpr, (cssH / 2 - cy * zoom + sy) * dpr);
+  g.imageSmoothingEnabled = false;
+
+  // le sol : dalles de 100 px, quelques marques posées au hasard pour sentir qu'on avance
+  const i0 = Math.max(0, Math.floor((cx - vw / 2) / 100)), i1 = Math.min(ARENA_W / 100 - 1, Math.floor((cx + vw / 2) / 100));
+  const j0 = Math.max(0, Math.floor((cy - vh / 2) / 100)), j1 = Math.min(ARENA_H / 100 - 1, Math.floor((cy + vh / 2) / 100));
+  for (let i = i0; i <= i1; i++) {
+    for (let j = j0; j <= j1; j++) {
+      g.fillStyle = (i + j) & 1 ? th.a : th.b;
+      g.fillRect(i * 100, j * 100, 100, 100);
+      tileDetail(th, hash(i, j), i * 100, j * 100);
+    }
+  }
+  g.strokeStyle = th.edge;
+  g.lineWidth = 4;
+  g.strokeRect(0, 0, ARENA_W, ARENA_H);
+  g.strokeStyle = th.glow;
+  g.lineWidth = 6;
+  [[0, 0, 1, 1], [ARENA_W, 0, -1, 1], [0, ARENA_H, 1, -1], [ARENA_W, ARENA_H, -1, -1]].forEach((c) => {
+    g.beginPath();
+    g.moveTo(c[0] + c[2] * 40, c[1]);
+    g.lineTo(c[0], c[1]);
+    g.lineTo(c[0], c[1] + c[3] * 40);
+    g.stroke();
+  });
+
+  ambient(th, cx, cy, vw, vh);
+
+  const inView = (x, y, m) => x > cx - vw / 2 - m && x < cx + vw / 2 + m && y > cy - vh / 2 - m && y < cy + vh / 2 + m;
+
+  // les ondes et les coups des armes : tout passe par la couche pixel (voir armes-visuels.js)
+  pixelBegin(cx, cy, vw, vh);
+  waves.forEach((w) => {
+    g.strokeStyle = w.color || LIGHT;
+    g.lineWidth = w.color ? 4 : 3;
+    if (w.color) g.globalCompositeOperation = "lighter"; // un anneau coloré brille
+    g.globalAlpha = Math.max(0, w.life / w.t);
+    g.beginPath();
+    g.arc(w.x, w.y, w.r, 0, 6.283);
+    g.stroke();
+    g.globalCompositeOperation = "source-over";
+    g.globalAlpha = 1;
+  });
+
+  // les coups des armes : arc d'épée, laser, éclair, grenade
+  fx.forEach((f) => {
+    const al = f.k === "cbeam" ? 1 : Math.max(0, f.life / f.t), col = f.color || heroColor();
+    g.globalAlpha = al;
+    g.strokeStyle = col;
+    g.fillStyle = col;
+    if (f.k === "arc") {
+      drawSlash(f, col, al);
+    } else if (f.k === "beam" || f.k === "cbeam") {
+      drawLaser(f, col, al);
+    } else if (f.k === "bolt") {
+      drawBolt(f, col);
+    } else if (f.k === "thunder") {
+      g.globalAlpha = 1;
+      drawGlobe(f, col, 5);
+    } else if (f.k === "tesla") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      drawCoil(f.x, f.y + 3, col, 0.8);
+    } else if (f.k === "stick") {
+      // la grenade collée : son voyant clignote de plus en plus vite avant d'exploser
+      g.globalAlpha = calm || Math.floor(f.life * (4 + 8 * (1 - f.life / f.t)) * 2) % 2 ? 1 : 0.35;
+      drawGrenade(f.x, f.y, col, 4, true);
+    } else if (f.k === "powder") {
+      // une ligne de poudre : de petits grains sombres, quelques points qui brillent
+      g.globalAlpha = Math.min(1, f.life / 0.5);
+      f.pts.forEach((p, i) => {
+        g.fillStyle = "#2a2118";
+        g.fillRect(p[0] - 3, p[1] - 2, 6, 4);
+        if (!calm && (Math.floor(t * 4 + i) % 5 === 0)) { g.fillStyle = col; g.fillRect(p[0] - 1, p[1] - 1, 2, 2); }
+      });
+    } else if (f.k === "codecol") {
+      // une colonne de code qui tombe : une file de petits carrés
+      for (let i = 0; i < 8; i++) {
+        g.globalAlpha = Math.max(0, 1 - i / 8) * Math.min(1, f.life / 0.3);
+        g.fillStyle = i === 0 ? "#ffffff" : col;
+        g.fillRect(f.x - 2, f.y - i * 11, 4, 7);
+      }
+    } else if (f.k === "constellation") {
+      // des étoiles reliées par des lignes de lumière
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 4;
+      g.beginPath();
+      (f.lines || []).forEach((l) => { g.moveTo(f.pts[l[0]][0], f.pts[l[0]][1]); g.lineTo(f.pts[l[1]][0], f.pts[l[1]][1]); });
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 1.5;
+      g.beginPath();
+      (f.lines || []).forEach((l) => { g.moveTo(f.pts[l[0]][0], f.pts[l[0]][1]); g.lineTo(f.pts[l[1]][0], f.pts[l[1]][1]); });
+      g.stroke();
+      g.fillStyle = "#ffffff";
+      f.pts.forEach((p) => g.fillRect(p[0] - 3, p[1] - 3, 6, 6));
+    } else if (f.k === "aiface") {
+      // l'IA : un grand visage de lumière qui flotte
+      const pulse = calm ? 0 : Math.sin(t * 6) * 2;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.3;
+      g.beginPath();
+      g.arc(f.x, f.y, 26 + pulse, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.strokeStyle = col;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(f.x, f.y, 18, 0, 6.283);
+      g.stroke();
+      g.fillStyle = "#ffffff";
+      g.fillRect(f.x - 9, f.y - 6, 5, 5);
+      g.fillRect(f.x + 4, f.y - 6, 5, 5);
+      g.fillRect(f.x - 7, f.y + 6, 14, 2);
+    } else if (f.k === "screendark") {
+      // l'écran qui s'assombrit
+      mainG.fillStyle = "#000000";
+      mainG.globalAlpha = Math.min(0.5, f.life * 0.6, (f.t - f.life) * 3);
+      mainG.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+    } else if (f.k === "sun") {
+      // un soleil : un grand disque de lumière et un cœur blanc
+      const r = f.r || 10;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.35;
+      g.beginPath();
+      g.arc(f.x, f.y, r, 0, 6.283);
+      g.fill();
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(f.x, f.y, r * 0.6, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.fillStyle = "#ffffff";
+      g.beginPath();
+      g.arc(f.x, f.y, r * 0.25, 0, 6.283);
+      g.fill();
+    } else if (f.k === "tomb") {
+      // une pierre tombale
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      g.fillRect(f.x - 5, f.y - 10, 10, 14);
+      g.fillStyle = "#0b1410";
+      g.fillRect(f.x - 1, f.y - 8, 2, 8);
+      g.fillRect(f.x - 3, f.y - 5, 6, 2);
+    } else if (f.k === "hammer") {
+      drawHammer(f, col);
+    } else if (f.k === "swordring" || f.k === "swordwall") {
+      // un cercle ou un mur d'épées géantes
+      (f.sw || []).forEach((s) => drawSword(s.x, s.y, s.a, col, 1.3));
+    } else if (f.k === "spectre") {
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 10) & 1, Math.cos(f.a) < 0, false, 0.55, heroLook());
+    } else if (f.k === "dragon") {
+      // un dragon d'acier : une file d'épées qui suivent la tête, de plus en plus petites
+      for (let i = f.segs.length - 1; i >= 0; i--) {
+        const sg = f.segs[i], nx = f.segs[Math.max(0, i - 1)];
+        drawSword(sg[0], sg[1], Math.atan2(nx[1] - sg[1], nx[0] - sg[0]) || 0, col, i === 0 ? 2.4 : Math.max(0.9, 1.9 - i * 0.025));
+      }
+      if (f.segs[0]) { g.fillStyle = "#ffffff"; g.fillRect(f.segs[0][0] - 3, f.segs[0][1] - 3, 3, 3); g.fillRect(f.segs[0][0] + 1, f.segs[0][1] - 3, 3, 3); }
+    } else if (f.k === "multibeam") {
+      // plusieurs rayons qui tournent autour de toi
+      for (let b = 0; b < f.n; b++) {
+        const a = f.ang + (b / f.n) * 6.283, ca = Math.cos(a), sa = Math.sin(a), x0 = P.x + ca * (f.r0 || 0), y0 = P.y + sa * (f.r0 || 0);
+        g.globalCompositeOperation = "lighter";
+        g.lineWidth = f.bw || 9;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        g.lineTo(P.x + ca * f.L, P.y + sa * f.L);
+        g.stroke();
+        g.globalCompositeOperation = "source-over";
+        g.strokeStyle = "#ffffff";
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        g.lineTo(P.x + ca * f.L, P.y + sa * f.L);
+        g.stroke();
+        g.strokeStyle = col;
+      }
+    } else if (f.k === "hturret") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      drawTurret(f.x, f.y + 4, f.a || 0, col, 1.7);
+    } else if (f.k === "worm") {
+      // un ver de code : une file de carrés qui s'estompent
+      for (let i = f.segs.length - 1; i >= 0; i--) {
+        g.globalAlpha = Math.max(0.15, 1 - i / f.segs.length) * Math.min(1, f.life / 0.4);
+        g.fillStyle = i === 0 ? "#ffffff" : col;
+        const s2 = i === 0 ? 6 : 5 - (i / f.segs.length) * 2;
+        g.fillRect(f.segs[i][0] - s2 / 2, f.segs[i][1] - s2 / 2, s2, s2);
+      }
+    } else if (f.k === "tline") {
+      // une ligne qui annonce un tir
+      g.globalAlpha = 0.6;
+      g.lineWidth = 2;
+      g.setLineDash([6, 6]);
+      g.beginPath();
+      g.moveTo(f.x1, f.y1);
+      g.lineTo(f.x2, f.y2);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "sentinel") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      drawTurret(f.x, f.y + 3, f.a || 0, col, 0.75);
+    } else if (f.k === "bhaz" || f.k === "custom") { // un effet qui se dessine lui-même (pièges de boss, murs, etc.)
+      g.globalAlpha = 1;
+      f.draw(f, g);
+    } else if (f.k === "screenflash") {
+      // un éclair qui couvre tout l'écran
+      mainG.globalCompositeOperation = "lighter";
+      mainG.globalAlpha = al * 0.4;
+      mainG.fillRect(cx - vw / 2, cy - vh / 2, vw, vh);
+      mainG.globalCompositeOperation = "source-over";
+    } else if (f.k === "trap") {
+      g.globalAlpha = f.arm > 0 ? 0.4 : 1;
+      drawTrap(f, col);
+    } else if (f.k === "clone") {
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.45 * Math.min(1, f.life / 0.4), heroLook());
+    } else if (f.k === "singularity") {
+      // une singularité : un noyau sombre, un anneau qui se resserre
+      const k2 = f.life / f.t;
+      g.fillStyle = "#14081f";
+      g.beginPath();
+      g.arc(f.x, f.y, 9, 0, 6.283);
+      g.fill();
+      g.globalAlpha = 0.8;
+      g.lineWidth = 3;
+      g.globalCompositeOperation = "lighter";
+      g.beginPath();
+      g.arc(f.x, f.y, 12 + f.R * 0.5 * k2, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+    } else if (f.k === "tbomb") {
+      // une bombe à retardement : un cube qui clignote, un anneau qui se resserre
+      const k2 = f.life / f.t;
+      g.globalAlpha = calm ? 1 : (Math.floor(f.life * (2 + 10 * (1 - k2))) % 2 ? 1 : 0.35);
+      drawGrenade(f.x, f.y, col, 6, true);
+      g.globalAlpha = 0.5;
+      g.lineWidth = 2;
+      g.setLineDash([5, 5]);
+      g.beginPath();
+      g.arc(f.x, f.y, f.R * (0.3 + 0.7 * k2), 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "orb2") {
+      drawGlobe(f, col, f.sz || 6);
+    } else if (f.k === "pwave") {
+      // une large bande de lumière qui avance
+      const px = -Math.sin(f.a) * f.w, py = Math.cos(f.a) * f.w;
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 18;
+      g.beginPath();
+      g.moveTo(f.x - px, f.y - py);
+      g.lineTo(f.x + px, f.y + py);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(f.x - px, f.y - py);
+      g.lineTo(f.x + px, f.y + py);
+      g.stroke();
+    } else if (f.k === "pillar") {
+      drawPillar(f, col);
+    } else if (f.k === "pylon") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      drawCoil(f.x, f.y + 2, col, 1.1);
+    } else if (f.k === "firewall") {
+      drawFireRing(f, col);
+    } else if (f.k === "nova") {
+      g.globalAlpha = Math.max(0, f.life / f.t);
+      g.globalCompositeOperation = "lighter";
+      g.lineWidth = 9;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r || 1, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.strokeStyle = "#ffffff";
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.arc(f.x, f.y, f.r || 1, 0, 6.283);
+      g.stroke();
+    } else if (f.k === "sword") {
+      // une épée qui tombe du ciel pointe en bas, puis reste plantée et s'efface
+      const fall = f.landed ? 0 : Math.max(0, (f.life - 1.15) / 0.35), tip = f.y - 4 - 260 * fall;
+      g.globalAlpha = f.landed ? Math.min(1, f.life / 0.5) : 1;
+      g.save();
+      g.translate(f.x, tip - 16);
+      g.rotate(Math.PI);
+      dessinerEpee(0.95, col, false);
+      g.restore();
+    } else if (f.k === "rotbeam") {
+      for (let b = 0; b < f.n; b++) drawLaser({ x: P.x, y: P.y, a: f.ang + b * Math.PI, len: f.L, w: 3 }, col, 1);
+    } else if (f.k === "decoy") {
+      blit(heroName(), f.x, f.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 8) & 1, false, false, 0.5, heroLook());
+    } else if (f.k === "cloud") {
+      drawGas(f, col);
+    } else if (f.k === "aim") {
+      // la ligne de visée du rail pendant sa charge
+      g.globalAlpha = 0.5;
+      g.lineWidth = 1;
+      g.setLineDash([4, 6]);
+      g.beginPath();
+      g.moveTo(P.x, P.y);
+      g.lineTo(P.x + Math.cos(f.a) * f.len, P.y + Math.sin(f.a) * f.len);
+      g.stroke();
+      g.setLineDash([]);
+    } else if (f.k === "wall") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.4 + 0.4 * Math.sin(t * 20) : 0.9;
+      g.lineWidth = 5;
+      g.beginPath();
+      g.moveTo(f.x1, f.y1);
+      g.lineTo(f.x2, f.y2);
+      g.stroke();
+    } else if (f.k === "blade") {
+      g.globalAlpha = 1;
+      drawStar(f, col);
+    } else if (f.k === "spin") {
+      // deux croissants qui tournent autour de toi
+      const a0 = t * 18;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.8;
+      for (let k = 0; k < 2; k++) { croissant(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.7, 11, 14); g.fill(); }
+      g.globalCompositeOperation = "source-over";
+      g.fillStyle = "#ffffff";
+      g.globalAlpha = 0.9;
+      for (let k = 0; k < 2; k++) { croissant(P.x, P.y, f.R, a0 + k * 3.1416, a0 + k * 3.1416 + 1.7, 4, 14); g.fill(); }
+    } else if (f.k === "turret") {
+      g.globalAlpha = f.life < 1 && !calm ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      drawTurret(f.x, f.y + 1, f.a || 0, col, 0.9);
+    } else if (f.k === "shell") {
+      drawShell(f, col, al);
+    } else if (f.k === "mine") {
+      drawMine(f, f.color || WEAPON_COLOR.mine);
+    } else if (f.k === "nade") {
+      g.globalAlpha = 1;
+      drawGrenade(f.x, f.y, col, 4, false);
+    }
+    g.globalAlpha = 1;
+  });
+
+  pixelEnd();
+
+  // les cristaux : de petits losanges qui scintillent
+  for (let i = 0; i < gems.length; i++) {
+    const gm = gems[i];
+    if (!inView(gm.x, gm.y, 10)) continue;
+    const bob = calm || gm.pull ? 0 : Math.sin(t * 4 + gm.x * 0.05) * 1.5;
+    if (gm.v > 3) blit("gemBig", gm.x, gm.y + bob, gm.v >= 12 ? 2.2 : 1.4, 0, false, false);
+    else blit("gem", gm.x, gm.y + bob, 1, calm ? 0 : Math.floor(t * 3 + gm.x * 0.1) & 1, false, false);
+  }
+
+  // les ombres : une fine bande sombre sous chaque personnage, pour poser les images au sol
+  g.fillStyle = "#0a0a0a";
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    if (inView(e.x, e.y, 40)) g.fillRect(Math.round(e.x - e.r * 0.8), Math.round(e.y + e.r * 0.85), Math.round(e.r * 1.6), 3);
+  }
+  if (mode !== "menu") g.fillRect(Math.round(P.x - 8), Math.round(P.y + 8), 16, 3);
+
+  // les bonus : ils clignotent avant de disparaître
+  drops.forEach((d) => {
+    if (d.life < 3 && !calm && Math.floor(d.life * 6) % 2) return;
+    blit(d.type, d.x, d.y + (calm ? 0 : Math.sin(t * 5 + d.x) * 2), 2, 0, false, false);
+  });
+
+  // les zones au sol : un cercle rose pointillé qui se remplit, puis un éclair plein
+  zones.forEach((z) => {
+    if (!inView(z.x, z.y, z.r + 10)) return;
+    g.fillStyle = PINK;
+    g.strokeStyle = PINK;
+    if (z.fired) {
+      g.globalAlpha = 0.6 * Math.max(0, z.boom / 0.18);
+      g.beginPath();
+      g.arc(z.x, z.y, z.r, 0, 6.283);
+      g.fill();
+    } else {
+      g.lineWidth = 2;
+      g.setLineDash([6, 6]);
+      g.beginPath();
+      g.arc(z.x, z.y, z.r, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.globalAlpha = 0.22;
+      g.beginPath();
+      g.arc(z.x, z.y, z.r * (1 - z.t / z.max), 0, 6.283);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  });
+
+  // les lignes de visée des chargeurs : roses, juste avant la charge
+  enemies.forEach((e) => {
+    if (e.type === "dasher" && e.st === 1 && inView(e.x, e.y, 400)) {
+      g.strokeStyle = PINK;
+      g.lineWidth = 2;
+      g.setLineDash([8, 8]);
+      g.beginPath();
+      g.moveTo(e.x, e.y);
+      g.lineTo(e.x + e.dirx * 260, e.y + e.diry * 260);
+      g.stroke();
+      g.setLineDash([]);
+    }
+  });
+
+  // les ennemis : de petites images, qui grandissent à leur apparition
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    if (!inView(e.x, e.y, 60)) continue;
+    const d = TYPES[e.type];
+    const grow = Math.min(1, e.age / 0.25);
+    const flip = e.x > P.x;
+    const frame = Math.floor(t * 6 + e.seed) & 1;
+    if (grow < 1) g.globalAlpha = 0.3 + 0.7 * grow;
+    const art = e.art || (ART[e.type + e.skin] ? e.type + e.skin : e.type); // le dessin propre au monde, sinon l'ancien
+    blit(art, e.x, e.y, ART[art].s || d.s, mode === "menu" ? Math.floor(performance.now() / 250 + e.seed) & 1 : frame, flip, e.hit > 0);
+    g.globalAlpha = 1;
+    if (e.type === "boss") {
+      if (e.shield > 0) {
+        g.strokeStyle = "#35f2ff";
+        g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
+        g.lineWidth = 3 + 5 * (e.shield / e.shMax);
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 10, 0, 6.283);
+        g.stroke();
+        g.globalAlpha = 1;
+      }
+      if (e.invT > 0) {
+        g.strokeStyle = "#ffffff";
+        g.globalAlpha = 0.5 + 0.4 * Math.sin(t * 30);
+        g.lineWidth = 3;
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 14, 0, 6.283);
+        g.stroke();
+        g.globalAlpha = 1;
+      }
+      if (e.tele === 1) {
+        // la charge : une ligne rose annonce la direction
+        g.strokeStyle = PINK;
+        g.globalAlpha = 0.6;
+        g.lineWidth = 3;
+        g.setLineDash([6, 6]);
+        g.beginPath();
+        g.moveTo(e.x, e.y);
+        g.lineTo(e.x + e.dirx * 420, e.y + e.diry * 420);
+        g.stroke();
+        g.setLineDash([]);
+        g.globalAlpha = 1;
+      } else if (e.tele === 2) {
+        // la téléportation : un cercle qui se resserre
+        g.strokeStyle = PINK;
+        g.lineWidth = 2;
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 10 + 20 * Math.max(0, e.mt), 0, 6.283);
+        g.stroke();
+      }
+      g.fillStyle = "#333333";
+      g.fillRect(e.x - 30, e.y - e.r - 16, 60, 5);
+      g.fillStyle = PINK;
+      g.fillRect(e.x - 30, e.y - e.r - 16, 60 * Math.max(0, e.hp / e.max), 5);
+    }
+  }
+
+  // les états posés sur les ennemis : infection (pixels verts), marque (réticule), piratage (anneau pulsant)
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    if (e.virus > 0 && !calm) {
+      g.fillStyle = WEAPON_COLOR.virus;
+      for (let k = 0; k < 3; k++) g.fillRect(Math.round(e.x + rnd(-e.r, e.r)), Math.round(e.y + rnd(-e.r, e.r)), 2, 2);
+    }
+    if (e.marked) {
+      const pulse = calm ? 1 : 0.7 + 0.3 * Math.sin(t * 10);
+      g.strokeStyle = WEAPON_COLOR.mark;
+      g.lineWidth = 2;
+      g.globalAlpha = pulse;
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 6, 0, 6.283);
+      g.moveTo(e.x - e.r - 10, e.y); g.lineTo(e.x - e.r + 2, e.y);
+      g.moveTo(e.x + e.r - 2, e.y); g.lineTo(e.x + e.r + 10, e.y);
+      g.moveTo(e.x, e.y - e.r - 10); g.lineTo(e.x, e.y - e.r + 2);
+      g.moveTo(e.x, e.y + e.r - 2); g.lineTo(e.x, e.y + e.r + 10);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
+    if (e.charge) { // un ennemi chargé : un anneau électrique qui pulse
+      g.strokeStyle = WEAPON_COLOR.livingbattery;
+      g.lineWidth = 2;
+      g.globalAlpha = calm ? 0.8 : 0.5 + 0.4 * Math.sin(t * 16);
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 5, 0, 6.283);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
+    if (e.ransom) { // un cadenas rose au-dessus de l'ennemi chiffré
+      g.strokeStyle = WEAPON_COLOR.ransom;
+      g.fillStyle = WEAPON_COLOR.ransom;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(e.x, e.y - e.r - 10, 4, Math.PI, 0);
+      g.stroke();
+      g.fillRect(Math.round(e.x - 5), Math.round(e.y - e.r - 10), 10, 7);
+    }
+    if (e.lbomb) { // une bombe logique : un petit carré qui clignote de plus en plus vite
+      g.fillStyle = WEAPON_COLOR.logicbomb;
+      g.globalAlpha = calm ? 1 : (Math.floor(e.lbomb.t * (3 + 8 / Math.max(0.3, e.lbomb.t))) % 2 ? 1 : 0.3);
+      g.fillRect(Math.round(e.x - 3), Math.round(e.y - e.r - 11), 6, 6);
+      g.globalAlpha = 1;
+    }
+    if (e.poison > 0 && !calm) { // du poison qui goutte
+      g.fillStyle = WEAPON_COLOR.poisondarts;
+      g.fillRect(Math.round(e.x + rnd(-e.r, e.r)), Math.round(e.y + rnd(0, e.r + 3)), 2, 3);
+    }
+    if (e.corrupt) {
+      // corrompu : des tranches d'image qui glissent de côté (un bug visuel) et un anneau brisé qui tourne
+      const col = WEAPON_COLOR.corrupt;
+      g.fillStyle = col;
+      for (let k = 0; k < 3; k++) {
+        const decalage = Math.sin(t * 31 + e.seed * 2.3 + k * 1.9) * (e.r * 0.7);
+        g.globalAlpha = calm ? 0.35 : 0.3 + 0.3 * Math.abs(Math.sin(t * 17 + k * 2.6 + e.seed));
+        g.fillRect(Math.round(e.x - e.r + decalage), Math.round(e.y - e.r + ((k * 5 + e.seed * 3 + t * 20) % (e.r * 2))), Math.round(e.r * 2), 2);
+      }
+      g.strokeStyle = col;
+      g.lineWidth = 2;
+      g.globalAlpha = 0.85;
+      for (let k = 0; k < 3; k++) {
+        const a0 = t * 4 + k * 2.09;
+        g.beginPath();
+        g.arc(e.x, e.y, e.r + 5, a0, a0 + 1.1);
+        g.stroke();
+      }
+      g.globalAlpha = 1;
+    }
+    if (e.hacked > 0) {
+      g.strokeStyle = WEAPON_COLOR.hack;
+      g.lineWidth = 2;
+      g.globalAlpha = calm ? 0.8 : 0.5 + 0.4 * Math.sin(t * 14);
+      g.setLineDash([3, 3]);
+      g.beginPath();
+      g.arc(e.x, e.y, e.r + 4, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.globalAlpha = 1;
+    }
+  }
+
+  pixelBegin(cx, cy, vw, vh);
+  // tes tirs sont blancs, ceux des ennemis roses : tout ce qui est rose te blesse
+  const hc = heroColor();
+  for (let i = 0; i < bullets.length; i++) drawBullet(bullets[i], hc);
+  g.globalAlpha = 1;
+  g.fillStyle = PINK;
+  for (let i = 0; i < ebullets.length; i++) {
+    const b = ebullets[i];
+    g.beginPath();
+    g.arc(b.x, b.y, 4, 0, 6.283);
+    g.fill();
+  }
+  const orbW = weapon("orb");
+  if (orbW) drawBlades(orbW); // des épées qui tournent, avec un arc de coupe
+
+  // le champ de feu : un sol qui rougeoie et des flammes tout autour
+  const flameW = weapon("flame");
+  if (flameW) drawFlameField(flameW);
+  // l'épée spectrale : une lame fantôme qui tourne autour de toi et se jette sur les ennemis
+  const specW = weapon("spectral");
+  if (specW && specW.sw) {
+    specW.sw.forEach((s) => {
+      if (s.x === undefined) return;
+      g.save();
+      g.translate(s.x, s.y);
+      g.rotate(s.a + Math.PI / 2);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.4;
+      g.fillStyle = WEAPON_COLOR.spectral;
+      g.beginPath();
+      g.arc(0, 0, 10, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 0.9;
+      g.fillStyle = WEAPON_COLOR.spectral;
+      g.fillRect(-2, -13, 4, 20);
+      g.fillStyle = "#ffffff";
+      g.fillRect(-1, -12, 2, 15);
+      g.fillRect(-5, 5, 10, 2);
+      g.restore();
+    });
+    g.globalAlpha = 1;
+  }
+  // l'ombre : un double sombre qui te suit et attaque
+  const shW = weapon("shadow");
+  if (shW && shW.sh) {
+    shW.sh.forEach((s) => { if (s.x !== undefined) blit(heroName(), s.x, s.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(t * 6) & 1, P.face < 0, false, 0.35, "000"); });
+  }
+  // la bobine mobile : une bobine qui te suit
+  const mcW = weapon("mobilecoil");
+  if (mcW && mcW.co) {
+    mcW.co.forEach((c) => {
+      if (c.x === undefined) return;
+      g.fillStyle = WEAPON_COLOR.mobilecoil;
+      g.fillRect(c.x - 3, c.y - 2, 6, 6);
+      g.fillRect(c.x - 1, c.y - 10, 2, 8);
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(c.x, c.y - 11, calm ? 5 : 4 + 2 * Math.sin(t * 12), 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+    });
+  }
+  // les drones : de petites machines à rotors qui tournent autour de toi
+  const droneW = weapon("drone");
+  if (droneW) drawDrones(droneW);
+
+  // les éclats
+  // deux passes : les éclats ordinaires, puis ceux qui brillent, en addition de lumière
+  for (let pass = 0; pass < 2; pass++) {
+    g.globalCompositeOperation = pass ? "lighter" : "source-over";
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (!!p.glow !== !!pass) continue;
+      g.globalAlpha = Math.max(0, p.life / p.max) * (p.round ? 0.55 : 1);
+      g.fillStyle = p.color;
+      if (p.round) { g.beginPath(); g.arc(p.x, p.y, p.size * (1.2 - p.life / p.max * 0.4), 0, 6.283); g.fill(); }
+      else g.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+  }
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = 1;
+  pixelEnd();
+
+  // la personne : des images rémanentes pendant le dash, une pose de marche, rose un instant quand elle est touchée
+  ghosts.forEach((q) => blit(heroName(), q.x, q.y, ART[heroName()].s || 2, 0, q.face < 0, false, Math.max(0, q.life / 0.2) * 0.45, heroLook()));
+  if (mode !== "menu" && !(P.inv > 0 && P.dash <= 0 && !calm && Math.floor(P.inv * 20) % 2 === 0)) {
+    blit(heroName(), P.x, P.y, ART[heroName()].s || 2, calm ? 0 : Math.floor(P.walk * 8) & 1, P.face < 0, P.flash > 0, undefined, heroLook());
+    const shW = weapon("elecshield");
+    if (shW && shW.sh > 0) { // le bouclier électrique
+      g.strokeStyle = WEAPON_COLOR.elecshield;
+      g.lineWidth = 3;
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = (calm ? 0.45 : 0.35 + 0.15 * Math.sin(t * 9)) * Math.min(1, shW.sh / shW.cap + 0.3);
+      g.beginPath();
+      g.arc(P.x, P.y, 24, 0, 6.283);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+    }
+    if (st.hasteT > 0) { // le bonus de cadence : un anneau qui tourne
+      g.strokeStyle = WEAPON_COLOR.download;
+      g.lineWidth = 2;
+      g.globalAlpha = 0.6;
+      g.setLineDash([3, 5]);
+      g.lineDashOffset = calm ? 0 : -t * 30;
+      g.beginPath();
+      g.arc(P.x, P.y, 20, 0, 6.283);
+      g.stroke();
+      g.setLineDash([]);
+      g.lineDashOffset = 0;
+      g.globalAlpha = 1;
+    }
+    if (st.legends > 0) {
+      // l'aura : un anneau en pointillés par carte légendaire prise
+      const gc = ART[heroName()].pal ? ART[heroName()].pal.t : LIGHT;
+      g.strokeStyle = gc;
+      g.lineWidth = 1.5;
+      g.setLineDash([4, 6]);
+      for (let i = 0; i < Math.min(st.legends, 6); i++) {
+        g.globalAlpha = calm ? 0.35 : 0.25 + 0.15 * Math.sin(t * 3 + i);
+        g.lineDashOffset = calm ? 0 : -t * 20 * (i % 2 ? 1 : -1);
+        g.beginPath();
+        g.arc(P.x, P.y, 15 + 4 * i, 0, 6.283);
+        g.stroke();
+      }
+      g.setLineDash([]);
+      g.lineDashOffset = 0;
+      g.globalAlpha = 1;
+    }
+    if (heroName() === "player") { // l'ancien dessin avait sa visière peinte par-dessus
+      g.fillStyle = BG;
+      g.fillRect(Math.round(P.x - 4 + Math.cos(P.aim) * 2), Math.round(P.y - 5 + Math.sin(P.aim) * 2), 8, 3);
+    }
+    if (P.muzzle > 0) {
+      const mx = P.x + Math.cos(P.aim) * 14, my = P.y + Math.sin(P.aim) * 14;
+      g.fillStyle = heroColor();
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(mx, my, 9, 0, 6.283);
+      g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = 1;
+      g.fillStyle = "#ffffff";
+      g.fillRect(Math.round(mx - 2), Math.round(my - 2), 5, 5);
+    }
+  }
+
+  // les nombres de dégâts
+  g.textAlign = "center";
+  texts.forEach((q) => {
+    g.globalAlpha = Math.min(1, q.life / 0.3);
+    g.font = "bold " + q.size + "px 'Courier New', monospace";
+    g.fillStyle = BG;
+    g.fillText(q.txt, q.x + 1, q.y + 1);
+    g.fillStyle = q.color;
+    g.fillText(q.txt, q.x, q.y);
+  });
+  g.globalAlpha = 1;
+
+  // l'écran : bords assombris en damier (sans flou), joystick, série de tués
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  vignette();
+  if (joy) {
+    g.strokeStyle = "#333333";
+    g.lineWidth = 2;
+    g.beginPath();
+    g.arc(joy.ox, joy.oy, 56, 0, 6.283);
+    g.stroke();
+    const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy), k = d > 56 ? 56 / d : 1;
+    g.globalAlpha = 0.4;
+    g.fillStyle = GREY;
+    g.beginPath();
+    g.arc(joy.ox + dx * k, joy.oy + dy * k, 20, 0, 6.283);
+    g.fill();
+    g.globalAlpha = 1;
+  }
+  if (combo >= 5 && (mode === "play" || mode === "levelup" || mode === "pause")) {
+    const mu = comboMult();
+    g.font = "bold " + (mu >= 3 ? 20 : 16) + "px 'Courier New', monospace";
+    g.fillStyle = mu >= 3 ? PINK : LIGHT;
+    g.fillText("série " + combo + (mu > 1 ? "  score x" + mu : ""), cssW / 2, 96);
+  }
+};
+
+// en test (#perf), une page masquée ne reçoit pas requestAnimationFrame : window.__swarmRaf le remplace
+const schedule = (f) => (dbg.test && window.__swarmRaf ? window.__swarmRaf(f) : requestAnimationFrame(f));
+let perfAcc = 0, perfN = 0, perfTxt = "";
+const frame = (now) => {
+  raf = schedule(frame);
+  const c0 = dbg.perf ? performance.now() : 0;
+  const dt = clamp((now - last) / 1000, 0, 1 / 30);
+  last = now;
+  if (mode === "play") {
+    if (freeze > 0) freeze -= dt;
+    else update(dt);
+    drawHud();
+  } else if (mode === "menu") drift(dt);
+  render();
+  if (dbg.perf) {
+    perfAcc += performance.now() - c0;
+    if (++perfN >= 30) {
+      perfTxt = (perfAcc / perfN).toFixed(1) + " ms · " + enemies.length + " ennemis";
+      cv.dataset.perf = perfTxt;
+      perfAcc = perfN = 0;
+    }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = LIGHT;
+    g.font = "12px 'Courier New', monospace";
+    g.textAlign = "left";
+    g.fillText(perfTxt, 14, cssH - 40);
+  }
+};
+
+// avec #perf ou #test, l'état est lisible depuis la console : ça sert aux tests automatiques
+if (dbg.test) {
+  window.__swarm = {
+    get P() { return P; }, get enemies() { return enemies; }, get ebullets() { return ebullets; }, get gems() { return gems; },
+    get mode() { return mode; }, get t() { return t; }, get level() { return level; }, get kills() { return kills; },
+    get st() { return st; }, get lv() { return lv; }, get score() { return liveScore(); }, sprite,
+  };
+}
+
